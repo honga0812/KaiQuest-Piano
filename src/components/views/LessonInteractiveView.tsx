@@ -357,24 +357,24 @@ export const LessonInteractiveView: React.FC<LessonInteractiveViewProps> = ({
   };
 
   return (
-    <div className={`flex flex-col h-full w-full max-w-6xl mx-auto px-3 md:px-6 py-2 select-none overflow-hidden justify-between ${className}`}>
+    <div className={`flex flex-col min-h-full w-full max-w-6xl mx-auto px-3 md:px-6 py-2 select-none overflow-y-auto justify-between gap-3 pb-24 ${className}`}>
       {/* Top Header Control Deck - Bright, Cheerful & Kid-Friendly */}
       <div className="flex flex-col gap-3 shrink-0">
-        <div className="flex flex-wrap items-center justify-between gap-3 bg-white/95 border-2 border-amber-300 rounded-3xl p-3.5 md:p-4 shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-3 bg-white/95 border-3 border-amber-300 rounded-3xl p-3.5 md:p-4 shadow-sm">
           {/* Back Button & Title */}
           <div className="flex items-center gap-3">
             <button
               onClick={onBackToMap}
-              className="flex items-center gap-2 px-4 py-2 bg-amber-100 hover:bg-amber-200 text-amber-950 text-sm md:text-base font-black rounded-2xl border-2 border-amber-300 transition shadow-sm active:scale-95"
+              className="flex items-center gap-2 px-5 py-3 bg-amber-100 hover:bg-amber-200 text-amber-950 text-base md:text-lg font-black rounded-2xl border-2 border-amber-300 transition shadow-sm active:scale-95"
             >
               <span>←</span>
               <span>返回地圖</span>
             </button>
             <div>
-              <h2 className="text-lg md:text-2xl font-black text-amber-950 tracking-tight leading-tight line-clamp-1">
+              <h2 className="text-xl md:text-2xl font-black text-amber-950 tracking-tight leading-tight line-clamp-1">
                 {lesson.songName} · {currentChallenge.title}
               </h2>
-              <span className="text-xs md:text-sm text-amber-800 font-bold">
+              <span className="text-xs md:text-sm text-amber-800 font-extrabold">
                 {currentChallenge.titleEn}
               </span>
             </div>
@@ -386,7 +386,7 @@ export const LessonInteractiveView: React.FC<LessonInteractiveViewProps> = ({
               <button
                 key={ch.id}
                 onClick={() => switchChallenge(idx)}
-                className={`px-3.5 py-2 rounded-xl text-sm md:text-base font-black transition-all whitespace-nowrap ${
+                className={`px-4 py-2.5 rounded-xl text-base md:text-lg font-black transition-all whitespace-nowrap active:scale-95 ${
                   activeChallengeIndex === idx
                     ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md scale-105'
                     : 'text-amber-950 hover:bg-amber-200/70'
@@ -400,13 +400,13 @@ export const LessonInteractiveView: React.FC<LessonInteractiveViewProps> = ({
           {/* Quick Right Action Controls */}
           <div className="flex items-center gap-2.5">
             {/* Phrase combo & progress status */}
-            <div className="flex items-center gap-2 bg-amber-100 border-2 border-amber-300 px-3.5 py-2 rounded-2xl text-sm md:text-base font-black text-amber-950 shadow-sm">
+            <div className="flex items-center gap-2 bg-amber-100 border-2 border-amber-300 px-4 py-2.5 rounded-2xl text-base md:text-lg font-black text-amber-950 shadow-sm">
               <span className="text-amber-900">進度:</span>
               <span className="font-mono text-blue-700 text-base md:text-lg">
                 {currentNoteIndex} / {notes.length}
               </span>
               {comboStreak > 1 && (
-                <span className="bg-rose-500 text-white px-2 py-0.5 rounded-full font-black text-xs animate-bounce shadow-sm">
+                <span className="bg-rose-500 text-white px-2 py-0.5 rounded-full font-black text-xs md:text-sm animate-bounce shadow-sm">
                   🔥{comboStreak}連擊
                 </span>
               )}
@@ -415,7 +415,7 @@ export const LessonInteractiveView: React.FC<LessonInteractiveViewProps> = ({
             {/* Quick Metronome Toggle */}
             <button
               onClick={() => setIsMetronomeActive(!isMetronomeActive)}
-              className={`flex items-center gap-2 px-3.5 py-2 text-sm md:text-base font-black rounded-2xl border-2 transition shadow-sm active:scale-95 ${
+              className={`flex items-center gap-2 px-4 py-2.5 text-base md:text-lg font-black rounded-2xl border-2 transition shadow-sm active:scale-95 ${
                 isMetronomeActive
                   ? 'bg-emerald-500 border-emerald-600 text-white shadow-md'
                   : 'bg-white border-amber-300 text-amber-950 hover:bg-amber-50'
@@ -429,7 +429,7 @@ export const LessonInteractiveView: React.FC<LessonInteractiveViewProps> = ({
             {/* Collapsible Tool Bar Switch */}
             <button
               onClick={() => setShowTabletPracticeTools(!showTabletPracticeTools)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-sm md:text-base font-black transition-all border-2 shadow-sm active:scale-95 ${
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-base md:text-lg font-black transition-all border-2 shadow-sm active:scale-95 ${
                 showTabletPracticeTools
                   ? 'bg-gradient-to-r from-amber-400 to-orange-400 border-amber-500 text-slate-950'
                   : 'bg-white hover:bg-amber-50 border-amber-300 text-amber-950'

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { pianoSynth } from '../../audio/pianoSynthesizer';
+import { TrebleClefGlyph, BassClefGlyph, AltoClefGlyph } from './MusicSvgSymbols';
 
 export type ClefMode = 'grand' | 'alto' | 'tenor' | 'treble' | 'bass';
 
@@ -173,6 +174,8 @@ export const MusicStaffComponent: React.FC<MusicStaffComponentProps> = ({
         <svg
           viewBox={clef === 'grand' ? `0 0 ${staffWidth} 300` : `0 0 ${staffWidth} 175`}
           className="w-full h-auto min-w-[620px]"
+          preserveAspectRatio="xMidYMid meet"
+          style={{ display: 'block', width: '100%', height: 'auto' }}
         >
           <defs>
             <filter id="musicStaffGlow" x="-30%" y="-30%" width="160%" height="160%">
@@ -197,11 +200,11 @@ export const MusicStaffComponent: React.FC<MusicStaffComponentProps> = ({
 
               {/* Upper Treble Staff Header Text */}
               <text x="52" y="24" fontSize="11" fontWeight="900" fill="#2563EB" fontFamily="sans-serif">
-                𝄞 高音譜表 (右手旋律區 · Treble Staff)
+                🎼 高音譜表 (右手旋律區 · Treble Staff)
               </text>
               {/* Lower Bass Staff Header Text */}
               <text x="52" y="162" fontSize="11" fontWeight="900" fill="#7C3AED" fontFamily="sans-serif">
-                𝄢 低音譜表 (左手伴奏區 · Bass Staff)
+                🎵 低音譜表 (左手伴奏區 · Bass Staff)
               </text>
 
               {/* Treble 5 lines (Y = 36, 54, 72, 90, 108) */}
@@ -241,10 +244,8 @@ export const MusicStaffComponent: React.FC<MusicStaffComponentProps> = ({
                 />
               )}
 
-              {/* Treble G-Clef Glyph */}
-              <text x="54" y="98" fontSize="66" fill="#1E293B" fontFamily="serif" style={{ pointerEvents: 'none' }}>
-                𝄞
-              </text>
+              {/* Treble G-Clef Vector Glyph */}
+              <TrebleClefGlyph x={48} y={24} scale={0.88} color="#1E293B" />
 
               {/* Central Middle C Floating Bridge (Y = 138) */}
               <g transform="translate(0, 138)">
@@ -293,10 +294,8 @@ export const MusicStaffComponent: React.FC<MusicStaffComponentProps> = ({
               )}
 
 
-              {/* Bass F-Clef Glyph */}
-              <text x="54" y="244" fontSize="56" fill="#1E293B" fontFamily="serif" style={{ pointerEvents: 'none' }}>
-                𝄢
-              </text>
+              {/* Bass F-Clef Vector Glyph */}
+              <BassClefGlyph x={50} y={196} scale={0.95} color="#1E293B" />
 
               {/* Interactive Notes on Grand Staff */}
               {activeNotes.map((note, idx) => {
@@ -375,7 +374,7 @@ export const MusicStaffComponent: React.FC<MusicStaffComponentProps> = ({
             <g>
               {/* Header Title */}
               <text x="52" y="24" fontSize="12" fontWeight="900" fill="#D97706" fontFamily="sans-serif">
-                𝄡 中音譜表 (Alto Clef / C 譜號) · 中提琴 (Viola) 必修
+                🎻 中音譜表 (Alto Clef / C 譜號) · 中提琴 (Viola) 必修
               </text>
 
               {/* 5 Lines (Y = 36, 54, 72, 90, 108) */}
@@ -474,7 +473,7 @@ export const MusicStaffComponent: React.FC<MusicStaffComponentProps> = ({
           {clef === 'treble' && (
             <g>
               <text x="52" y="24" fontSize="12" fontWeight="900" fill="#2563EB" fontFamily="sans-serif">
-                𝄞 高音譜表 (Treble Staff / G 譜號)
+                🎼 高音譜表 (Treble Staff / G 譜號)
               </text>
 
               {[0, 1, 2, 3, 4].map((i) => {
@@ -507,9 +506,8 @@ export const MusicStaffComponent: React.FC<MusicStaffComponentProps> = ({
                 />
               )}
 
-              <text x="54" y="98" fontSize="66" fill="#1E293B" fontFamily="serif" style={{ pointerEvents: 'none' }}>
-                𝄞
-              </text>
+              {/* Treble G-Clef Vector Glyph */}
+              <TrebleClefGlyph x={48} y={24} scale={0.88} color="#2563EB" />
 
               {activeNotes.map((note, idx) => {
                 const isSelected = activeMidi === note.midiNote;
@@ -541,7 +539,7 @@ export const MusicStaffComponent: React.FC<MusicStaffComponentProps> = ({
           {clef === 'bass' && (
             <g>
               <text x="52" y="24" fontSize="12" fontWeight="900" fill="#7C3AED" fontFamily="sans-serif">
-                𝄢 低音譜表 (Bass Staff / F 譜號)
+                🎵 低音譜表 (Bass Staff / F 譜號)
               </text>
 
               {[0, 1, 2, 3, 4].map((i) => {
@@ -575,9 +573,8 @@ export const MusicStaffComponent: React.FC<MusicStaffComponentProps> = ({
               )}
 
 
-              <text x="54" y="88" fontSize="56" fill="#1E293B" fontFamily="serif" style={{ pointerEvents: 'none' }}>
-                𝄢
-              </text>
+              {/* Bass F-Clef Vector Glyph */}
+              <BassClefGlyph x={50} y={36} scale={0.95} color="#7C3AED" />
 
               {activeNotes.map((note, idx) => {
                 const isSelected = activeMidi === note.midiNote;

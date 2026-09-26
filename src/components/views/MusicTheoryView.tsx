@@ -3,6 +3,20 @@ import { pianoSynth } from '../../audio/pianoSynthesizer';
 import { FoxPracticeCorner } from '../mascot/FoxPracticeCorner';
 import { TheoryStaffInteractive, ClefType, TheoryStaffNoteItem } from '../piano/TheoryStaffInteractive';
 import { MusicStaffComponent, MusicStaffItem } from '../piano/MusicStaffComponent';
+import {
+  WholeNoteSvg,
+  HalfNoteSvg,
+  QuarterNoteSvg,
+  EighthNoteSvg,
+  SixteenthNoteSvg,
+  DottedHalfNoteSvg,
+  BeamedEighthNotesSvg,
+  BeamedSixteenthNotesSvg,
+  TrebleClefSvg,
+  BassClefSvg,
+  AltoClefSvg,
+  BeatDurationBar,
+} from '../piano/MusicSvgSymbols';
 
 type TheorySubTab = 'overview' | 'beats' | 'treble' | 'bass' | 'alto' | 'quiz';
 
@@ -100,7 +114,7 @@ export const MusicTheoryView: React.FC = () => {
       auxStaff: {
         clef: 'treble',
         highlightMidi: 60,
-        caption: '𝅘𝅥 四分音符輔助：實心黑符頭 + 符幹，在 4/4 拍中代表 1 拍',
+        caption: '🎼 四分音符輔助：實心黑符頭 + 符幹，在 4/4 拍中代表 1 拍',
         sampleNotes: [
           { id: 'q-n1', noteName: 'C4', solfege: 'Do', midiNote: 60, positionLabel: '下加1線 (1拍)', lineOrSpace: 'ledger', indexNum: 0 },
         ],
@@ -115,7 +129,7 @@ export const MusicTheoryView: React.FC = () => {
       auxStaff: {
         clef: 'treble',
         highlightMidi: 64,
-        caption: '𝅘𝅥𝅮 八分音符輔助：帶單條符尾，長度是 ½ 拍（二分之一拍）',
+        caption: '🎵 八分音符輔助：帶單條符尾，長度是 ½ 拍（二分之一拍）',
         sampleNotes: [
           { id: 'q-n2', noteName: 'E4', solfege: 'Mi', midiNote: 64, positionLabel: '第1線 (½拍)', lineOrSpace: 'line', indexNum: 1 },
         ],
@@ -130,7 +144,7 @@ export const MusicTheoryView: React.FC = () => {
       auxStaff: {
         clef: 'treble',
         highlightMidi: 67,
-        caption: '𝅘𝅥𝅯 十六分音符輔助：帶兩條平行符尾，長度是 ¼ 拍（四分之一拍）',
+        caption: '⚡ 十六分音符輔助：帶兩條平行符尾，長度是 ¼ 拍（四分之一拍）',
         sampleNotes: [
           { id: 'q-n3', noteName: 'G4', solfege: 'Sol', midiNote: 67, positionLabel: '第2線 (¼拍)', lineOrSpace: 'line', indexNum: 2 },
         ],
@@ -146,7 +160,7 @@ export const MusicTheoryView: React.FC = () => {
         clef: 'bass',
         highlightLine: 4,
         highlightMidi: 53,
-        caption: '𝄢 低音五線譜輔助：金色高亮處即為低音譜號兩點所夾的「第 4 線 (F3 / Fa)」',
+        caption: '🐻 低音五線譜輔助：金色高亮處即為低音譜號兩點所夾的「第 4 線 (F3 / Fa)」',
       },
     },
     {
@@ -171,7 +185,7 @@ export const MusicTheoryView: React.FC = () => {
         clef: 'alto',
         highlightLine: 3,
         highlightMidi: 60,
-        caption: '𝄡 中音五線譜輔助：中心凹口精準對齊「第 3 線 = 中央 C4」',
+        caption: '🎻 中音五線譜輔助：中心凹口精準對齊「第 3 線 = 中央 C4」',
       },
     },
     {
@@ -183,7 +197,7 @@ export const MusicTheoryView: React.FC = () => {
       auxStaff: {
         clef: 'treble',
         highlightMidi: 65,
-        caption: '𝅗𝅥. 附點二分音符輔助：2拍 + 附點1拍 = 3 拍',
+        caption: '🌟 附點二分音符輔助：2拍 + 附點1拍 = 3 拍',
         sampleNotes: [
           { id: 'q-n4', noteName: 'F4', solfege: 'Fa', midiNote: 65, positionLabel: '第1間 (3拍)', lineOrSpace: 'space', indexNum: 1 },
         ],
@@ -305,7 +319,9 @@ export const MusicTheoryView: React.FC = () => {
           <div className="bg-white border-3 border-amber-300 rounded-3xl p-6 md:p-8 shadow-md flex flex-col gap-6 text-slate-900">
             <div className="flex items-center justify-between flex-wrap gap-3 border-b-2 border-amber-200 pb-4">
               <div className="flex items-center gap-3">
-                <span className="text-4xl text-amber-500 font-serif">𝅘𝅥</span>
+                <div className="p-2 bg-amber-100 rounded-2xl border border-amber-300 shadow-xs flex items-center justify-center">
+                  <QuarterNoteSvg size={38} color="#D97706" />
+                </div>
                 <div>
                   <h2 className="text-xl md:text-2xl font-black text-amber-950">
                     音符時值家族 (Note Values & Durations)
@@ -325,8 +341,10 @@ export const MusicTheoryView: React.FC = () => {
               {/* Whole Note */}
               <div className="bg-amber-50/80 border-2 border-amber-300 rounded-2xl p-5 flex flex-col justify-between shadow-sm hover:shadow-md transition">
                 <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-4xl text-amber-600 font-serif">𝅝</span>
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="w-16 h-12 bg-amber-100 rounded-xl border border-amber-300 flex items-center justify-center shadow-xs">
+                      <WholeNoteSvg size={44} color="#D97706" />
+                    </div>
                     <span className="px-3 py-1 rounded-full text-sm font-black bg-amber-200 text-amber-950">
                       4 拍
                     </span>
@@ -336,6 +354,7 @@ export const MusicTheoryView: React.FC = () => {
                     長相特徵：<strong>空心符頭，沒有符幹</strong>。<br />
                     口訣：「一、二、三、四」，像一顆圓滾滾的大麵包，吃四口才吃完！
                   </p>
+                  <BeatDurationBar beats={4} colorClass="bg-amber-400" label="4 拍 (滿小節)" />
                 </div>
                 <button
                   onClick={() => pianoSynth.playPianoNote(60, 0.9, 2.5)}
@@ -348,8 +367,10 @@ export const MusicTheoryView: React.FC = () => {
               {/* Half Note */}
               <div className="bg-sky-50/80 border-2 border-sky-300 rounded-2xl p-5 flex flex-col justify-between shadow-sm hover:shadow-md transition">
                 <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-4xl text-sky-600 font-serif">𝅗𝅥</span>
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="w-16 h-14 bg-sky-100 rounded-xl border border-sky-300 flex items-center justify-center shadow-xs">
+                      <HalfNoteSvg size={48} color="#0284C7" />
+                    </div>
                     <span className="px-3 py-1 rounded-full text-sm font-black bg-sky-200 text-sky-950">
                       2 拍
                     </span>
@@ -359,6 +380,7 @@ export const MusicTheoryView: React.FC = () => {
                     長相特徵：<strong>空心符頭，長出一條符幹</strong>。<br />
                     口訣：「一、二」，正好是全音符切一半的長度！
                   </p>
+                  <BeatDurationBar beats={2} colorClass="bg-sky-400" label="2 拍 (佔半個小節)" />
                 </div>
                 <button
                   onClick={() => pianoSynth.playPianoNote(64, 0.9, 1.4)}
@@ -371,8 +393,10 @@ export const MusicTheoryView: React.FC = () => {
               {/* Quarter Note */}
               <div className="bg-emerald-50/80 border-2 border-emerald-300 rounded-2xl p-5 flex flex-col justify-between shadow-sm hover:shadow-md transition">
                 <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-4xl text-emerald-600 font-serif">𝅘𝅥</span>
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="w-16 h-14 bg-emerald-100 rounded-xl border border-emerald-300 flex items-center justify-center shadow-xs">
+                      <QuarterNoteSvg size={48} color="#059669" />
+                    </div>
                     <span className="px-3 py-1 rounded-full text-sm font-black bg-emerald-200 text-emerald-950">
                       1 拍
                     </span>
@@ -382,6 +406,7 @@ export const MusicTheoryView: React.FC = () => {
                     長相特徵：<strong>實心黑符頭，有符幹</strong>。<br />
                     口訣：「嗒！」，像心跳或走路的每一步，最標準的一拍！
                   </p>
+                  <BeatDurationBar beats={1} colorClass="bg-emerald-400" label="1 拍 (標準基準拍)" />
                 </div>
                 <button
                   onClick={() => pianoSynth.playPianoNote(67, 0.9, 0.7)}
@@ -394,20 +419,25 @@ export const MusicTheoryView: React.FC = () => {
               {/* Eighth Note (1/2 beat) */}
               <div className="bg-pink-50/80 border-3 border-pink-300 rounded-2xl p-5 flex flex-col justify-between shadow-md">
                 <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-4xl text-pink-600 font-serif">𝅘𝅥𝅮</span>
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="px-3 py-1.5 bg-pink-100 rounded-xl border border-pink-300 flex items-center justify-center gap-2 shadow-xs">
+                      <EighthNoteSvg size={44} color="#DB2777" />
+                      <span className="text-xs font-black text-pink-500">或</span>
+                      <BeamedEighthNotesSvg size={40} color="#DB2777" />
+                    </div>
                     <span className="px-3 py-1 rounded-full text-sm font-black bg-pink-200 text-pink-950">
                       ½ 拍 (二分之一拍)
                     </span>
                   </div>
                   <h3 className="text-lg font-black text-pink-950 flex items-center gap-2">
                     <span>八分音符</span>
-                    <span className="text-sm font-bold text-pink-600">(單符尾)</span>
+                    <span className="text-sm font-bold text-pink-600">(單符尾 / 連梁)</span>
                   </h3>
                   <p className="text-sm text-slate-700 mt-1.5 leading-relaxed font-bold">
-                    長相特徵：<strong>實心黑符頭 + 符幹 + 單條小尾巴（單符尾）</strong>！<br />
+                    長相特徵：<strong>實心黑符頭 + 符幹 + 單條小尾巴（或雙音符連梁）</strong>！<br />
                     口訣：「提、提」，速度比四分音符快一倍，<strong>兩個八分音符 = 1 個四分音符</strong>！
                   </p>
+                  <BeatDurationBar beats={0.5} colorClass="bg-pink-400" label="½ 拍 (2個八分音符=1拍)" />
                 </div>
                 <button
                   onClick={() => {
@@ -423,20 +453,25 @@ export const MusicTheoryView: React.FC = () => {
               {/* Sixteenth Note (1/4 beat) */}
               <div className="bg-teal-50/80 border-3 border-teal-300 rounded-2xl p-5 flex flex-col justify-between shadow-md">
                 <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-4xl text-teal-600 font-serif">𝅘𝅥𝅯</span>
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="px-2.5 py-1.5 bg-teal-100 rounded-xl border border-teal-300 flex items-center justify-center gap-1.5 shadow-xs">
+                      <SixteenthNoteSvg size={44} color="#0D9488" />
+                      <span className="text-xs font-black text-teal-500">或</span>
+                      <BeamedSixteenthNotesSvg size={38} color="#0D9488" />
+                    </div>
                     <span className="px-3 py-1 rounded-full text-sm font-black bg-teal-200 text-teal-950">
                       ¼ 拍 (四分之一拍)
                     </span>
                   </div>
                   <h3 className="text-lg font-black text-teal-950 flex items-center gap-2">
                     <span>十六分音符</span>
-                    <span className="text-sm font-bold text-teal-600">(雙符尾)</span>
+                    <span className="text-sm font-bold text-teal-600">(雙符尾 / 雙連梁)</span>
                   </h3>
                   <p className="text-sm text-slate-700 mt-1.5 leading-relaxed font-bold">
                     長相特徵：<strong>實心黑符頭 + 符幹 + 兩條平行尾巴（雙符尾）</strong>！<br />
                     口訣：「嘀哩哩哩」，像小鳥急速拍翅膀，<strong>四個十六分音符 = 1 個四分音符</strong>！
                   </p>
+                  <BeatDurationBar beats={0.25} colorClass="bg-teal-400" label="¼ 拍 (4個十六分音符=1拍)" />
                 </div>
                 <button
                   onClick={() => {
@@ -453,8 +488,10 @@ export const MusicTheoryView: React.FC = () => {
               {/* Dotted Notes */}
               <div className="bg-slate-950/80 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between hover:border-purple-400/60 transition shadow-sm">
                 <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-3xl text-purple-300 font-serif">𝅗𝅥.</span>
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="w-16 h-14 bg-purple-900/60 rounded-xl border border-purple-500/40 flex items-center justify-center shadow-xs">
+                      <DottedHalfNoteSvg size={48} color="#C084FC" />
+                    </div>
                     <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-purple-500/20 text-purple-300 border border-purple-400/40">
                       附點 +50%
                     </span>
@@ -465,6 +502,7 @@ export const MusicTheoryView: React.FC = () => {
                     • 附點二分音符 = 2拍 + 1拍 = <strong>3 拍</strong><br />
                     • 附點四分音符 = 1拍 + 半拍 = <strong>1.5 拍</strong>
                   </p>
+                  <BeatDurationBar beats={3} colorClass="bg-purple-500" label="3 拍 (2拍 + 1拍)" />
                 </div>
                 <button
                   onClick={() => pianoSynth.playPianoNote(67, 0.9, 1.9)}
@@ -582,7 +620,9 @@ export const MusicTheoryView: React.FC = () => {
         <div className="flex flex-col gap-6 text-left">
           <div className="bg-white border-3 border-amber-300 rounded-3xl p-6 md:p-8 shadow-md flex flex-col gap-6 text-slate-900">
             <div className="flex items-center gap-4 border-b-2 border-amber-200 pb-4">
-              <span className="text-4xl text-amber-500 font-serif">𝄞</span>
+              <div className="p-2 bg-amber-100 rounded-2xl border border-amber-300 shadow-xs flex items-center justify-center">
+                <TrebleClefSvg size={48} color="#D97706" />
+              </div>
               <div>
                 <h2 className="text-xl md:text-2xl font-black text-amber-950">
                   高音五線譜 (Treble Staff / G 譜號)
@@ -720,7 +760,9 @@ export const MusicTheoryView: React.FC = () => {
         <div className="flex flex-col gap-6 text-left">
           <div className="bg-white border-3 border-amber-300 rounded-3xl p-6 md:p-8 shadow-md flex flex-col gap-6 text-slate-900">
             <div className="flex items-center gap-4 border-b-2 border-amber-200 pb-4">
-              <span className="text-4xl text-purple-600 font-serif">𝄢</span>
+              <div className="p-2 bg-purple-100 rounded-2xl border border-purple-300 shadow-xs flex items-center justify-center">
+                <BassClefSvg size={44} color="#7C3AED" />
+              </div>
               <div>
                 <h2 className="text-xl md:text-2xl font-black text-amber-950">
                   低音五線譜 (Bass Staff / F 譜號)
@@ -859,7 +901,9 @@ export const MusicTheoryView: React.FC = () => {
         <div className="flex flex-col gap-6 text-left">
           <div className="bg-white border-3 border-amber-300 rounded-3xl p-6 md:p-8 shadow-md flex flex-col gap-6 text-slate-900">
             <div className="flex items-center gap-4 border-b-2 border-amber-200 pb-4">
-              <span className="text-4xl text-amber-600 font-serif">𝄡</span>
+              <div className="p-2 bg-amber-100 rounded-2xl border border-amber-300 shadow-xs flex items-center justify-center">
+                <AltoClefSvg size={44} color="#D97706" />
+              </div>
               <div>
                 <h2 className="text-xl md:text-2xl font-black text-amber-950">
                   中音五線譜 (Alto Staff / C 譜號)

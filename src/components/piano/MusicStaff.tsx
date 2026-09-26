@@ -20,7 +20,7 @@ export const MusicStaff: React.FC<MusicStaffProps> = ({
   className = '',
 }) => {
   // Staff geometry - Enlarged for tablets and children's visual clarity
-  const lineSpacing = 18; // Spacious 18px between staff lines
+  const lineSpacing = 18; // 18px between staff lines
   const staffTopY = 56;
   // 5 lines at Y:
   // Line 5 (F5) = 56
@@ -72,262 +72,181 @@ export const MusicStaff: React.FC<MusicStaffProps> = ({
     };
   });
 
-  // Group notes by measure
-  const notesByMeasure: { measureIndex: number; notes: EnrichedNoteItem[] }[] = [];
-  enrichedNotes.forEach((item) => {
-    let group = notesByMeasure.find((g) => g.measureIndex === item.measureIdx);
-    if (!group) {
-      group = { measureIndex: item.measureIdx, notes: [] };
-      notesByMeasure.push(group);
-    }
-    group.notes.push(item);
-  });
+  // Calculate sliding focus window for tablet screen responsiveness
+  // A tablet viewport shows 6-8 notes comfortably without squishing or cutting off
+  const MAX_VISIBLE_NOTES = 8;
+  const totalNotesCount = enrichedNotes.length;
+
+  let windowStart = 0;
+  if (totalNotesCount > MAX_VISIBLE_NOTES) {
+    windowStart = Math.max(0, Math.min(totalNotesCount - MAX_VISIBLE_NOTES, currentIndex - 2));
+  }
+  const windowEnd = Math.min(totalNotesCount, windowStart + MAX_VISIBLE_NOTES);
+  const visibleItems = enrichedNotes.slice(windowStart, windowEnd);
 
   // Active measure highlight
   const currentItem = enrichedNotes[currentIndex];
   const activeMeasureIdx = currentItem ? currentItem.measureIdx : 0;
 
-  // Calculate layout geometry
-  const leftMargin = 125; // Clef + Time signature + legend space
-  const noteSpacing = Math.max(72, Math.min(105, 820 / Math.max(1, notes.length)));
-  const totalContentWidth = Math.max(860, leftMargin + notes.length * noteSpacing + 120);
+  // Responsive SVG canvas dimensions
+  const svgWidth = 760;
+  const leftMargin = 120; // Clef + Time signature
+  const rightMargin = 40;
+  const availableWidth = svgWidth - leftMargin - rightMargin;
+  const noteSpacing = visibleItems.length > 0 ? availableWidth / visibleItems.length : 80;
+
+  // Helper for all ledger lines
+  const getLedgerLinesY = (noteY: number): number[] => {
+    const lines: number[] = [];
+    // Below Line 1 (Y=128): ledger lines at 146, 164, 182...
+    if (noteY >= 142) {
+      for (let ly = 146; ly <= noteY + 5; ly += 18) {
+        lines.push(ly);
+      }
+    }
+    // Above Line 5 (Y=56): ledger lines at 38, 20, 2...
+    if (noteY <= 42) {
+      for (let ly = 38; ly >= noteY - 5; ly -= 18) {
+        lines.push(ly);
+      }
+    }
+    return lines;
+  };
 
   return (
-    <div className={`w-full overflow-x-auto select-none py-1 scrollbar-thin ${className}`}>
-      {/* Visual Duration Cheat-Sheet Pill Header for Children */}
-      <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-1.5 mb-1.5 bg-amber-50/90 border border-amber-200 rounded-2xl text-xs shadow-sm">
-        <div className="flex items-center gap-2">
-          <span className="text-amber-800 font-black flex items-center gap-1 text-xs">
+    <div className={`w-full select-none flex flex-col gap-2 ${className}`}>
+      {/* Visual Duration & Tablet Window Navigator Header */}
+      <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-2 bg-amber-50/95 border-2 border-amber-300 rounded-2xl text-xs md:text-sm shadow-sm">
+        {/* Note Duration Badges - iOS & iPad friendly (no unicode SMP tofu blocks) */}
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-amber-950 font-black flex items-center gap-1.5">
             <span>🎼</span>
-            <span>五線譜音符與小節說明:</span>
+            <span>五線譜節奏符號:</span>
           </span>
-          <div className="flex flex-wrap items-center gap-2 text-[11px] font-bold">
-            <span className="px-2 py-0.5 rounded-full bg-white border border-amber-300 text-slate-800 flex items-center gap-1">
-              <span className="text-base leading-none">𝅝</span> 全音符 (空心無幹, 4拍)
+          <div className="flex flex-wrap items-center gap-1.5 text-xs font-black">
+            <span className="px-2.5 py-1 rounded-xl bg-white border border-amber-300 text-slate-800 flex items-center gap-1.5 shadow-xs">
+              <span className="w-3.5 h-2.5 rounded-full border-2 border-amber-600 bg-white inline-block -rotate-12" />
+              <span>全音符 (空心4拍)</span>
             </span>
-            <span className="px-2 py-0.5 rounded-full bg-white border border-amber-300 text-slate-800 flex items-center gap-1">
-              <span className="text-base leading-none">𝅗𝅥</span> 二分音符 (空心有幹, 2拍)
+            <span className="px-2.5 py-1 rounded-xl bg-white border border-amber-300 text-slate-800 flex items-center gap-1.5 shadow-xs">
+              <span className="flex items-center -rotate-12">
+                <span className="w-3.5 h-2.5 rounded-full border-2 border-amber-600 bg-white inline-block" />
+                <span className="w-0.5 h-3.5 bg-amber-800 inline-block -ml-0.5 -mt-2" />
+              </span>
+              <span>二分音符 (2拍)</span>
             </span>
-            <span className="px-2 py-0.5 rounded-full bg-white border border-amber-300 text-slate-800 flex items-center gap-1">
-              <span className="text-base leading-none">𝅘𝅥</span> 四分音符 (實心有幹, 1拍)
+            <span className="px-2.5 py-1 rounded-xl bg-white border border-amber-300 text-slate-800 flex items-center gap-1.5 shadow-xs">
+              <span className="flex items-center -rotate-12">
+                <span className="w-3.5 h-2.5 rounded-full bg-slate-900 inline-block" />
+                <span className="w-0.5 h-3.5 bg-slate-900 inline-block -ml-0.5 -mt-2" />
+              </span>
+              <span>四分音符 (1拍)</span>
             </span>
-            <span className="px-2 py-0.5 rounded-full bg-white border border-amber-300 text-slate-800 flex items-center gap-1">
-              <span className="text-base leading-none">𝅘𝅥𝅮</span> 八分音符 (實心單尾, ½拍)
-            </span>
-            <span className="px-2 py-0.5 rounded-full bg-white border border-amber-300 text-slate-800 flex items-center gap-1">
-              <span className="text-base leading-none">𝅘𝅥𝅯</span> 十六分音符 (實心雙尾, ¼拍)
+            <span className="px-2.5 py-1 rounded-xl bg-white border border-amber-300 text-slate-800 flex items-center gap-1.5 shadow-xs">
+              <span className="flex items-center -rotate-12">
+                <span className="w-3 h-2 rounded-full bg-slate-900 inline-block" />
+                <span className="w-0.5 h-3 bg-slate-900 inline-block -ml-0.5 -mt-2" />
+                <span className="w-1.5 h-1.5 rounded-tr-full border-t border-r border-slate-900 -ml-0.5 -mt-2" />
+              </span>
+              <span>八分音符 (½拍)</span>
             </span>
           </div>
         </div>
-        <div className="flex items-center gap-2 text-[11px] font-bold text-amber-900 bg-amber-100/80 px-2.5 py-0.5 rounded-full border border-amber-300">
-          <span>拍號：{timeSignature[0]}/{timeSignature[1]} 拍</span>
-          <span>·</span>
-          <span>每小節滿 {timeSignature[0]} 拍劃一條小節線</span>
+
+        {/* Window Range & Time Signature Info */}
+        <div className="flex items-center gap-2 text-xs md:text-sm font-black text-amber-950 bg-amber-100 px-3 py-1 rounded-xl border border-amber-300">
+          <span>拍號 {timeSignature[0]}/{timeSignature[1]} 拍</span>
+          {totalNotesCount > MAX_VISIBLE_NOTES && (
+            <span>
+              · 視窗 {windowStart + 1}~{windowEnd} / 共 {totalNotesCount} 音
+            </span>
+          )}
         </div>
       </div>
 
-      <div className="relative min-w-[800px] h-[230px] bg-gradient-to-b from-amber-50/95 via-white to-amber-50/90 rounded-3xl shadow-lg border-2 border-amber-300/90 flex items-center px-4 overflow-hidden">
-        <svg viewBox={`0 0 ${totalContentWidth} 220`} className="w-full h-full">
+      {/* SVG Canvas - Responsive fluid scaling for any tablet without overflow clipping */}
+      <div className="relative w-full bg-gradient-to-b from-amber-50/90 via-white to-amber-50/90 rounded-3xl shadow-md border-3 border-amber-300 flex items-center justify-center p-1 sm:p-2 overflow-hidden">
+        <svg
+          viewBox={`0 0 ${svgWidth} 220`}
+          className="w-full h-auto max-h-[250px]"
+          preserveAspectRatio="xMidYMid meet"
+        >
           <defs>
             <filter id="staffNoteGlow" x="-30%" y="-30%" width="160%" height="160%">
-              <feDropShadow dx="0" dy="3" stdDeviation="5" floodColor="#2563EB" floodOpacity="0.5" />
+              <feDropShadow dx="0" dy="3" stdDeviation="5" floodColor="#2563EB" floodOpacity="0.4" />
             </filter>
             <filter id="staffCorrectGlow" x="-40%" y="-40%" width="180%" height="180%">
               <feDropShadow dx="0" dy="0" stdDeviation="8" floodColor="#10B981" floodOpacity="0.9" />
             </filter>
             <filter id="targetPillGlow" x="-20%" y="-20%" width="140%" height="140%">
-              <feDropShadow dx="0" dy="2" stdDeviation="6" floodColor="#F59E0B" floodOpacity="0.45" />
+              <feDropShadow dx="0" dy="2" stdDeviation="6" floodColor="#F59E0B" floodOpacity="0.4" />
             </filter>
           </defs>
 
-          {/* Measure background pastel ribbons for active measure distinction */}
-          {notesByMeasure.map((group) => {
-            const firstNoteGlobalIdx = group.notes[0].globalIndex;
-            const lastNoteGlobalIdx = group.notes[group.notes.length - 1].globalIndex;
-            const mStartX = leftMargin + firstNoteGlobalIdx * noteSpacing - 32;
-            const mEndX = leftMargin + lastNoteGlobalIdx * noteSpacing + 42;
-            const isCurrentMeasure = group.measureIndex === activeMeasureIdx;
-
-            return (
-              <g key={`measure-bg-${group.measureIndex}`}>
-                {isCurrentMeasure && (
-                  <rect
-                    x={mStartX}
-                    y={12}
-                    width={mEndX - mStartX}
-                    height={196}
-                    rx={18}
-                    fill="#FEF3C7"
-                    fillOpacity="0.55"
-                    stroke="#F59E0B"
-                    strokeWidth="1.5"
-                    strokeDasharray="4 3"
-                  />
-                )}
-                {/* Measure Label Ribbon at top */}
-                <g transform={`translate(${(mStartX + mEndX) / 2}, 26)`}>
-                  <rect
-                    x="-42"
-                    y="-14"
-                    width="84"
-                    height="20"
-                    rx="10"
-                    fill={isCurrentMeasure ? '#2563EB' : '#F1F5F9'}
-                    stroke={isCurrentMeasure ? '#1D4ED8' : '#CBD5E1'}
-                    strokeWidth="1.5"
-                  />
-                  <text
-                    x="0"
-                    y="0"
-                    fontSize="11"
-                    fontWeight="900"
-                    fontFamily="sans-serif"
-                    fill={isCurrentMeasure ? '#FFFFFF' : '#475569'}
-                    textAnchor="middle"
-                  >
-                    第 {group.measureIndex + 1} 小節
-                  </text>
-                </g>
-              </g>
-            );
-          })}
-
-          {/* 5 Staff Lines - Thicker and prominent */}
+          {/* 5 Staff Lines - Bold, clear slate-700 */}
           {[0, 1, 2, 3, 4].map((i) => {
             const y = staffTopY + i * lineSpacing;
             return (
               <line
                 key={`line-${i}`}
-                x1="24"
+                x1="20"
                 y1={y}
-                x2={totalContentWidth - 24}
+                x2={svgWidth - 20}
                 y2={y}
-                stroke="#475569"
-                strokeWidth="2.4"
+                stroke="#334155"
+                strokeWidth="2.2"
               />
             );
           })}
 
-          {/* Treble Clef Graphic (High resolution G Clef) */}
-          <g transform="translate(34, 28) scale(1.05)">
+          {/* Treble Clef Graphic (High resolution G Clef SVG) */}
+          <g transform="translate(32, 28) scale(1.05)">
             <path
               d="M 28 82 C 28 92, 18 100, 8 100 C -2 100, -8 92, -8 82 C -8 72, 4 64, 18 64 C 36 64, 46 78, 46 95 C 46 116, 26 135, -2 135 C -28 135, -44 114, -44 85 C -44 50, -18 20, 12 -15 L 12 -45 C 12 -58, 2 -68, -8 -68 C -18 -68, -24 -60, -22 -50 L -22 -30"
               fill="none"
               stroke="#0F172A"
-              strokeWidth="5.5"
+              strokeWidth="5"
               strokeLinecap="round"
             />
-            <circle cx="8" cy="82" r="7" fill="#0F172A" />
+            <circle cx="8" cy="82" r="6.5" fill="#0F172A" />
           </g>
 
-          {/* Time Signature (拍號 e.g. 4/4 or 3/4) - High contrast & large */}
-          <g transform="translate(94, 6)">
-            <text x="0" y="86" fontSize="36" fontWeight="bold" fontFamily="serif" fill="#0F172A" textAnchor="middle">
+          {/* Time Signature (拍號 4/4 or 3/4) */}
+          <g transform="translate(90, 8)">
+            <text x="0" y="84" fontSize="32" fontWeight="bold" fontFamily="serif" fill="#0F172A" textAnchor="middle">
               {timeSignature[0]}
             </text>
-            <text x="0" y="122" fontSize="36" fontWeight="bold" fontFamily="serif" fill="#0F172A" textAnchor="middle">
+            <text x="0" y="118" fontSize="32" fontWeight="bold" fontFamily="serif" fill="#0F172A" textAnchor="middle">
               {timeSignature[1]}
             </text>
           </g>
 
-          {/* Measure Barlines & Final Double Barline (清晰貫穿五線小節線) */}
-          {notesByMeasure.map((group, mIdx) => {
-            const firstNoteGlobalIdx = group.notes[0].globalIndex;
-            const lastNoteGlobalIdx = group.notes[group.notes.length - 1].globalIndex;
-            const measureStartX = leftMargin + firstNoteGlobalIdx * noteSpacing - 30;
-            const measureEndX = leftMargin + lastNoteGlobalIdx * noteSpacing + 42;
-
-            return (
-              <g key={`barline-${group.measureIndex}`}>
-                {/* Barline at the boundary between measures (drawn before measure if not first) */}
-                {mIdx > 0 && (
-                  <g>
-                    {/* Vertical Barline across staff */}
-                    <line
-                      x1={measureStartX}
-                      y1={staffTopY}
-                      x2={measureStartX}
-                      y2={staffTopY + 4 * lineSpacing}
-                      stroke="#1E293B"
-                      strokeWidth="3.2"
-                      strokeLinecap="round"
-                    />
-                    {/* Little bar divider dot at bottom */}
-                    <circle cx={measureStartX} cy={staffTopY + 4 * lineSpacing + 8} r="3" fill="#64748B" />
-                  </g>
-                )}
-
-                {/* Final Double Barline at the conclusion of sheet music */}
-                {mIdx === notesByMeasure.length - 1 && (
-                  <g>
-                    <line
-                      x1={measureEndX}
-                      y1={staffTopY}
-                      x2={measureEndX}
-                      y2={staffTopY + 4 * lineSpacing}
-                      stroke="#0F172A"
-                      strokeWidth="2.5"
-                    />
-                    <line
-                      x1={measureEndX + 7}
-                      y1={staffTopY}
-                      x2={measureEndX + 7}
-                      y2={staffTopY + 4 * lineSpacing}
-                      stroke="#0F172A"
-                      strokeWidth="5.5"
-                      strokeLinecap="round"
-                    />
-                    <text
-                      x={measureEndX + 16}
-                      y={staffTopY + 2 * lineSpacing + 4}
-                      fontSize="11"
-                      fontWeight="900"
-                      fill="#0F172A"
-                      fontFamily="sans-serif"
-                    >
-                      完
-                    </text>
-                  </g>
-                )}
-              </g>
-            );
-          })}
-
-          {/* Render Notes with Explicit Duration Typology & Enlarged Head */}
-          {enrichedNotes.map((item) => {
-            const { note, globalIndex, durationBeats } = item;
+          {/* Render Visible Notes */}
+          {visibleItems.map((item, relIndex) => {
+            const { note, globalIndex, durationBeats, measureIdx } = item;
             const isTarget = globalIndex === currentIndex;
             const isPast = globalIndex < currentIndex;
-            const noteX = leftMargin + globalIndex * noteSpacing;
+            const noteX = leftMargin + relIndex * noteSpacing + noteSpacing / 2;
             const noteY = calculateNoteY(note.midiNote);
 
-            // Ledger Lines:
-            // C4 (midi 60) -> Y = 146 (1 ledger line below Line 1)
-            // A3 (midi 57) -> Y = 164 (2 ledger lines below)
-            // A5 (midi 81) -> Y = 38 (1 ledger line above)
-            const needsLedgerC4 = note.midiNote === 60;
-            const needsLedgerA3 = note.midiNote <= 58;
-            const needsLedgerA5 = note.midiNote >= 81;
+            // Ledger Lines
+            const ledgerYList = getLedgerLinesY(noteY);
 
-            // Accurate Duration Typology:
-            // Whole Note (全音符 4 拍): hollow oval, NO stem
-            // Dotted Half Note (附點二分 3 拍): hollow oval + stem + dot
-            // Half Note (二分音符 2 拍): hollow oval + stem
-            // Dotted Quarter Note (附點四分 1.5 拍): solid oval + stem + dot
-            // Quarter Note (四分音符 1 拍): solid oval + stem
-            // Eighth Note (八分音符 0.5 拍 / ½ 拍): solid oval + stem + 1 flag (單符尾)
-            // Sixteenth Note (十六分音符 0.25 拍 / ¼ 拍): solid oval + stem + 2 flags (雙符尾)
+            // Accurate Duration Typology
             const isWholeNote = durationBeats >= 3.5;
             const isDottedHalf = durationBeats >= 2.5 && durationBeats < 3.5;
             const isHalfNote = durationBeats >= 1.75 && durationBeats < 2.5;
             const isDottedQuarter = durationBeats >= 1.25 && durationBeats < 1.75;
             const isSixteenthNote = durationBeats <= 0.35;
             const isEighthNote = !isSixteenthNote && durationBeats <= 0.75;
-            const isQuarterNote = !isWholeNote && !isDottedHalf && !isHalfNote && !isDottedQuarter && !isEighthNote && !isSixteenthNote;
 
             const isHollow = isWholeNote || isDottedHalf || isHalfNote;
             const hasStem = !isWholeNote;
             const hasDot = isDottedHalf || isDottedQuarter;
+
+            // Accidentals check (# or b)
+            const isSharp = note.noteName.includes('#');
+            const isFlat = note.noteName.includes('b');
 
             // Stem direction:
             // Notes below middle line B4 (Y > 92): stem points UP on right side (+11)
@@ -335,9 +254,12 @@ export const MusicStaff: React.FC<MusicStaffProps> = ({
             const stemPointsUp = noteY > 92;
             const stemX = stemPointsUp ? noteX + 11 : noteX - 11;
             const stemStartY = noteY;
-            const stemEndY = stemPointsUp ? noteY - 44 : noteY + 44;
+            const stemEndY = stemPointsUp ? noteY - 42 : noteY + 42;
 
-            // Palette
+            // Finger number position: placed cleanly at Y=172 (below) or Y=34 (above) so it NEVER clashes with staff lines!
+            const fingerY = noteY > 92 ? 172 : 34;
+
+            // Colors
             const primaryColor = isPast
               ? '#94A3B8'
               : isTarget
@@ -348,66 +270,74 @@ export const MusicStaff: React.FC<MusicStaffProps> = ({
 
             return (
               <g
-                key={note.id}
+                key={`staff-note-${note.id}-${globalIndex}`}
                 className={`transition-all duration-200 ${
                   isTarget && isNoteWobbly ? 'animate-wiggle' : ''
                 }`}
               >
-                {/* Ledger lines */}
-                {needsLedgerC4 && (
-                  <line
-                    x1={noteX - 20}
-                    y1={146}
-                    x2={noteX + 20}
-                    y2={146}
-                    stroke="#334155"
-                    strokeWidth="3"
-                    strokeLinecap="round"
-                  />
-                )}
-                {needsLedgerA3 && (
-                  <>
-                    <line x1={noteX - 20} y1={146} x2={noteX + 20} y2={146} stroke="#334155" strokeWidth="3" strokeLinecap="round" />
-                    <line x1={noteX - 20} y1={164} x2={noteX + 20} y2={164} stroke="#334155" strokeWidth="3" strokeLinecap="round" />
-                  </>
-                )}
-                {needsLedgerA5 && (
-                  <line x1={noteX - 20} y1={38} x2={noteX + 20} y2={38} stroke="#334155" strokeWidth="3" strokeLinecap="round" />
-                )}
-
-                {/* Target cursor column indicator */}
+                {/* Target Column Highlight Pill */}
                 {isTarget && (
                   <g>
-                    {/* Glowing highlight capsule behind target note */}
                     <rect
-                      x={noteX - 25}
-                      y={24}
-                      width={50}
-                      height={172}
-                      rx={25}
+                      x={noteX - 22}
+                      y={20}
+                      width={44}
+                      height={180}
+                      rx={22}
                       fill={isNoteCorrect ? '#DCFCE7' : '#EFF6FF'}
                       stroke={isNoteCorrect ? '#10B981' : '#3B82F6'}
-                      strokeWidth="3"
-                      opacity={0.9}
+                      strokeWidth="2.5"
+                      opacity={0.88}
                       filter="url(#targetPillGlow)"
-                      className="animate-pulse"
                     />
-                    {/* Bouncing cursor chevron above note */}
-                    <g transform={`translate(${noteX}, 20)`} className="animate-bounce">
+                    {/* Bouncing Pointer Arrow */}
+                    <g transform={`translate(${noteX}, 16)`} className="animate-bounce">
                       <polygon
-                        points="0,9 -9,-2 9,-2"
+                        points="0,8 -8,-2 8,-2"
                         fill={isNoteCorrect ? '#059669' : '#2563EB'}
                       />
                     </g>
                   </g>
                 )}
 
-                {/* Note Head - Enlarged for Tablet & Visual Impact: rx=13, ry=9.5 */}
+                {/* Ledger Lines */}
+                {ledgerYList.map((ly) => (
+                  <line
+                    key={`ledger-${note.id}-${ly}`}
+                    x1={noteX - 18}
+                    y1={ly}
+                    x2={noteX + 18}
+                    y2={ly}
+                    stroke="#334155"
+                    strokeWidth="2.8"
+                    strokeLinecap="round"
+                  />
+                ))}
+
+                {/* Sharp Accidental ♯ in front of notehead */}
+                {isSharp && (
+                  <g transform={`translate(${noteX - 18}, ${noteY})`}>
+                    <line x1="-3" y1="-10" x2="-3" y2="10" stroke={primaryColor} strokeWidth="1.6" />
+                    <line x1="3" y1="-10" x2="3" y2="10" stroke={primaryColor} strokeWidth="1.6" />
+                    <line x1="-7" y1="-2" x2="7" y2="-5" stroke={primaryColor} strokeWidth="2.6" strokeLinecap="round" />
+                    <line x1="-7" y1="4" x2="7" y2="1" stroke={primaryColor} strokeWidth="2.6" strokeLinecap="round" />
+                  </g>
+                )}
+
+                {/* Flat Accidental ♭ in front of notehead */}
+                {isFlat && (
+                  <g transform={`translate(${noteX - 18}, ${noteY})`}>
+                    <line x1="-4" y1="-12" x2="-4" y2="8" stroke={primaryColor} strokeWidth="2" />
+                    <path d="M -4 0 C 2 -4, 4 4, -4 8" fill="none" stroke={primaryColor} strokeWidth="2.4" />
+                  </g>
+                )}
+
+                {/* Note Head - Enlarged oval for tablet visual clarity */}
                 <ellipse
                   cx={noteX}
                   cy={noteY}
-                  rx={isWholeNote ? '14' : '12.5'}
-                  ry={isWholeNote ? '10' : '9'}
+                  rx={isWholeNote ? '13.5' : '12'}
+                  ry={isWholeNote ? '9.5' : '8.5'}
                   transform={`rotate(-22 ${noteX} ${noteY})`}
                   fill={
                     isHollow
@@ -419,16 +349,16 @@ export const MusicStaff: React.FC<MusicStaffProps> = ({
                       : primaryColor
                   }
                   stroke={primaryColor}
-                  strokeWidth={isHollow ? (isWholeNote ? '4.5' : '3.8') : '1.5'}
+                  strokeWidth={isHollow ? (isWholeNote ? '4.2' : '3.6') : '1.5'}
                   filter={isTarget ? (isNoteCorrect ? 'url(#staffCorrectGlow)' : 'url(#staffNoteGlow)') : undefined}
                 />
 
-                {/* Dotted Note Dot (附點) */}
+                {/* Dot for Dotted Notes */}
                 {hasDot && (
                   <circle
-                    cx={noteX + 18}
+                    cx={noteX + 17}
                     cy={noteY - 2}
-                    r="4.2"
+                    r="4"
                     fill={isTarget ? (isNoteCorrect ? '#10B981' : '#2563EB') : '#0F172A'}
                   />
                 )}
@@ -441,63 +371,61 @@ export const MusicStaff: React.FC<MusicStaffProps> = ({
                     x2={stemX}
                     y2={stemEndY}
                     stroke={primaryColor}
-                    strokeWidth="3.2"
+                    strokeWidth="3"
                     strokeLinecap="round"
                   />
                 )}
 
-                {/* Eighth Note Flag (八分音符單符尾 - ½拍) */}
+                {/* Eighth Note Flag (八分符尾) */}
                 {isEighthNote && (
                   <path
                     d={
                       stemPointsUp
-                        ? `M ${stemX} ${stemEndY} Q ${stemX + 16} ${stemEndY + 14} ${stemX + 14} ${stemEndY + 28} Q ${stemX + 8} ${stemEndY + 18} ${stemX} ${stemEndY + 14}`
-                        : `M ${stemX} ${stemEndY} Q ${stemX + 16} ${stemEndY - 14} ${stemX + 14} ${stemEndY - 28} Q ${stemX + 8} ${stemEndY - 18} ${stemX} ${stemEndY - 14}`
+                        ? `M ${stemX} ${stemEndY} Q ${stemX + 14} ${stemEndY + 12} ${stemX + 12} ${stemEndY + 26} Q ${stemX + 6} ${stemEndY + 16} ${stemX} ${stemEndY + 12}`
+                        : `M ${stemX} ${stemEndY} Q ${stemX + 14} ${stemEndY - 12} ${stemX + 12} ${stemEndY - 26} Q ${stemX + 6} ${stemEndY - 16} ${stemX} ${stemEndY - 12}`
                     }
                     fill={primaryColor}
                   />
                 )}
 
-                {/* Sixteenth Note Flags (十六分音符雙符尾 - ¼拍) */}
+                {/* Sixteenth Note Flags (十六分雙符尾) */}
                 {isSixteenthNote && (
                   <g>
-                    {/* First upper flag */}
                     <path
                       d={
                         stemPointsUp
-                          ? `M ${stemX} ${stemEndY} Q ${stemX + 16} ${stemEndY + 14} ${stemX + 14} ${stemEndY + 28} Q ${stemX + 8} ${stemEndY + 18} ${stemX} ${stemEndY + 14}`
-                          : `M ${stemX} ${stemEndY} Q ${stemX + 16} ${stemEndY - 14} ${stemX + 14} ${stemEndY - 28} Q ${stemX + 8} ${stemEndY - 18} ${stemX} ${stemEndY - 14}`
+                          ? `M ${stemX} ${stemEndY} Q ${stemX + 14} ${stemEndY + 12} ${stemX + 12} ${stemEndY + 26} Q ${stemX + 6} ${stemEndY + 16} ${stemX} ${stemEndY + 12}`
+                          : `M ${stemX} ${stemEndY} Q ${stemX + 14} ${stemEndY - 12} ${stemX + 12} ${stemEndY - 26} Q ${stemX + 6} ${stemEndY - 16} ${stemX} ${stemEndY - 12}`
                       }
                       fill={primaryColor}
                     />
-                    {/* Second parallel lower flag */}
                     <path
                       d={
                         stemPointsUp
-                          ? `M ${stemX} ${stemEndY + 10} Q ${stemX + 16} ${stemEndY + 24} ${stemX + 14} ${stemEndY + 38} Q ${stemX + 8} ${stemEndY + 28} ${stemX} ${stemEndY + 24}`
-                          : `M ${stemX} ${stemEndY - 10} Q ${stemX + 16} ${stemEndY - 24} ${stemX + 14} ${stemEndY - 38} Q ${stemX + 8} ${stemEndY - 28} ${stemX} ${stemEndY - 24}`
+                          ? `M ${stemX} ${stemEndY + 8} Q ${stemX + 14} ${stemEndY + 20} ${stemX + 12} ${stemEndY + 34} Q ${stemX + 6} ${stemEndY + 24} ${stemX} ${stemEndY + 20}`
+                          : `M ${stemX} ${stemEndY - 8} Q ${stemX + 14} ${stemEndY - 20} ${stemX + 12} ${stemEndY - 34} Q ${stemX + 6} ${stemEndY - 24} ${stemX} ${stemEndY - 20}`
                       }
                       fill={primaryColor}
                     />
                   </g>
                 )}
 
-                {/* Finger Number Tag - Extra Prominent Circle */}
-                <g transform={`translate(${noteX}, ${noteY > 92 ? noteY - 22 : noteY + 30})`}>
+                {/* Finger Number Tag - Placed cleanly in non-interfering zone */}
+                <g transform={`translate(${noteX}, ${fingerY})`}>
                   <circle
                     cx="0"
                     cy="0"
-                    r="11"
-                    fill={isTarget ? '#2563EB' : '#F1F5F9'}
-                    stroke={isTarget ? '#1D4ED8' : '#94A3B8'}
+                    r="10.5"
+                    fill={isTarget ? '#2563EB' : '#FFFFFF'}
+                    stroke={isTarget ? '#1D4ED8' : '#CBD5E1'}
                     strokeWidth="2"
-                    filter="drop-shadow(0 1px 3px rgba(0,0,0,0.15))"
+                    filter="drop-shadow(0 1px 2px rgba(0,0,0,0.12))"
                   />
                   <text
                     x="0"
-                    y="4.5"
+                    y="4"
                     textAnchor="middle"
-                    fontSize="13"
+                    fontSize="12"
                     fontWeight="900"
                     fontFamily="sans-serif"
                     fill={isTarget ? '#FFFFFF' : '#1E293B'}
@@ -506,73 +434,10 @@ export const MusicStaff: React.FC<MusicStaffProps> = ({
                   </text>
                 </g>
 
-                {/* Duration Capsule Badge (幾分音符幾拍標籤 - 醒目好懂) */}
-                <g transform={`translate(${noteX}, ${staffTopY + 4 * lineSpacing + 32})`}>
-                  <rect
-                    x="-26"
-                    y="-9"
-                    width="52"
-                    height="18"
-                    rx="9"
-                    fill={
-                      isTarget
-                        ? isNoteCorrect
-                          ? '#10B981'
-                          : '#2563EB'
-                        : isWholeNote
-                        ? '#FEF3C7'
-                        : isHalfNote || isDottedHalf
-                        ? '#E0E7FF'
-                        : isSixteenthNote
-                        ? '#CCFBF1'
-                        : isEighthNote
-                        ? '#FCE7F3'
-                        : '#F1F5F9'
-                    }
-                    stroke={isTarget ? 'transparent' : '#CBD5E1'}
-                    strokeWidth="1"
-                  />
-                  <text
-                    x="0"
-                    y="3.5"
-                    textAnchor="middle"
-                    fontSize="10"
-                    fontWeight="900"
-                    fontFamily="sans-serif"
-                    fill={
-                      isTarget
-                        ? '#FFFFFF'
-                        : isWholeNote
-                        ? '#B45309'
-                        : isHalfNote || isDottedHalf
-                        ? '#3730A3'
-                        : isSixteenthNote
-                        ? '#0F766E'
-                        : isEighthNote
-                        ? '#9D174D'
-                        : '#334155'
-                    }
-                  >
-                    {isWholeNote
-                      ? '全 4拍'
-                      : isDottedHalf
-                      ? '附點 3拍'
-                      : isHalfNote
-                      ? '二分 2拍'
-                      : isDottedQuarter
-                      ? '附點 1½拍'
-                      : isSixteenthNote
-                      ? '十六分 ¼拍'
-                      : isEighthNote
-                      ? '八分 ½拍'
-                      : '四分 1拍'}
-                  </text>
-                </g>
-
-                {/* Solfege / Lyric Under Note - Large Tablet Typography */}
+                {/* Solfege / Lyric Under Note - Large typography for children */}
                 <text
                   x={noteX}
-                  y={staffTopY + 4 * lineSpacing + 62}
+                  y={staffTopY + 4 * lineSpacing + 42}
                   textAnchor="middle"
                   fontSize="15"
                   fontWeight="900"
@@ -581,10 +446,11 @@ export const MusicStaff: React.FC<MusicStaffProps> = ({
                 >
                   {note.lyrics || note.solfege}
                 </text>
+
                 {/* Secondary label: Note Name & Numbered (e.g. C4 · 1) */}
                 <text
                   x={noteX}
-                  y={staffTopY + 4 * lineSpacing + 78}
+                  y={staffTopY + 4 * lineSpacing + 58}
                   textAnchor="middle"
                   fontSize="11"
                   fontWeight="800"

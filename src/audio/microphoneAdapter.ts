@@ -10,9 +10,10 @@ export class MicrophoneInputAdapter implements PianoInputAdapter {
   private analyser: AnalyserNode | null = null;
   private highpassFilter: BiquadFilterNode | null = null;
   private lowpassFilter: BiquadFilterNode | null = null;
+  private preGainNode: GainNode | null = null;
   private animationFrameId: number | null = null;
   private listeners: Set<(event: PianoNoteEvent) => void> = new Set();
-  private pitchListeners: Set<(data: { frequency: number; midiNote: number; cents: number; rms: number; threshold?: number; isAboveThreshold?: boolean; noteName: string }) => void> = new Set();
+  private pitchListeners: Set<(data: { frequency: number; midiNote: number; cents: number; rms: number; threshold?: number; isAboveThreshold?: boolean; noteName: string; sensitivityMode?: 'tablet-high' | 'normal' | 'low-noise' }) => void> = new Set();
   private statusListeners: Set<(status: { isListening: boolean; error?: string }) => void> = new Set();
 
   private buffer: Float32Array<ArrayBuffer> | null = null;
@@ -20,9 +21,13 @@ export class MicrophoneInputAdapter implements PianoInputAdapter {
   private lastError: string | null = null;
 
   // Calibration & Noise Gate settings
-  private noiseFloorRms = 0.002; // Baseline noise floor
-  private noiseGateThreshold = 0.005; // User-adjustable noise gate threshold (~ -46 dB, easy to trigger with gentle piano touches)
-  private micSensitivity = 1.35; // Digital pre-gain for soft piano strikes
+  // Defaults to 'tablet-high' for iPad & tablet acoustic piano sensitivity
+  private sensitivityMode: 'tablet-high' | 'normal' | 'low-noise' = 'tablet-high';
+  private noiseFloorRms = 0.0015; // Baseline noise floor
+  private noiseGateThreshold = 0.0022; // Tablet-optimized low noise gate (~ -53 dB) to capture delicate keypresses
+  private micSensitivity = 2.4; // Digital hardware pre-gain boost for iPad built-in microphone
+  private minConfidence = 0.25; // Acoustic piano confidence threshold
+  private minGlobalMaxVal = 0.27; // Autocorrelation peak threshold
   private pitchToleranceCents = 50;
 
   // State tracking for onset & note stability
@@ -52,12 +57,59 @@ export class MicrophoneInputAdapter implements PianoInputAdapter {
     return this.lastError;
   }
 
+  public getSensitivityMode(): 'tablet-high' | 'normal' | 'low-noise' {
+    return this.sensitivityMode;
+  }
+
+  public setSensitivityMode(mode: 'tablet-high' | 'normal' | 'low-noise'): void {
+    this.sensitivityMode = mode;
+    if (mode === 'tablet-high') {
+      this.micSensitivity = 2.4;
+      this.noiseGateThreshold = 0.0022;
+      this.minConfidence = 0.25;
+      this.minGlobalMaxVal = 0.27;
+    } else if (mode === 'normal') {
+      this.micSensitivity = 1.4;
+      this.noiseGateThreshold = 0.0045;
+      this.minConfidence = 0.32;
+      this.minGlobalMaxVal = 0.35;
+    } else if (mode === 'low-noise') {
+      this.micSensitivity = 1.0;
+      this.noiseGateThreshold = 0.008;
+      this.minConfidence = 0.38;
+      this.minGlobalMaxVal = 0.40;
+    }
+
+    if (this.preGainNode && this.audioCtx) {
+      try {
+        this.preGainNode.gain.setValueAtTime(this.micSensitivity, this.audioCtx.currentTime);
+      } catch {
+        // ignore
+      }
+    }
+  }
+
+  public getMicSensitivity(): number {
+    return this.micSensitivity;
+  }
+
+  public setMicSensitivity(gain: number): void {
+    this.micSensitivity = Math.max(0.5, Math.min(5.0, gain));
+    if (this.preGainNode && this.audioCtx) {
+      try {
+        this.preGainNode.gain.setValueAtTime(this.micSensitivity, this.audioCtx.currentTime);
+      } catch {
+        // ignore
+      }
+    }
+  }
+
   public getNoiseGateThreshold(): number {
     return this.noiseGateThreshold;
   }
 
   public setNoiseGateThreshold(threshold: number): void {
-    this.noiseGateThreshold = Math.max(0.001, Math.min(0.08, threshold));
+    this.noiseGateThreshold = Math.max(0.0008, Math.min(0.08, threshold));
   }
 
   public async start(): Promise<void> {
@@ -116,10 +168,14 @@ export class MicrophoneInputAdapter implements PianoInputAdapter {
       this.analyser.fftSize = 2048; // 2048 samples gives good low-frequency resolution down to ~65Hz
       this.analyser.smoothingTimeConstant = 0.05;
 
-      // Chain: source -> highpass -> lowpass -> analyser
+      this.preGainNode = this.audioCtx.createGain();
+      this.preGainNode.gain.setValueAtTime(this.micSensitivity, this.audioCtx.currentTime);
+
+      // Chain: source -> highpass -> lowpass -> preGainNode -> analyser
       source.connect(this.highpassFilter);
       this.highpassFilter.connect(this.lowpassFilter);
-      this.lowpassFilter.connect(this.analyser);
+      this.lowpassFilter.connect(this.preGainNode);
+      this.preGainNode.connect(this.analyser);
 
       this.buffer = new Float32Array(this.analyser.fftSize) as Float32Array<ArrayBuffer>;
       this.isRunning = true;
@@ -173,7 +229,7 @@ export class MicrophoneInputAdapter implements PianoInputAdapter {
     };
   }
 
-  public subscribePitchMonitor(listener: (data: { frequency: number; midiNote: number; cents: number; rms: number; threshold?: number; isAboveThreshold?: boolean; noteName: string }) => void): () => void {
+  public subscribePitchMonitor(listener: (data: { frequency: number; midiNote: number; cents: number; rms: number; threshold?: number; isAboveThreshold?: boolean; noteName: string; sensitivityMode?: 'tablet-high' | 'normal' | 'low-noise' }) => void): () => void {
     this.pitchListeners.add(listener);
     return () => {
       this.pitchListeners.delete(listener);
@@ -247,7 +303,7 @@ export class MicrophoneInputAdapter implements PianoInputAdapter {
     // Struck piano strings have clear harmonic periodicity (confidence >= 0.38 for gentle touches),
     // whereas room noise, rustling, and speech fricatives have low confidence.
     const isPianoFrequency = frequency >= 65 && frequency <= 2100;
-    const isPianoTimbre = confidence >= 0.38;
+    const isPianoTimbre = confidence >= this.minConfidence;
 
     if (isAboveThreshold && isPianoFrequency && isPianoTimbre) {
       // Valid piano tone detected: reset silence counter
@@ -274,6 +330,7 @@ export class MicrophoneInputAdapter implements PianoInputAdapter {
           threshold: this.noiseGateThreshold,
           isAboveThreshold: true,
           noteName,
+          sensitivityMode: this.sensitivityMode,
         });
       });
 
@@ -456,7 +513,7 @@ export class MicrophoneInputAdapter implements PianoInputAdapter {
       if (p.val > globalMaxVal) globalMaxVal = p.val;
     }
 
-    if (globalMaxVal < 0.40) {
+    if (globalMaxVal < this.minGlobalMaxVal) {
       return { frequency: 0, confidence: 0 };
     }
 

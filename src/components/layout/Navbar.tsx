@@ -15,6 +15,8 @@ interface NavbarProps {
   onOpenCalibration: () => void;
   onOpenScaleModal?: () => void;
   className?: string;
+  isImmersiveMode?: boolean;
+  onToggleFullscreen?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -26,6 +28,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenCalibration,
   onOpenScaleModal,
   className = '',
+  isImmersiveMode = false,
+  onToggleFullscreen,
 }) => {
   const { isInstallable, isInstalled, install } = usePWAInstall();
   const [showIPadModal, setShowIPadModal] = useState(false);
@@ -50,6 +54,11 @@ export const Navbar: React.FC<NavbarProps> = ({
   }, []);
 
   const toggleFullscreen = async () => {
+    if (onToggleFullscreen) {
+      onToggleFullscreen();
+      return;
+    }
+
     try {
       const docEl = document.documentElement as HTMLElement & {
         webkitRequestFullscreen?: () => Promise<void>;
@@ -80,7 +89,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   return (
     <>
       <header
-        className={`flex items-center justify-between px-3 md:px-6 py-3 bg-white border-b-3 border-amber-300 shadow-sm select-none shrink-0 sticky top-0 z-40 ${className}`}
+        className={`flex items-center justify-between px-3 md:px-6 py-3 bg-white border-b-3 border-amber-300 shadow-sm select-none shrink-0 sticky top-0 z-40 ${isImmersiveMode ? 'hidden' : ''} ${className || ''}`}
       >
         {/* Zone 1: Brand title */}
         <button
@@ -181,10 +190,10 @@ export const Navbar: React.FC<NavbarProps> = ({
           <button
             onClick={toggleFullscreen}
             className="p-2.5 md:px-3.5 md:py-2.5 rounded-2xl bg-amber-100 hover:bg-amber-200 text-amber-950 text-base font-black border-2 border-amber-300 transition active:scale-95 shadow-sm"
-            title={isFullscreen ? '退出全螢幕' : '切換全螢幕模式'}
+            title={isFullscreen || isImmersiveMode ? '退出全螢幕' : '切換全螢幕模式'}
           >
-            <span className="text-lg">{isFullscreen ? '🗗' : '🖥️'}</span>
-            <span className="hidden xl:inline ml-1.5">{isFullscreen ? '退出全螢幕' : '全螢幕'}</span>
+            <span className="text-lg">{isFullscreen || isImmersiveMode ? '🗗' : '🖥️'}</span>
+            <span className="hidden xl:inline ml-1.5">{isFullscreen || isImmersiveMode ? '退出全螢幕' : '全螢幕'}</span>
           </button>
         </div>
       </header>
@@ -218,12 +227,16 @@ export const Navbar: React.FC<NavbarProps> = ({
         onInstall={install}
         isOpen={showTabletDock}
         onToggle={() => setShowTabletDock(!showTabletDock)}
+        isImmersiveMode={isImmersiveMode}
+        onToggleFullscreen={onToggleFullscreen}
       />
 
       {/* iPad Safari Install & Fullscreen Guide Modal */}
       <IPadInstallGuideModal
         isOpen={showIPadModal}
         onClose={() => setShowIPadModal(false)}
+        onToggleFullscreen={onToggleFullscreen}
+        isImmersiveMode={isImmersiveMode}
       />
 
       {/* Deploy Download ZIP Modal */}

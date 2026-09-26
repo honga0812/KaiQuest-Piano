@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { pianoSynth } from '../../audio/pianoSynthesizer';
+import { TrebleClefGlyph, BassClefGlyph, AltoClefGlyph } from './MusicSvgSymbols';
 
 export type ClefType = 'treble' | 'bass' | 'alto' | 'grand';
 
@@ -131,7 +132,12 @@ export const TheoryStaffInteractive: React.FC<TheoryStaffInteractiveProps> = ({
             </span>
           </div>
 
-          <svg viewBox={`0 0 ${staffWidth + 40} ${totalGrandHeight}`} className="w-full h-auto">
+          <svg
+            viewBox={`0 0 ${staffWidth + 40} ${totalGrandHeight}`}
+            className="w-full h-auto"
+            preserveAspectRatio="xMidYMid meet"
+            style={{ display: 'block', width: '100%', height: 'auto' }}
+          >
             {/* Connecting Brace (中括號) on left */}
             <path
               d={`M 36,${trebleTopY - 6} C 16,${trebleTopY + 20} 22,${middleCY - 14} 12,${middleCY} C 22,${middleCY + 14} 16,${bassTopY + 4 * lineSpacing - 20} 36,${bassTopY + 4 * lineSpacing + 6} C 20,${bassTopY + 4 * lineSpacing - 10} 28,${middleCY + 10} 20,${middleCY} C 28,${middleCY - 10} 20,${trebleTopY + 10} 36,${trebleTopY - 6} Z`}
@@ -149,12 +155,8 @@ export const TheoryStaffInteractive: React.FC<TheoryStaffInteractiveProps> = ({
               );
             })}
 
-            {/* Treble Clef Sign (𝄞) */}
-            <g transform={`translate(52, ${trebleTopY + 3.2 * lineSpacing}) scale(${compact ? 0.9 : 1.1})`}>
-              <text x="0" y="0" fontSize="56" fill="#60A5FA" fontFamily="serif" fontWeight="bold">
-                𝄞
-              </text>
-            </g>
+            {/* Treble Clef Sign (Vector Glyph) */}
+            <TrebleClefGlyph x={50} y={trebleTopY - 6} scale={compact ? 0.72 : 0.86} color="#60A5FA" />
             <text x="56" y={trebleTopY - 10} fontSize="11" fill="#93C5FD" fontWeight="900">
               右手高音區 (Treble)
             </text>
@@ -167,12 +169,8 @@ export const TheoryStaffInteractive: React.FC<TheoryStaffInteractiveProps> = ({
               );
             })}
 
-            {/* Bass Clef Sign (𝄢) */}
-            <g transform={`translate(52, ${bassTopY + 2.8 * lineSpacing}) scale(${compact ? 0.9 : 1.1})`}>
-              <text x="0" y="0" fontSize="42" fill="#C084FC" fontFamily="serif" fontWeight="bold">
-                𝄢
-              </text>
-            </g>
+            {/* Bass Clef Sign (Vector Glyph) */}
+            <BassClefGlyph x={50} y={bassTopY - 2} scale={compact ? 0.76 : 0.92} color="#C084FC" />
             <text x="56" y={bassTopY - 10} fontSize="11" fill="#D8B4FE" fontWeight="900">
               左手低音區 (Bass)
             </text>
@@ -362,7 +360,7 @@ export const TheoryStaffInteractive: React.FC<TheoryStaffInteractiveProps> = ({
         <div className="flex items-center justify-between mb-2 px-2 text-xs">
           <div className="flex items-center gap-2">
             <span className="text-base">
-              {clef === 'treble' ? '𝄞' : clef === 'bass' ? '𝄢' : '𝄡'}
+              {clef === 'treble' ? '🎼' : clef === 'bass' ? '🎵' : '🎻'}
             </span>
             <span className="font-black text-white">
               {clef === 'treble' ? '高音五線譜 (Treble G-Clef)' :
@@ -382,7 +380,12 @@ export const TheoryStaffInteractive: React.FC<TheoryStaffInteractiveProps> = ({
           )}
         </div>
 
-        <svg viewBox={`0 0 ${staffWidth} ${totalHeight}`} className="w-full h-auto">
+        <svg
+          viewBox={`0 0 ${staffWidth} ${totalHeight}`}
+          className="w-full h-auto"
+          preserveAspectRatio="xMidYMid meet"
+          style={{ display: 'block', width: '100%', height: 'auto' }}
+        >
           <defs>
             <filter id="theoryGlow" x="-30%" y="-30%" width="160%" height="160%">
               <feDropShadow dx="0" dy="2" stdDeviation="4" floodColor="#F59E0B" floodOpacity="0.8" />
@@ -475,27 +478,15 @@ export const TheoryStaffInteractive: React.FC<TheoryStaffInteractiveProps> = ({
 
           {/* Vector Clef Signs */}
           {clef === 'treble' && (
-            <g transform={`translate(62, ${staffTopY + 3.2 * lineSpacing}) scale(${compact ? 0.95 : 1.15})`}>
-              <text x="0" y="0" fontSize="56" fill="#38BDF8" fontFamily="serif" fontWeight="bold">
-                𝄞
-              </text>
-            </g>
+            <TrebleClefGlyph x={58} y={staffTopY - 6} scale={compact ? 0.75 : 0.92} color="#38BDF8" />
           )}
 
           {clef === 'bass' && (
-            <g transform={`translate(62, ${staffTopY + 2.8 * lineSpacing}) scale(${compact ? 0.95 : 1.15})`}>
-              <text x="0" y="0" fontSize="42" fill="#A855F7" fontFamily="serif" fontWeight="bold">
-                𝄢
-              </text>
-            </g>
+            <BassClefGlyph x={58} y={staffTopY - 2} scale={compact ? 0.8 : 0.96} color="#A855F7" />
           )}
 
           {clef === 'alto' && (
-            <g transform={`translate(62, ${staffTopY + 2.9 * lineSpacing}) scale(${compact ? 0.95 : 1.15})`}>
-              <text x="0" y="0" fontSize="44" fill="#F59E0B" fontFamily="serif" fontWeight="bold">
-                𝄡
-              </text>
-            </g>
+            <AltoClefGlyph x={58} y={staffTopY} scale={compact ? 0.8 : 0.95} color="#F59E0B" />
           )}
 
           {/* Interactive Notes on Staff */}

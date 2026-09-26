@@ -3,13 +3,29 @@ import React, { useState } from 'react';
 interface IPadInstallGuideModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onToggleFullscreen?: () => void;
+  isImmersiveMode?: boolean;
 }
 
-export const IPadInstallGuideModal: React.FC<IPadInstallGuideModalProps> = ({ isOpen, onClose }) => {
+export const IPadInstallGuideModal: React.FC<IPadInstallGuideModalProps> = ({
+  isOpen,
+  onClose,
+  onToggleFullscreen,
+  isImmersiveMode = false,
+}) => {
   const [activeTab, setActiveTab] = useState<'safari' | 'deploy' | 'native'>('safari');
-  const [isFullscreen, setIsFullscreen] = useState(typeof document !== 'undefined' && Boolean(document.fullscreenElement));
+  const [isFullscreen, setIsFullscreen] = useState(
+    typeof document !== 'undefined' && Boolean(document.fullscreenElement)
+  );
+
+  const isActuallyFullscreen = Boolean(isImmersiveMode || isFullscreen);
 
   const handleToggleFullscreen = async () => {
+    if (onToggleFullscreen) {
+      onToggleFullscreen();
+      return;
+    }
+
     try {
       const docEl = document.documentElement as HTMLElement & {
         webkitRequestFullscreen?: () => Promise<void>;
@@ -231,10 +247,14 @@ export const IPadInstallGuideModal: React.FC<IPadInstallGuideModalProps> = ({ is
         <div className="pt-3 border-t-2 border-slate-100 flex flex-wrap items-center justify-between gap-3">
           <button
             onClick={handleToggleFullscreen}
-            className="flex items-center gap-2 px-5 py-2.5 bg-amber-100 hover:bg-amber-200 text-amber-950 font-black rounded-xl text-sm border-2 border-amber-300 shadow-sm transition active:scale-95"
+            className={`flex items-center gap-2 px-5 py-2.5 font-black rounded-xl text-sm border-2 shadow-sm transition active:scale-95 ${
+              isActuallyFullscreen
+                ? 'bg-amber-100 hover:bg-amber-200 text-amber-950 border-amber-300'
+                : 'bg-purple-100 hover:bg-purple-200 text-purple-950 border-purple-300'
+            }`}
           >
-            <span>{isFullscreen ? '🗗' : '🖥️'}</span>
-            <span>{isFullscreen ? '退出全螢幕模式' : '立即切換瀏覽器全螢幕 (Fullscreen)'}</span>
+            <span>{isActuallyFullscreen ? '🗗' : '🖥️'}</span>
+            <span>{isActuallyFullscreen ? '退出全螢幕模式' : '立即切換全螢幕 (Fullscreen)'}</span>
           </button>
 
           <button
