@@ -301,30 +301,30 @@ export const FullSongVirtuosoView: React.FC<FullSongVirtuosoViewProps> = ({
   const progressPercent = Math.round(((currentNoteIndex) / notes.length) * 100);
 
   return (
-    <div className={`w-full max-w-6xl mx-auto px-3 py-2 flex flex-col gap-2.5 ${className}`}>
-      {/* Top Header Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-2.5 bg-slate-900/90 border border-slate-800 rounded-2xl p-3 shadow-md">
-        <div className="flex items-center gap-2.5">
+    <div className={`w-full max-w-6xl mx-auto px-3 py-2 flex flex-col gap-3 select-none ${className}`}>
+      {/* Top Header Bar - Bright & Cheerful */}
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-white border-3 border-amber-300 rounded-3xl p-4 shadow-sm">
+        <div className="flex items-center gap-3 flex-wrap">
           <button
             onClick={onBackToMap}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition"
+            className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-amber-100 hover:bg-amber-200 text-amber-950 text-sm font-black transition border-2 border-amber-300 shadow-sm active:scale-95"
           >
             <span>←</span>
             <span>返回地圖</span>
           </button>
 
           {/* Category Switcher: Full Songs vs Hanon Techniques */}
-          <div className="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800">
+          <div className="flex items-center bg-amber-50 p-1.5 rounded-2xl border-2 border-amber-200 shadow-sm">
             <button
               onClick={() => {
                 setSelectedCategory('song');
                 const pieces = selectedAge === 'all' ? FULL_SONGS_COLLECTION : FULL_SONGS_COLLECTION.filter(p => p.targetAge === selectedAge);
                 handleSelectPiece(pieces[0] || FULL_SONGS_COLLECTION[0]);
               }}
-              className={`px-3 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
+              className={`px-4 py-2 rounded-xl text-sm font-black transition flex items-center gap-2 ${
                 selectedCategory === 'song'
-                  ? 'bg-blue-600 text-white shadow-sm'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md'
+                  : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               <span>🎵</span>
@@ -336,10 +336,10 @@ export const FullSongVirtuosoView: React.FC<FullSongVirtuosoViewProps> = ({
                 const pieces = selectedAge === 'all' ? HANON_TECHNIQUES_COLLECTION : HANON_TECHNIQUES_COLLECTION.filter(p => p.targetAge === selectedAge);
                 handleSelectPiece(pieces[0] || HANON_TECHNIQUES_COLLECTION[0]);
               }}
-              className={`px-3 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
+              className={`px-4 py-2 rounded-xl text-sm font-black transition flex items-center gap-2 ${
                 selectedCategory === 'hanon'
-                  ? 'bg-amber-600 text-white shadow-sm'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 shadow-md'
+                  : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               <span>🎹</span>
@@ -348,7 +348,7 @@ export const FullSongVirtuosoView: React.FC<FullSongVirtuosoViewProps> = ({
           </div>
 
           {/* Age Filter Selector */}
-          <div className="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800 text-[11px]">
+          <div className="flex items-center bg-amber-50 p-1 rounded-2xl border-2 border-amber-200 shadow-sm text-xs">
             {(['all', 4, 5, 6, 7] as const).map((ag) => (
               <button
                 key={ag}
@@ -360,10 +360,10 @@ export const FullSongVirtuosoView: React.FC<FullSongVirtuosoViewProps> = ({
                     handleSelectPiece(matching[0]);
                   }
                 }}
-                className={`px-2.5 py-0.5 rounded-lg font-bold transition flex items-center gap-1 ${
+                className={`px-3 py-1.5 rounded-xl font-black transition flex items-center gap-1 ${
                   selectedAge === ag
-                    ? 'bg-slate-700 text-amber-300 shadow-sm'
-                    : 'text-slate-400 hover:text-slate-200'
+                    ? 'bg-amber-400 text-slate-950 shadow-sm'
+                    : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
                 <span>{ag === 'all' ? '🌈' : ag === 4 ? '🌱' : ag === 5 ? '🖐️' : ag === 6 ? '🚀' : '👑'}</span>
@@ -372,28 +372,28 @@ export const FullSongVirtuosoView: React.FC<FullSongVirtuosoViewProps> = ({
             ))}
           </div>
 
-          <span className="text-[11px] text-slate-400 font-mono hidden md:inline">
+          <span className="text-xs text-amber-900 font-bold hidden md:inline">
             (共 {filteredPieces.length} 首)
           </span>
         </div>
 
         {/* Piece Selection Dropdown / Carousel Chips */}
-        <div className="flex items-center gap-1.5 overflow-x-auto max-w-xl py-0.5 scrollbar-thin">
+        <div className="flex items-center gap-2 overflow-x-auto max-w-xl py-1 scrollbar-thin">
           {filteredPieces.map((piece) => (
             <button
               key={piece.id}
               onClick={() => handleSelectPiece(piece)}
-              className={`px-2.5 py-1 rounded-lg text-xs font-bold whitespace-nowrap transition border flex items-center gap-1.5 shrink-0 ${
+              className={`px-3 py-1.5 rounded-2xl text-xs md:text-sm font-black whitespace-nowrap transition border-2 flex items-center gap-1.5 shrink-0 shadow-sm active:scale-95 ${
                 currentPiece.id === piece.id
                   ? selectedCategory === 'song'
-                    ? 'bg-blue-500/25 text-blue-200 border-blue-400 shadow-md ring-1 ring-blue-400/50'
-                    : 'bg-amber-500/25 text-amber-200 border-amber-400 shadow-md ring-1 ring-amber-400/50'
-                  : 'bg-slate-800/80 text-slate-400 border-slate-700/60 hover:bg-slate-700 hover:text-slate-200'
+                    ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white border-blue-600 shadow-md ring-2 ring-blue-300'
+                    : 'bg-gradient-to-r from-amber-400 to-orange-400 text-slate-950 border-amber-500 shadow-md ring-2 ring-amber-300'
+                  : 'bg-amber-50/80 text-slate-700 border-amber-200 hover:bg-amber-100 hover:text-slate-950'
               }`}
             >
-              <span className="text-[10px] text-amber-400 font-mono">[{piece.targetAge}歲]</span>
+              <span className="text-xs text-amber-800 font-mono font-black">[{piece.targetAge}歲]</span>
               <span>{piece.title.replace(/[《》]/g, '')}</span>
-              <span className="text-[10px] text-amber-300 font-mono">{'★'.repeat(piece.difficulty)}</span>
+              <span className="text-xs text-amber-600 font-mono">{'★'.repeat(piece.difficulty)}</span>
             </button>
           ))}
         </div>
@@ -402,25 +402,25 @@ export const FullSongVirtuosoView: React.FC<FullSongVirtuosoViewProps> = ({
       {/* Main Performance Stage */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 items-stretch">
         {/* Left: Mascot & Piece Info (3 Cols) */}
-        <div className="lg:col-span-3 bg-slate-900/90 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between gap-3 shadow-md text-left">
+        <div className="lg:col-span-3 bg-white border-3 border-amber-300 rounded-3xl p-5 flex flex-col justify-between gap-4 shadow-sm text-left">
           <div>
             <div className="flex items-center justify-between">
-              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
+              <span className={`px-3 py-1 rounded-full text-xs font-black border-2 ${
                 selectedCategory === 'song'
-                  ? 'bg-blue-600/30 text-blue-300 border-blue-500/30'
-                  : 'bg-amber-600/30 text-amber-300 border-amber-500/30'
+                  ? 'bg-blue-100 text-blue-900 border-blue-300'
+                  : 'bg-amber-100 text-amber-950 border-amber-300'
               }`}>
                 {selectedCategory === 'song' ? '全曲一氣呵成' : '哈農連續跑動'}
               </span>
-              <span className="text-[11px] text-slate-400 font-mono">
+              <span className="text-xs text-slate-600 font-bold font-mono">
                 {currentPiece.composerOrOrigin}
               </span>
             </div>
 
-            <h3 className="text-base font-black text-white mt-1.5 leading-snug">
+            <h3 className="text-xl font-black text-slate-900 mt-2 leading-snug">
               {currentPiece.title}
             </h3>
-            <p className="text-xs text-slate-400 mt-0.5 leading-relaxed">
+            <p className="text-sm text-slate-700 mt-1 leading-relaxed font-medium">
               {currentPiece.subtitle}
             </p>
           </div>
@@ -438,26 +438,26 @@ export const FullSongVirtuosoView: React.FC<FullSongVirtuosoViewProps> = ({
           </div>
 
           {/* Performance Stats: Progress & Combo */}
-          <div className="flex flex-col gap-2 pt-2 border-t border-slate-800 text-xs">
+          <div className="flex flex-col gap-2 pt-3 border-t-2 border-amber-100 text-sm">
             <div className="flex items-center justify-between">
-              <span className="text-slate-400">演奏進度:</span>
-              <span className="font-mono font-bold text-white">
+              <span className="text-slate-600 font-bold">演奏進度:</span>
+              <span className="font-mono font-black text-slate-900">
                 {currentNoteIndex} / {notes.length} 音符 ({progressPercent}%)
               </span>
             </div>
-            <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden border border-slate-700">
+            <div className="w-full h-3 bg-amber-100 rounded-full overflow-hidden border border-amber-300">
               <div
                 className={`h-full transition-all duration-150 ${
-                  selectedCategory === 'song' ? 'bg-blue-500' : 'bg-amber-500'
+                  selectedCategory === 'song' ? 'bg-gradient-to-r from-blue-500 to-indigo-500' : 'bg-gradient-to-r from-amber-400 to-orange-500'
                 }`}
                 style={{ width: `${progressPercent}%` }}
               />
             </div>
 
             <div className="flex items-center justify-between pt-1">
-              <span className="text-slate-400">目前連擊:</span>
-              <span className={`font-mono font-black text-sm flex items-center gap-1 ${
-                comboStreak >= 5 ? 'text-amber-400 animate-pulse' : 'text-slate-200'
+              <span className="text-slate-600 font-bold">目前連擊:</span>
+              <span className={`font-mono font-black text-base flex items-center gap-1 ${
+                comboStreak >= 5 ? 'text-amber-600 animate-pulse' : 'text-slate-800'
               }`}>
                 {comboStreak >= 5 && <span>🔥</span>}
                 <span>{comboStreak} Combo</span>
@@ -467,17 +467,17 @@ export const FullSongVirtuosoView: React.FC<FullSongVirtuosoViewProps> = ({
         </div>
 
         {/* Right: Sheet Music & Player Controls (9 Cols) */}
-        <div className="lg:col-span-9 flex flex-col gap-2.5">
+        <div className="lg:col-span-9 flex flex-col gap-3">
           {/* Controls Bar */}
-          <div className="flex flex-wrap items-center justify-between gap-2.5 bg-slate-900/90 border border-slate-800 rounded-2xl px-4 py-2 text-xs shadow-md">
-            <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center justify-between gap-3 bg-white border-3 border-amber-300 rounded-3xl px-5 py-3 text-sm shadow-sm">
+            <div className="flex items-center gap-4 flex-wrap">
               {/* Metronome Toggle */}
               <button
                 onClick={() => setIsMetronomeActive(!isMetronomeActive)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold transition border ${
+                className={`flex items-center gap-2 px-4 py-2 rounded-2xl font-black text-sm transition border-2 shadow-sm active:scale-95 ${
                   isMetronomeActive
-                    ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-sm'
-                    : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700'
+                    ? 'bg-amber-400 text-slate-950 border-amber-500 shadow-md'
+                    : 'bg-amber-50 text-slate-700 border-amber-200 hover:bg-amber-100'
                 }`}
               >
                 <span>⏱️</span>
@@ -485,31 +485,31 @@ export const FullSongVirtuosoView: React.FC<FullSongVirtuosoViewProps> = ({
               </button>
 
               {/* Tempo Slider */}
-              <div className="flex items-center gap-2">
-                <span className="text-slate-400 font-mono text-[11px]">BPM:</span>
+              <div className="flex items-center gap-2 bg-amber-50 px-3.5 py-1.5 rounded-2xl border-2 border-amber-200">
+                <span className="text-slate-700 font-mono font-bold text-xs">BPM:</span>
                 <input
                   type="range"
                   min="50"
                   max="130"
                   value={bpm}
                   onChange={(e) => setBpm(Number(e.target.value))}
-                  className="w-20 accent-blue-500 cursor-pointer"
+                  className="w-24 accent-amber-500 cursor-pointer"
                 />
-                <span className="font-mono font-bold text-white text-[11px] w-7">{bpm}</span>
+                <span className="font-mono font-black text-slate-900 text-sm w-8">{bpm}</span>
               </div>
             </div>
 
             {/* Restart & Diagnostic */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2.5">
               <button
                 onClick={handleRestartPiece}
-                className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl font-bold transition border border-slate-700"
+                className="px-4 py-2 bg-amber-100 hover:bg-amber-200 text-amber-950 rounded-2xl font-black text-sm transition border-2 border-amber-300 shadow-sm active:scale-95"
               >
                 🔄 重頭彈奏
               </button>
               <button
                 onClick={() => setShowScaleModal(true)}
-                className="px-3 py-1.5 bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 rounded-xl font-bold transition border border-indigo-500/40"
+                className="px-4 py-2 bg-blue-100 hover:bg-blue-200 text-blue-900 rounded-2xl font-black text-sm transition border-2 border-blue-300 shadow-sm active:scale-95"
               >
                 🎵 音階聽辨調校
               </button>
@@ -518,19 +518,19 @@ export const FullSongVirtuosoView: React.FC<FullSongVirtuosoViewProps> = ({
 
           {/* Microphone banner if inactive */}
           {inputMode === 'microphone' && !isMicRunning && (
-            <div className="bg-gradient-to-r from-blue-950 via-indigo-950 to-slate-900 border-2 border-emerald-500/70 rounded-2xl p-2.5 px-3.5 flex flex-wrap items-center justify-between gap-3 shadow-xl">
-              <div className="flex items-center gap-2 text-left">
-                <span className="text-xl">🎙️</span>
+            <div className="bg-gradient-to-r from-emerald-50 via-teal-50 to-sky-50 border-3 border-emerald-400 rounded-3xl p-4 flex flex-wrap items-center justify-between gap-4 shadow-md">
+              <div className="flex items-center gap-3 text-left">
+                <span className="text-3xl">🎙️</span>
                 <div>
-                  <span className="text-xs font-bold text-white block">麥克風聽琴辨識尚未啟動</span>
-                  <span className="text-[11px] text-emerald-300">
+                  <span className="text-base font-black text-emerald-950 block">麥克風聽琴辨識尚未啟動</span>
+                  <span className="text-sm text-emerald-800 font-bold block">
                     {micError || '點擊右方按鈕開啟麥克風，即可在實體鋼琴上彈奏辨識！'}
                   </span>
                 </div>
               </div>
               <button
                 onClick={handleActivateMic}
-                className="px-4 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-extrabold rounded-xl shadow-lg transition flex items-center gap-1.5 animate-pulse"
+                className="px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white text-sm font-black rounded-2xl shadow-lg transition flex items-center gap-2 animate-pulse active:scale-95"
               >
                 <span>🎙️</span>
                 <span>點擊開啟麥克風聽琴</span>
@@ -539,38 +539,38 @@ export const FullSongVirtuosoView: React.FC<FullSongVirtuosoViewProps> = ({
           )}
 
           {/* 4 Hint Toggles Bar */}
-          <div className="flex items-center justify-between bg-slate-900/60 border border-slate-800 rounded-xl px-3 py-1.5 text-xs">
-            <div className="flex items-center gap-2">
-              <span className="text-slate-400 font-medium text-[11px]">譜面提示開關:</span>
-              <div className="flex items-center gap-1.5">
+          <div className="flex items-center justify-between bg-white border-2 border-amber-200 rounded-2xl px-4 py-2 text-sm shadow-xs flex-wrap gap-2">
+            <div className="flex items-center gap-3">
+              <span className="text-slate-700 font-black text-xs md:text-sm">譜面提示開關:</span>
+              <div className="flex items-center gap-2">
                 <button
                   onClick={() => setHints({ ...hints, staff: !hints.staff })}
-                  className={`px-2.5 py-1 rounded-md text-xs font-semibold transition ${
-                    hints.staff ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-400'
+                  className={`px-3 py-1.5 rounded-xl text-xs md:text-sm font-black transition ${
+                    hints.staff ? 'bg-blue-600 text-white shadow-sm' : 'bg-slate-100 text-slate-600'
                   }`}
                 >
                   五線譜
                 </button>
                 <button
                   onClick={() => setHints({ ...hints, numbered: !hints.numbered })}
-                  className={`px-2.5 py-1 rounded-md text-xs font-semibold transition ${
-                    hints.numbered ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-400'
+                  className={`px-3 py-1.5 rounded-xl text-xs md:text-sm font-black transition ${
+                    hints.numbered ? 'bg-blue-600 text-white shadow-sm' : 'bg-slate-100 text-slate-600'
                   }`}
                 >
                   簡譜 (1 2 3)
                 </button>
                 <button
                   onClick={() => setHints({ ...hints, letter: !hints.letter })}
-                  className={`px-2.5 py-1 rounded-md text-xs font-semibold transition ${
-                    hints.letter ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-400'
+                  className={`px-3 py-1.5 rounded-xl text-xs md:text-sm font-black transition ${
+                    hints.letter ? 'bg-blue-600 text-white shadow-sm' : 'bg-slate-100 text-slate-600'
                   }`}
                 >
                   音名唱名 (C D E)
                 </button>
                 <button
                   onClick={() => setHints({ ...hints, keyboard: !hints.keyboard })}
-                  className={`px-2.5 py-1 rounded-md text-xs font-semibold transition ${
-                    hints.keyboard ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-400'
+                  className={`px-3 py-1.5 rounded-xl text-xs md:text-sm font-black transition ${
+                    hints.keyboard ? 'bg-blue-600 text-white shadow-sm' : 'bg-slate-100 text-slate-600'
                   }`}
                 >
                   琴鍵提示
@@ -578,13 +578,13 @@ export const FullSongVirtuosoView: React.FC<FullSongVirtuosoViewProps> = ({
               </div>
             </div>
 
-            <div className="text-[11px] text-slate-400 font-mono">
-              第 <strong className="text-white">{currentMeasureNumber}</strong> 小節 (視窗 {windowStartIndex + 1}~{Math.min(notes.length, windowStartIndex + windowSize)})
+            <div className="text-xs text-slate-600 font-mono font-bold">
+              第 <strong className="text-slate-900 text-sm font-black">{currentMeasureNumber}</strong> 小節 (視窗 {windowStartIndex + 1}~{Math.min(notes.length, windowStartIndex + windowSize)})
             </div>
           </div>
 
           {/* Notation Display Cards */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-3 flex flex-col gap-2.5 shadow-md">
+          <div className="bg-white border-3 border-amber-300 rounded-3xl p-4 flex flex-col gap-3 shadow-md">
             {hints.staff && (
               <MusicStaff
                 notes={visibleNotes}
@@ -648,41 +648,41 @@ export const FullSongVirtuosoView: React.FC<FullSongVirtuosoViewProps> = ({
 
       {/* Full Piece Completion Celebration Modal */}
       {showCompletionModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/85 backdrop-blur-md p-4 animate-fade-in">
-          <div className="bg-slate-900 border border-slate-700 rounded-3xl p-6 md:p-8 max-w-md w-full text-center flex flex-col items-center gap-4 shadow-2xl text-slate-100">
-            <span className="text-5xl animate-bounce">🏆</span>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="bg-white border-4 border-amber-400 rounded-3xl p-6 md:p-8 max-w-md w-full text-center flex flex-col items-center gap-4 shadow-2xl text-slate-900">
+            <span className="text-6xl animate-bounce">🏆</span>
             <div>
-              <span className="px-3 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+              <span className="px-4 py-1.5 rounded-full text-xs font-black bg-amber-100 text-amber-900 border-2 border-amber-300">
                 {selectedCategory === 'song' ? '全曲演奏大師！' : '哈農手指流暢大師！'}
               </span>
-              <h2 className="text-xl md:text-2xl font-black text-white mt-2">
+              <h2 className="text-2xl md:text-3xl font-black text-slate-900 mt-3">
                 恭喜完整彈奏《{currentPiece.title}》！
               </h2>
-              <p className="text-xs text-slate-400 mt-1">
+              <p className="text-sm text-slate-700 font-bold mt-2 leading-relaxed">
                 從頭到尾零中斷彈奏，你的手指力量與敏捷度大幅提升！
               </p>
             </div>
 
             {/* Performance Summary Cards */}
-            <div className="grid grid-cols-3 gap-2 w-full pt-1">
-              <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-800 flex flex-col items-center">
-                <span className="text-[10px] text-slate-400">完成音符</span>
-                <span className="text-base font-black text-emerald-400 font-mono">{notes.length}</span>
+            <div className="grid grid-cols-3 gap-3 w-full pt-2">
+              <div className="bg-amber-50 p-3 rounded-2xl border-2 border-amber-200 flex flex-col items-center shadow-xs">
+                <span className="text-xs text-slate-600 font-bold">完成音符</span>
+                <span className="text-lg font-black text-emerald-600 font-mono">{notes.length}</span>
               </div>
-              <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-800 flex flex-col items-center">
-                <span className="text-[10px] text-slate-400">最高連擊</span>
-                <span className="text-base font-black text-amber-400 font-mono">{maxCombo} 🔥</span>
+              <div className="bg-amber-50 p-3 rounded-2xl border-2 border-amber-200 flex flex-col items-center shadow-xs">
+                <span className="text-xs text-slate-600 font-bold">最高連擊</span>
+                <span className="text-lg font-black text-amber-600 font-mono">{maxCombo} 🔥</span>
               </div>
-              <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-800 flex flex-col items-center">
-                <span className="text-[10px] text-slate-400">失誤次數</span>
-                <span className="text-base font-black text-blue-400 font-mono">{totalErrors}</span>
+              <div className="bg-amber-50 p-3 rounded-2xl border-2 border-amber-200 flex flex-col items-center shadow-xs">
+                <span className="text-xs text-slate-600 font-bold">失誤次數</span>
+                <span className="text-lg font-black text-blue-600 font-mono">{totalErrors}</span>
               </div>
             </div>
 
-            <div className="flex items-center gap-3 w-full pt-2">
+            <div className="flex items-center gap-3 w-full pt-3">
               <button
                 onClick={handleRestartPiece}
-                className="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs transition border border-slate-700"
+                className="flex-1 py-3 rounded-2xl bg-amber-100 hover:bg-amber-200 text-amber-950 font-black text-sm transition border-2 border-amber-300 shadow-sm active:scale-95"
               >
                 🔄 再彈一次
               </button>
@@ -695,7 +695,7 @@ export const FullSongVirtuosoView: React.FC<FullSongVirtuosoViewProps> = ({
                     handleSelectPiece(nextPiece);
                   }
                 }}
-                className="flex-1 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-xs transition shadow-lg"
+                className="flex-1 py-3 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-black text-sm transition shadow-lg active:scale-95"
               >
                 下一首曲目 →
               </button>

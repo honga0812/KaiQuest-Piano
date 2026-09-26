@@ -88,10 +88,10 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans select-none overflow-x-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-sky-50 to-indigo-50 text-slate-800 flex flex-col font-sans select-none overflow-x-hidden">
       {/* Offline Mode Indicator */}
       {!isOnline && (
-        <div className="bg-amber-500 text-slate-950 px-4 py-1 text-xs font-bold text-center z-50 animate-pulse">
+        <div className="bg-amber-400 text-amber-950 px-4 py-2 text-sm font-black text-center z-50 shadow-sm animate-pulse">
           離線模式啟動中 — PWA 快取已就緒，您可以隨時離線彈奏鋼琴！
         </div>
       )}
@@ -108,7 +108,7 @@ export default function App() {
       />
 
       {/* Main Content Area */}
-      <main className="flex-1 flex flex-col justify-center items-center overflow-y-auto">
+      <main className="flex-1 flex flex-col items-stretch justify-start overflow-y-auto w-full">
         {currentTab === 'map' && (
           <CourseMapView
             progress={progress}

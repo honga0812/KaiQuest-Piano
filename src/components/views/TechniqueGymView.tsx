@@ -102,52 +102,52 @@ export const TechniqueGymView: React.FC<TechniqueGymViewProps> = ({
 
   return (
     <div className={`w-full max-w-6xl mx-auto p-4 md:p-6 select-none flex flex-col gap-6 ${className}`}>
-      {/* Header */}
-      <div className="flex flex-col gap-1 text-left">
+      {/* Header - Bright & Cheerful */}
+      <div className="flex flex-col gap-1.5 text-left bg-white border-2 border-amber-300 rounded-3xl p-6 shadow-sm">
         <div className="flex items-center gap-2">
-          <span className="text-xs font-bold uppercase tracking-wider text-blue-400 font-mono">
+          <span className="text-sm font-black uppercase tracking-wider text-amber-600 font-mono">
             Technique Gym
           </span>
-          <span className="text-slate-500">·</span>
-          <span className="text-xs text-slate-400">
+          <span className="text-slate-400">·</span>
+          <span className="text-sm font-black text-amber-800">
             十種兒童趣味琴技特訓館
           </span>
         </div>
-        <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight">
+        <h1 className="text-2xl md:text-3xl font-black text-amber-950 tracking-tight">
           動物導師技巧道場
         </h1>
-        <p className="text-xs md:text-sm text-slate-300">
+        <p className="text-base text-slate-700 font-bold">
           跟著艾力獅練手型、跟三十郎大師練指法接力、跟嘎嘎鴨練習滑順連奏！
         </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Side: Game Cards List */}
-        <div className="flex flex-col gap-2.5 max-h-[600px] overflow-y-auto pr-1">
+        <div className="flex flex-col gap-3 max-h-[600px] overflow-y-auto pr-1">
           {TECHNIQUE_GAMES.map((game) => {
             const isSelected = selectedGame.id === game.id;
             return (
               <div
                 key={game.id}
                 onClick={() => handleSelectGame(game)}
-                className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-3 text-left ${
+                className={`p-4 rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between gap-3 text-left shadow-xs active:scale-95 ${
                   isSelected
-                    ? 'bg-blue-600/20 border-blue-500 ring-2 ring-blue-500/50 shadow-lg'
-                    : 'bg-slate-900/80 border-slate-800 hover:bg-slate-800'
+                    ? 'bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 border-white text-slate-950 shadow-md scale-102'
+                    : 'bg-white border-amber-200 hover:bg-amber-50 text-slate-800'
                 }`}
               >
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3.5">
                   <AnimalMentor type={game.mentor} size="sm" />
                   <div>
-                    <h3 className="text-sm font-bold text-white">
+                    <h3 className={`text-base font-black ${isSelected ? 'text-slate-950' : 'text-amber-950'}`}>
                       {game.name}
                     </h3>
-                    <span className="text-[11px] text-slate-400 font-mono">
+                    <span className={`text-xs font-bold font-mono ${isSelected ? 'text-slate-900' : 'text-slate-600'}`}>
                       {game.category} · {game.bpm} BPM
                     </span>
                   </div>
                 </div>
-                <span className="text-xl" title={game.badgeName}>
+                <span className="text-2xl" title={game.badgeName}>
                   {game.badgeIcon}
                 </span>
               </div>
@@ -156,20 +156,20 @@ export const TechniqueGymView: React.FC<TechniqueGymViewProps> = ({
         </div>
 
         {/* Right Side: Interactive Training Sandbox */}
-        <div className="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-3xl p-5 md:p-6 flex flex-col justify-between gap-4 shadow-xl">
+        <div className="lg:col-span-2 bg-white border-3 border-amber-300 rounded-3xl p-6 md:p-8 flex flex-col justify-between gap-5 shadow-md text-slate-900">
           {/* Top Mentor Advice */}
-          <div className="flex items-center gap-4 bg-slate-800/80 border border-slate-700 rounded-2xl p-4">
+          <div className="flex items-center gap-4 bg-amber-50/80 border-2 border-amber-300 rounded-2xl p-4 shadow-xs">
             <AnimalMentor type={selectedGame.mentor} size="md" />
             <div className="text-left">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-amber-400">
+                <span className="text-sm font-black text-amber-900">
                   {selectedGame.mentorName} 老師提示:
                 </span>
-                <span className="text-[10px] bg-slate-700 text-slate-300 px-2 py-0.5 rounded-full">
+                <span className="text-xs font-black bg-amber-200 text-amber-950 px-2.5 py-0.5 rounded-full">
                   {selectedGame.category}
                 </span>
               </div>
-              <p className="text-xs md:text-sm text-slate-200 mt-1 font-medium leading-relaxed">
+              <p className="text-base text-slate-800 mt-1 font-bold leading-relaxed">
                 {selectedGame.instruction}
               </p>
             </div>
@@ -177,9 +177,9 @@ export const TechniqueGymView: React.FC<TechniqueGymViewProps> = ({
 
           {/* Interactive Music Staff */}
           <div className="flex flex-col gap-2">
-            <div className="flex items-center justify-between text-xs text-slate-400">
+            <div className="flex items-center justify-between text-sm font-black text-amber-950">
               <span>五線譜指法目標</span>
-              <span className="font-mono">
+              <span className="font-mono text-base text-blue-700">
                 進度: {currentNoteIdx} / {selectedGame.notes.length}
               </span>
             </div>
@@ -193,27 +193,27 @@ export const TechniqueGymView: React.FC<TechniqueGymViewProps> = ({
 
           {/* Interactive Keyboard Sandbox */}
           <div>
-            <div className="flex flex-wrap items-center justify-between text-xs text-slate-400 mb-1 gap-2">
+            <div className="flex flex-wrap items-center justify-between text-sm font-black text-slate-700 mb-2 gap-2">
               <div className="flex items-center gap-2">
                 <span>在鋼琴彈奏或點擊琴鍵練習：</span>
                 {inputMode === 'microphone' && (
                   !isMicRunning ? (
                     <button
                       onClick={handleActivateMic}
-                      className="px-2.5 py-0.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] animate-pulse shadow"
+                      className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-black text-xs transition active:scale-95 shadow-sm"
                     >
                       🎙️ 點擊開啟麥克風聽琴
                     </button>
                   ) : (
-                    <span className="text-[11px] text-emerald-400 flex items-center gap-1 font-mono">
-                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <span className="text-xs text-emerald-700 flex items-center gap-1 font-mono font-black">
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
                       麥克風聆聽中 {liveDetectedNote && `(已聽到: ${liveDetectedNote})`}
                     </span>
                   )
                 )}
               </div>
               {currentTarget && (
-                <span className="font-bold text-amber-400 font-mono">
+                <span className="font-black text-amber-900 font-mono text-sm bg-amber-100 px-3 py-1 rounded-xl border border-amber-300">
                   目標: {currentTarget.noteName} (指法 {currentTarget.fingerNumber})
                 </span>
               )}
@@ -227,14 +227,14 @@ export const TechniqueGymView: React.FC<TechniqueGymViewProps> = ({
 
           {/* Completion Celebration Banner */}
           {isGameCompleted && (
-            <div className="bg-emerald-950/70 border border-emerald-500 rounded-2xl p-4 flex items-center justify-between animate-fade-in">
-              <div className="flex items-center gap-3">
-                <span className="text-2xl">{selectedGame.badgeIcon}</span>
+            <div className="bg-emerald-100 border-2 border-emerald-400 rounded-3xl p-5 flex items-center justify-between animate-fade-in shadow-md">
+              <div className="flex items-center gap-4">
+                <span className="text-3xl">{selectedGame.badgeIcon}</span>
                 <div className="text-left">
-                  <div className="text-sm font-bold text-white">
+                  <div className="text-lg font-black text-emerald-950">
                     特訓大成功！獲得「{selectedGame.badgeName}」！
                   </div>
-                  <div className="text-xs text-emerald-300">
+                  <div className="text-sm font-bold text-emerald-800">
                     你的手指敏捷度與音準大幅提升！
                   </div>
                 </div>
@@ -244,9 +244,9 @@ export const TechniqueGymView: React.FC<TechniqueGymViewProps> = ({
                   setCurrentNoteIdx(0);
                   setIsGameCompleted(false);
                 }}
-                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow"
+                className="px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white text-base font-black rounded-2xl shadow transition active:scale-95"
               >
-                再練一次
+                再練一次 🔄
               </button>
             </div>
           )}

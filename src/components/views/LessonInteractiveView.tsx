@@ -86,6 +86,9 @@ export const LessonInteractiveView: React.FC<LessonInteractiveViewProps> = ({
     keyboard: true,
   });
 
+  // Tablet collapsible practice toolbar
+  const [showTabletPracticeTools, setShowTabletPracticeTools] = useState(false);
+
   const metronomeTimerRef = useRef<number | null>(null);
   const beatCountRef = useRef(0);
 
@@ -355,167 +358,180 @@ export const LessonInteractiveView: React.FC<LessonInteractiveViewProps> = ({
 
   return (
     <div className={`flex flex-col h-full w-full max-w-6xl mx-auto px-3 md:px-6 py-2 select-none overflow-hidden justify-between ${className}`}>
-      {/* Top Header Control Deck */}
-      <div className="flex flex-col gap-2 shrink-0">
-        <div className="flex items-center justify-between gap-3">
+      {/* Top Header Control Deck - Bright, Cheerful & Kid-Friendly */}
+      <div className="flex flex-col gap-3 shrink-0">
+        <div className="flex flex-wrap items-center justify-between gap-3 bg-white/95 border-2 border-amber-300 rounded-3xl p-3.5 md:p-4 shadow-sm">
           {/* Back Button & Title */}
           <div className="flex items-center gap-3">
             <button
               onClick={onBackToMap}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl border border-slate-700 transition"
+              className="flex items-center gap-2 px-4 py-2 bg-amber-100 hover:bg-amber-200 text-amber-950 text-sm md:text-base font-black rounded-2xl border-2 border-amber-300 transition shadow-sm active:scale-95"
             >
-              ← 課程地圖
+              <span>←</span>
+              <span>返回地圖</span>
             </button>
             <div>
-              <h2 className="text-base md:text-lg font-bold text-white tracking-tight leading-tight line-clamp-1">
+              <h2 className="text-lg md:text-2xl font-black text-amber-950 tracking-tight leading-tight line-clamp-1">
                 {lesson.songName} · {currentChallenge.title}
               </h2>
-              <span className="text-[11px] text-slate-400 font-mono">
+              <span className="text-xs md:text-sm text-amber-800 font-bold">
                 {currentChallenge.titleEn}
               </span>
             </div>
           </div>
 
           {/* 3 Tier Challenge Tabs (技巧 25% | 歌曲 50% | 表演 25%) */}
-          <div className="flex items-center bg-slate-900 rounded-xl p-1 border border-slate-800">
+          <div className="flex items-center bg-amber-100/80 rounded-2xl p-1.5 border-2 border-amber-300 shadow-sm">
             {allChallenges.map((ch, idx) => (
               <button
                 key={ch.id}
                 onClick={() => switchChallenge(idx)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${
+                className={`px-3.5 py-2 rounded-xl text-sm md:text-base font-black transition-all whitespace-nowrap ${
                   activeChallengeIndex === idx
-                    ? 'bg-blue-600 text-white shadow-md'
-                    : 'text-slate-400 hover:text-slate-200'
+                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md scale-105'
+                    : 'text-amber-950 hover:bg-amber-200/70'
                 }`}
               >
-                {ch.type === 'technique' ? '1. 技巧' : ch.type === 'song' ? '2. 歌曲' : '3. 表演'}
+                {ch.type === 'technique' ? '1. 技巧特訓' : ch.type === 'song' ? '2. 歌曲挑戰' : '3. 舞台表演'}
               </button>
             ))}
           </div>
 
-          {/* Metronome & Demo Play Controls */}
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setShowScaleModal(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-200 text-xs font-bold rounded-xl border border-indigo-500/40 transition shadow-sm"
-              title="測試鋼琴音階聽辨"
-            >
-              <span>🎵</span>
-              <span className="hidden sm:inline">音階辨識測試</span>
-            </button>
+          {/* Quick Right Action Controls */}
+          <div className="flex items-center gap-2.5">
+            {/* Phrase combo & progress status */}
+            <div className="flex items-center gap-2 bg-amber-100 border-2 border-amber-300 px-3.5 py-2 rounded-2xl text-sm md:text-base font-black text-amber-950 shadow-sm">
+              <span className="text-amber-900">進度:</span>
+              <span className="font-mono text-blue-700 text-base md:text-lg">
+                {currentNoteIndex} / {notes.length}
+              </span>
+              {comboStreak > 1 && (
+                <span className="bg-rose-500 text-white px-2 py-0.5 rounded-full font-black text-xs animate-bounce shadow-sm">
+                  🔥{comboStreak}連擊
+                </span>
+              )}
+            </div>
 
-            <button
-              onClick={playDemo}
-              disabled={isPlayingDemo}
-              className="flex items-center gap-1 px-3 py-1.5 bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-slate-950 text-xs font-bold rounded-xl shadow transition"
-              title="示範演奏這首歌"
-            >
-              <span>▶</span>
-              <span className="hidden sm:inline">示範聽聽</span>
-            </button>
-
+            {/* Quick Metronome Toggle */}
             <button
               onClick={() => setIsMetronomeActive(!isMetronomeActive)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl border transition ${
+              className={`flex items-center gap-2 px-3.5 py-2 text-sm md:text-base font-black rounded-2xl border-2 transition shadow-sm active:scale-95 ${
                 isMetronomeActive
-                  ? 'bg-emerald-600 border-emerald-500 text-white'
-                  : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'
+                  ? 'bg-emerald-500 border-emerald-600 text-white shadow-md'
+                  : 'bg-white border-amber-300 text-amber-950 hover:bg-amber-50'
               }`}
               title="開關節拍器"
             >
               <span>⏱️</span>
               <span className="font-mono">{bpm} BPM</span>
             </button>
+
+            {/* Collapsible Tool Bar Switch */}
+            <button
+              onClick={() => setShowTabletPracticeTools(!showTabletPracticeTools)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-sm md:text-base font-black transition-all border-2 shadow-sm active:scale-95 ${
+                showTabletPracticeTools
+                  ? 'bg-gradient-to-r from-amber-400 to-orange-400 border-amber-500 text-slate-950'
+                  : 'bg-white hover:bg-amber-50 border-amber-300 text-amber-950'
+              }`}
+              title="展開或收起譜面提示與示範工具"
+            >
+              <span>🎛️</span>
+              <span>{showTabletPracticeTools ? '收起提示' : '譜面提示'}</span>
+            </button>
           </div>
         </div>
 
-        {/* Microphone prompt banner if mic not running */}
-        {inputMode === 'microphone' && !isMicRunning && (
-          <div className="bg-gradient-to-r from-blue-950 via-indigo-950 to-slate-900 border-2 border-emerald-500/70 rounded-2xl p-2.5 px-3.5 flex flex-wrap items-center justify-between gap-3 shadow-xl">
-            <div className="flex items-center gap-2.5 text-left">
-              <span className="text-xl">🎙️</span>
-              <div className="max-w-xl">
-                <span className="text-xs font-bold text-white block">麥克風聽琴辨識尚未啟動</span>
-                <span className="text-[11px] text-emerald-300 leading-snug block">
-                  {micError
-                    ? micError
-                    : '點擊右方按鈕開啟麥克風。若瀏覽器沒有跳出允許提示，請點擊網址列左側 🔒 鎖頭圖示手動改為「允許」，或點擊「在新分頁獨立開啟」！'}
-                </span>
+        {/* Collapsible Practice Tools Strip - Bright & Clear */}
+        {showTabletPracticeTools && (
+          <div className="bg-white border-2 border-amber-300 rounded-3xl p-3.5 md:p-4 flex flex-wrap items-center justify-between gap-3 shadow-md animate-fade-in text-base">
+            {/* 4 Hint Toggles */}
+            <div className="flex flex-wrap items-center gap-2.5">
+              <span className="text-amber-950 font-black text-sm md:text-base flex items-center gap-1">
+                <span>👀</span>
+                <span>輔助標示:</span>
+              </span>
+              <div className="flex items-center gap-2 flex-wrap">
+                <button
+                  onClick={() => setHints({ ...hints, staff: !hints.staff })}
+                  className={`px-3.5 py-2 rounded-xl text-sm md:text-base font-black transition shadow-sm active:scale-95 ${
+                    hints.staff ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow' : 'bg-slate-100 text-slate-600 border border-slate-300'
+                  }`}
+                >
+                  🎼 五線譜
+                </button>
+                <button
+                  onClick={() => setHints({ ...hints, numbered: !hints.numbered })}
+                  className={`px-3.5 py-2 rounded-xl text-sm md:text-base font-black transition shadow-sm active:scale-95 ${
+                    hints.numbered ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow' : 'bg-slate-100 text-slate-600 border border-slate-300'
+                  }`}
+                >
+                  🔢 簡譜
+                </button>
+                <button
+                  onClick={() => setHints({ ...hints, letter: !hints.letter })}
+                  className={`px-3.5 py-2 rounded-xl text-sm md:text-base font-black transition shadow-sm active:scale-95 ${
+                    hints.letter ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow' : 'bg-slate-100 text-slate-600 border border-slate-300'
+                  }`}
+                >
+                  🔤 字母音名
+                </button>
+                <button
+                  onClick={() => setHints({ ...hints, keyboard: !hints.keyboard })}
+                  className={`px-3.5 py-2 rounded-xl text-sm md:text-base font-black transition shadow-sm active:scale-95 ${
+                    hints.keyboard ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow' : 'bg-slate-100 text-slate-600 border border-slate-300'
+                  }`}
+                >
+                  🎹 琴鍵指法
+                </button>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <a
-                href={typeof window !== 'undefined' ? window.location.href : '#'}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-3 py-1.5 bg-blue-600/40 hover:bg-blue-600/60 text-blue-200 text-xs font-semibold rounded-xl border border-blue-400/40 transition whitespace-nowrap"
-              >
-                在新分頁開啟 ↗
-              </a>
+
+            {/* Quick Demo & Scale test actions */}
+            <div className="flex items-center gap-3">
               <button
-                onClick={handleActivateMic}
-                className="px-4 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-extrabold rounded-xl shadow-lg transition flex items-center gap-1.5 animate-pulse whitespace-nowrap"
+                onClick={playDemo}
+                disabled={isPlayingDemo}
+                className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-amber-400 to-orange-400 hover:from-amber-500 hover:to-orange-500 disabled:opacity-50 text-slate-950 text-sm md:text-base font-black rounded-2xl shadow transition active:scale-95"
               >
-                <span>🎙️</span>
-                <span>點擊開啟麥克風聽琴</span>
+                <span>▶</span>
+                <span>示範演奏聽聽看</span>
+              </button>
+
+              <button
+                onClick={() => setShowScaleModal(true)}
+                className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white text-sm md:text-base font-black rounded-2xl shadow transition active:scale-95"
+              >
+                <span>🎵</span>
+                <span>音階辨識測試</span>
               </button>
             </div>
           </div>
         )}
 
-        {/* 4 Hint Toggles Bar (五線譜 / 簡譜 / 字母 / 動態鍵盤) */}
-        <div className="flex items-center justify-between bg-slate-900/60 border border-slate-800 rounded-xl px-3 py-1.5 text-xs">
-          <div className="flex items-center gap-2">
-            <span className="text-slate-400 font-medium text-[11px]">譜面提示開關:</span>
-            <div className="flex items-center gap-1.5">
-              <button
-                onClick={() => setHints({ ...hints, staff: !hints.staff })}
-                className={`px-2.5 py-1 rounded-md text-xs font-semibold transition ${
-                  hints.staff ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-400'
-                }`}
-              >
-                五線譜
-              </button>
-              <button
-                onClick={() => setHints({ ...hints, numbered: !hints.numbered })}
-                className={`px-2.5 py-1 rounded-md text-xs font-semibold transition ${
-                  hints.numbered ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-400'
-                }`}
-              >
-                簡譜
-              </button>
-              <button
-                onClick={() => setHints({ ...hints, letter: !hints.letter })}
-                className={`px-2.5 py-1 rounded-md text-xs font-semibold transition ${
-                  hints.letter ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-400'
-                }`}
-              >
-                C-D-E 字母
-              </button>
-              <button
-                onClick={() => setHints({ ...hints, keyboard: !hints.keyboard })}
-                className={`px-2.5 py-1 rounded-md text-xs font-semibold transition ${
-                  hints.keyboard ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-400'
-                }`}
-              >
-                琴鍵指法
-              </button>
+        {/* Microphone prompt banner if mic not running */}
+        {inputMode === 'microphone' && !isMicRunning && (
+          <div className="bg-gradient-to-r from-emerald-50 via-teal-50 to-sky-50 border-3 border-emerald-400 rounded-3xl p-4 flex flex-wrap items-center justify-between gap-4 shadow-md">
+            <div className="flex items-center gap-3 text-left">
+              <span className="text-3xl">🎙️</span>
+              <div>
+                <span className="text-base font-black text-emerald-950 block">麥克風聽琴辨識尚未啟動</span>
+                <span className="text-sm text-emerald-800 font-bold block">
+                  {micError
+                    ? micError
+                    : '點擊右方按鈕開啟麥克風。若瀏覽器沒有跳出允許提示，請點擊網址列左側 🔒 鎖頭圖示手動改為「允許」！'}
+                </span>
+              </div>
             </div>
+            <button
+              onClick={handleActivateMic}
+              className="px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white text-base font-black rounded-2xl shadow-lg transition flex items-center gap-2 animate-pulse whitespace-nowrap active:scale-95"
+            >
+              <span>🎙️</span>
+              <span>點擊啟動麥克風聽琴</span>
+            </button>
           </div>
-
-          {/* Phrase combo status */}
-          <div className="flex items-center gap-2 text-xs">
-            <span className="text-slate-400">進度:</span>
-            <span className="font-mono font-bold text-amber-400">
-              {currentNoteIndex} / {notes.length}
-            </span>
-            {comboStreak > 1 && (
-              <span className="bg-amber-400/20 text-amber-300 border border-amber-400/40 px-2 py-0.5 rounded-full font-bold text-[10px] animate-pulse">
-                🔥 {comboStreak} 連擊!
-              </span>
-            )}
-          </div>
-        </div>
+        )}
       </div>
 
       {/* Middle Interactive Musical Stage */}
@@ -531,14 +547,14 @@ export const LessonInteractiveView: React.FC<LessonInteractiveViewProps> = ({
             size="lg"
           />
 
-          {/* Current Target Focus Chip - Enlarged for Tablet */}
+          {/* Current Target Focus Chip - Enlarged & Bright for Tablet */}
           {currentTargetNote && (
-            <div className="hidden sm:flex items-center gap-3 bg-gradient-to-r from-blue-900 via-indigo-900 to-blue-900 border-2 border-amber-400 px-5 py-2.5 rounded-3xl shadow-xl animate-pulse">
-              <span className="text-xs md:text-sm font-black text-amber-300">🎯 目標指法:</span>
-              <span className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-blue-600 text-white font-black flex items-center justify-center text-base md:text-lg border-2 border-white shadow-lg">
+            <div className="hidden sm:flex items-center gap-3.5 bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 border-3 border-white px-6 py-3 rounded-3xl shadow-lg animate-pulse text-slate-950">
+              <span className="text-sm md:text-base font-black">🎯 目標指法:</span>
+              <span className="w-10 h-10 md:w-11 md:h-11 rounded-full bg-blue-600 text-white font-black flex items-center justify-center text-lg md:text-xl border-2 border-white shadow-md">
                 {currentTargetNote.fingerNumber}
               </span>
-              <span className="text-base md:text-lg font-black text-white font-mono">
+              <span className="text-lg md:text-xl font-black font-mono">
                 {currentTargetNote.hand === 'left' ? '左手' : '右手'} {currentTargetNote.noteName} ({currentTargetNote.solfege})
               </span>
             </div>
@@ -629,24 +645,24 @@ export const LessonInteractiveView: React.FC<LessonInteractiveViewProps> = ({
         }
       />
 
-      {/* Completion Modal */}
+      {/* Completion Modal - Bright & Joyful Celebration */}
       {showCompletionModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4 animate-fade-in">
-          <div className="relative w-full max-w-md bg-slate-900 border-2 border-amber-400/80 rounded-3xl p-6 shadow-2xl text-center flex flex-col items-center gap-4">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/70 backdrop-blur-md p-4 animate-fade-in select-none">
+          <div className="relative w-full max-w-lg bg-white border-4 border-amber-300 rounded-3xl p-7 shadow-2xl text-center flex flex-col items-center gap-5 text-slate-950">
             <KaiCharacter
               mood="celebrating"
-              speechText="Bravo! 你順利通過了這個關卡！"
+              speechText="太棒了！恭喜順利通關！"
               speechEn="Challenge Completed!"
               size="lg"
             />
 
             {/* Stars */}
-            <div className="flex items-center justify-center gap-2 text-3xl">
+            <div className="flex items-center justify-center gap-3 text-4xl">
               {[1, 2, 3].map((starIdx) => (
                 <span
                   key={starIdx}
                   className={`transition-all duration-300 ${
-                    starIdx <= starsAwarded ? 'text-amber-400 scale-125' : 'text-slate-700'
+                    starIdx <= starsAwarded ? 'text-amber-400 scale-125' : 'text-slate-200'
                   }`}
                 >
                   ★
@@ -654,8 +670,8 @@ export const LessonInteractiveView: React.FC<LessonInteractiveViewProps> = ({
               ))}
             </div>
 
-            <div className="text-slate-200 text-sm">
-              獲得 <strong className="text-amber-400">{starsAwarded} 顆星</strong>！解鎖「{lesson.badgeTitle}」！
+            <div className="text-slate-800 text-lg md:text-xl font-black">
+              榮獲 <strong className="text-amber-600 font-black">{starsAwarded} 顆星</strong>！解鎖「{lesson.badgeTitle}」！
             </div>
 
             <div className="w-full flex items-center gap-3 pt-2">
@@ -664,21 +680,21 @@ export const LessonInteractiveView: React.FC<LessonInteractiveViewProps> = ({
                   setShowCompletionModal(false);
                   setCurrentNoteIndex(0);
                 }}
-                className="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-xl border border-slate-700 transition"
+                className="flex-1 py-3.5 bg-amber-100 hover:bg-amber-200 text-amber-950 text-base font-black rounded-2xl border-2 border-amber-300 transition shadow-sm active:scale-95"
               >
-                再練一次
+                再練一次 🔄
               </button>
               {activeChallengeIndex < allChallenges.length - 1 ? (
                 <button
                   onClick={() => switchChallenge(activeChallengeIndex + 1)}
-                  className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl shadow-lg transition"
+                  className="flex-1 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-base font-black rounded-2xl shadow-lg transition active:scale-95"
                 >
-                  下一關卡 →
+                  下一關卡 ➔
                 </button>
               ) : (
                 <button
                   onClick={onBackToMap}
-                  className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-lg transition"
+                  className="flex-1 py-3.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white text-base font-black rounded-2xl shadow-lg transition active:scale-95"
                 >
                   回課程地圖 🗺️
                 </button>

@@ -104,23 +104,23 @@ export const CourseMapView: React.FC<CourseMapViewProps> = ({
         <div className="absolute -right-10 -bottom-10 w-72 h-72 rounded-full bg-yellow-400/20 blur-3xl pointer-events-none" />
       </div>
 
-      {/* Dedicated Age-Stage Pedagogical Card */}
-      <div className="bg-gradient-to-br from-slate-900 via-indigo-950/80 to-slate-900 border-2 border-amber-400/40 rounded-3xl p-5 shadow-xl flex flex-col gap-3.5 text-left">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-3.5">
-            <span className="w-12 h-12 rounded-2xl bg-amber-500/20 border-2 border-amber-400/50 flex items-center justify-center text-2xl shrink-0 shadow-inner">
+      {/* Dedicated Age-Stage Pedagogical Card - Bright & Cheerful */}
+      <div className="bg-white border-2 border-amber-300 rounded-3xl p-6 shadow-lg flex flex-col gap-4 text-left text-slate-800">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <span className="w-14 h-14 rounded-2xl bg-amber-100 border-2 border-amber-300 flex items-center justify-center text-3xl shrink-0 shadow-sm">
               {currentAge === 4 ? '🌱' : currentAge === 5 ? '🖐️' : currentAge === 6 ? '🚀' : '👑'}
             </span>
             <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-lg md:text-xl font-black text-white">
+              <div className="flex items-center gap-2.5 flex-wrap">
+                <h2 className="text-xl md:text-2xl font-black text-slate-900">
                   {currentStageInfo.islandName} · {currentStageInfo.stageTitle}
                 </h2>
-                <span className="px-3 py-0.5 rounded-full text-xs font-black bg-blue-600 text-white shadow-sm">
+                <span className="px-3.5 py-1 rounded-full text-xs font-black bg-blue-600 text-white shadow-sm">
                   12 堂年度精選里程碑
                 </span>
               </div>
-              <p className="text-xs text-amber-200/90 mt-0.5 font-bold">
+              <p className="text-sm text-slate-600 mt-1 font-bold">
                 {currentStageInfo.description}
               </p>
             </div>
@@ -128,7 +128,7 @@ export const CourseMapView: React.FC<CourseMapViewProps> = ({
 
           {/* Quick Age Switcher Pills */}
           {onSelectAge && (
-            <div className="flex items-center bg-slate-950/90 p-1.5 rounded-2xl border border-slate-700 shadow-md">
+            <div className="flex items-center bg-amber-50 p-1.5 rounded-2xl border-2 border-amber-200 shadow-sm">
               {([4, 5, 6, 7] as AgeBand[]).map((age) => (
                 <button
                   key={age}
@@ -136,13 +136,13 @@ export const CourseMapView: React.FC<CourseMapViewProps> = ({
                     onSelectAge(age);
                     setQuarterFilter(0);
                   }}
-                  className={`px-3.5 py-1.5 rounded-xl text-xs md:text-sm font-black transition flex items-center gap-1.5 ${
+                  className={`px-4 py-2 rounded-xl text-sm font-black transition flex items-center gap-1.5 active:scale-95 ${
                     currentAge === age
-                      ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 shadow-lg scale-105'
-                      : 'text-slate-400 hover:text-white'
+                      ? 'bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 text-slate-950 shadow-md scale-105'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-amber-100/50'
                   }`}
                 >
-                  <span>{age === 4 ? '🌱' : age === 5 ? '🖐️' : age === 6 ? '🚀' : '👑'}</span>
+                  <span className="text-base">{age === 4 ? '🌱' : age === 5 ? '🖐️' : age === 6 ? '🚀' : '👑'}</span>
                   <span>{age} 歲</span>
                 </button>
               ))}
@@ -151,18 +151,18 @@ export const CourseMapView: React.FC<CourseMapViewProps> = ({
         </div>
 
         {/* Focus Skill Tags */}
-        <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-800">
-          <span className="text-xs text-slate-300 font-bold mr-1">本年齡教學重點：</span>
+        <div className="flex flex-wrap items-center gap-2.5 pt-3 border-t-2 border-amber-100">
+          <span className="text-sm text-slate-700 font-black mr-1">本年齡教學重點：</span>
           {currentStageInfo.focusHighlights.map((focus, i) => (
             <span
               key={i}
-              className="px-3 py-1 rounded-xl text-xs bg-slate-800/90 border border-slate-700 text-slate-100 font-bold flex items-center gap-1 shadow-sm"
+              className="px-3.5 py-1.5 rounded-xl text-xs md:text-sm bg-sky-50 border border-sky-200 text-sky-900 font-bold flex items-center gap-1.5 shadow-2xs"
             >
-              <span className="text-emerald-400">✓</span>
+              <span className="text-emerald-600 font-black">✓</span>
               <span>{focus}</span>
             </span>
           ))}
-          <span className="ml-auto text-xs text-amber-400 font-mono font-black bg-amber-500/10 px-3 py-1 rounded-xl border border-amber-500/30">
+          <span className="ml-auto text-xs md:text-sm text-amber-900 font-mono font-black bg-amber-100 px-3.5 py-1.5 rounded-xl border border-amber-300">
             推薦節奏：{currentStageInfo.tempoRange}
           </span>
         </div>
@@ -170,29 +170,29 @@ export const CourseMapView: React.FC<CourseMapViewProps> = ({
 
       {/* Full Songs & Hanon Virtuoso Gateway Card */}
       {onOpenConcert && (
-        <div className="bg-gradient-to-r from-blue-950 via-indigo-900 to-amber-950 border-2 border-amber-400/80 rounded-3xl p-5 flex flex-wrap items-center justify-between gap-4 shadow-2xl">
+        <div className="bg-gradient-to-r from-amber-50 via-sky-50 to-indigo-50 border-2 border-amber-300 rounded-3xl p-6 flex flex-wrap items-center justify-between gap-4 shadow-md text-slate-800">
           <div className="flex items-center gap-4 text-left">
-            <span className="w-14 h-14 rounded-2xl bg-amber-500/20 border-2 border-amber-400/60 flex items-center justify-center text-3xl shadow-lg shrink-0 animate-pulse">
+            <span className="w-14 h-14 rounded-2xl bg-amber-200 border-2 border-amber-300 flex items-center justify-center text-3xl shadow-sm shrink-0">
               🎹
             </span>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-lg md:text-xl font-black text-white">
+                <h3 className="text-xl md:text-2xl font-black text-slate-900">
                   👑 全曲名曲演奏與哈農流暢跑動 (4~7 歲完整曲庫)
                 </h3>
-                <span className="bg-rose-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider animate-bounce">
-                  Hot
+                <span className="bg-rose-500 text-white text-xs font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-xs">
+                  熱門
                 </span>
               </div>
-              <p className="text-xs text-slate-300 mt-1 font-bold">
-                收錄 28 首世界金曲（《小星星》、《歡樂頌》、《兩隻老虎》、《給愛麗絲》、《卡農》、《土耳其進行曲》等）與 16 首哈農流暢跑動！
+              <p className="text-sm text-slate-600 mt-1 font-bold">
+                收錄 28 首世界金曲（《小星星》、《歡樂頌》、《給愛麗絲》、《卡農》等）與 16 首哈農手指體操！
               </p>
             </div>
           </div>
 
           <button
             onClick={onOpenConcert}
-            className="px-6 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 hover:from-amber-300 hover:to-orange-400 text-slate-950 font-black text-sm rounded-2xl shadow-xl transition transform hover:scale-105 active:scale-95 flex items-center gap-2"
+            className="px-6 py-3.5 bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 hover:from-amber-500 hover:to-orange-500 text-slate-950 font-black text-sm md:text-base rounded-2xl shadow-md transition transform active:scale-95 flex items-center gap-2"
           >
             <span>✨</span>
             <span>進入全曲與哈農演奏殿堂</span>
@@ -202,34 +202,35 @@ export const CourseMapView: React.FC<CourseMapViewProps> = ({
       )}
 
       {/* Quarter / Seasonal Roadmap Filter for Annual Curriculum */}
-      <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+      {/* Quarter / Seasonal Roadmap Filter for Annual Curriculum */}
+      <div className="flex flex-wrap items-center justify-between gap-3 pt-2 text-slate-800">
         <div className="flex items-center gap-2 text-left">
-          <span className="text-base md:text-lg font-black text-white">
+          <span className="text-lg md:text-xl font-black text-slate-900">
             {viewFilter === 'focused' ? `【${currentAge} 歲 52 週年度漸進課堂】` : '【全島 48 堂年度大滿貫】'}
           </span>
-          <span className="text-xs text-amber-300 font-bold">
-            ({displayedLessons.length} 堂課)
+          <span className="text-sm text-amber-900 font-bold bg-amber-100 px-3 py-1 rounded-full border border-amber-300">
+            {displayedLessons.length} 堂課
           </span>
         </div>
 
         {/* View Mode & Quarter Selector */}
-        <div className="flex flex-wrap items-center gap-2 text-xs">
+        <div className="flex flex-wrap items-center gap-2 text-sm">
           {viewFilter === 'focused' && (
-            <div className="flex items-center bg-slate-950 p-1 rounded-2xl border border-slate-800">
+            <div className="flex items-center bg-white p-1 rounded-2xl border-2 border-amber-200 shadow-sm">
               {[
                 { q: 0, label: '🌈 全部季度' },
-                { q: 1, label: '🌸 Q1 萌芽探索' },
-                { q: 2, label: '☀️ Q2 指尖力量' },
-                { q: 3, label: '🍁 Q3 旋律飛翔' },
-                { q: 4, label: '❄️ Q4 榮譽大師' },
+                { q: 1, label: '🌸 Q1 萌芽' },
+                { q: 2, label: '☀️ Q2 力量' },
+                { q: 3, label: '🍁 Q3 飛翔' },
+                { q: 4, label: '❄️ Q4 大師' },
               ].map((tab) => (
                 <button
                   key={tab.q}
                   onClick={() => setQuarterFilter(tab.q as 0 | 1 | 2 | 3 | 4)}
-                  className={`px-3 py-1.5 rounded-xl font-bold transition whitespace-nowrap ${
+                  className={`px-3.5 py-1.5 rounded-xl font-black text-xs md:text-sm transition whitespace-nowrap ${
                     quarterFilter === tab.q
-                      ? 'bg-amber-500 text-slate-950 shadow-md font-black'
-                      : 'text-slate-400 hover:text-white'
+                      ? 'bg-amber-400 text-slate-950 shadow-sm'
+                      : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
                   {tab.label}
@@ -238,15 +239,15 @@ export const CourseMapView: React.FC<CourseMapViewProps> = ({
             </div>
           )}
 
-          <div className="flex items-center bg-slate-950 p-1 rounded-2xl border border-slate-800">
+          <div className="flex items-center bg-white p-1 rounded-2xl border-2 border-amber-200 shadow-sm">
             <button
               onClick={() => {
                 setViewFilter('focused');
                 setQuarterFilter(0);
                 setDifficultyFilter(0);
               }}
-              className={`px-3 py-1.5 rounded-xl font-bold transition ${
-                viewFilter === 'focused' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-white'
+              className={`px-3.5 py-1.5 rounded-xl text-xs md:text-sm font-black transition ${
+                viewFilter === 'focused' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               {currentAge} 歲推薦課程
@@ -257,8 +258,8 @@ export const CourseMapView: React.FC<CourseMapViewProps> = ({
                 setQuarterFilter(0);
                 setDifficultyFilter(0);
               }}
-              className={`px-3 py-1.5 rounded-xl font-bold transition ${
-                viewFilter === 'all' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-white'
+              className={`px-3.5 py-1.5 rounded-xl text-xs md:text-sm font-black transition ${
+                viewFilter === 'all' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               全部 48 堂全景
@@ -268,13 +269,13 @@ export const CourseMapView: React.FC<CourseMapViewProps> = ({
       </div>
 
       {/* Difficulty Level System Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-2.5 p-3 rounded-2xl bg-slate-900/90 border border-slate-800 text-xs">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-amber-400 font-black text-xs flex items-center gap-1">
-            <span>⭐</span>
+      <div className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-3xl bg-white border-2 border-amber-200 shadow-sm text-sm">
+        <div className="flex flex-wrap items-center gap-2.5">
+          <span className="text-amber-900 font-black text-sm flex items-center gap-1.5">
+            <span className="text-base">⭐</span>
             <span>難度等級篩選:</span>
           </span>
-          <div className="flex flex-wrap items-center gap-1.5">
+          <div className="flex flex-wrap items-center gap-2">
             {[
               { lvl: 0, label: '全部難度' },
               { lvl: 1, label: 'Level 1 萌芽' },
@@ -286,10 +287,10 @@ export const CourseMapView: React.FC<CourseMapViewProps> = ({
               <button
                 key={d.lvl}
                 onClick={() => setDifficultyFilter(d.lvl as 0 | 1 | 2 | 3 | 4 | 5)}
-                className={`px-2.5 py-1 rounded-lg font-black transition text-xs ${
+                className={`px-3 py-1.5 rounded-xl font-black transition text-xs md:text-sm active:scale-95 ${
                   difficultyFilter === d.lvl
-                    ? 'bg-amber-400 text-slate-950 shadow-md font-extrabold'
-                    : 'bg-slate-800/80 text-slate-300 hover:text-white hover:bg-slate-700'
+                    ? 'bg-amber-400 text-slate-950 shadow-md font-black border border-amber-500'
+                    : 'bg-slate-100 text-slate-700 hover:text-slate-900 hover:bg-amber-100'
                 }`}
               >
                 {d.label}
@@ -298,31 +299,31 @@ export const CourseMapView: React.FC<CourseMapViewProps> = ({
           </div>
         </div>
 
-        <div className="text-[11px] text-amber-200 font-bold bg-amber-950/40 border border-amber-400/30 px-3 py-0.5 rounded-full">
+        <div className="text-xs text-amber-900 font-black bg-amber-100 border border-amber-300 px-3.5 py-1 rounded-full">
           每週至少 4 堂課 · 循環練琴體系
         </div>
       </div>
 
       {/* Weekly 4-Class Practice Routine Info Card */}
-      <div className="bg-gradient-to-r from-blue-950/60 via-slate-900 to-indigo-950/60 border border-blue-500/30 rounded-2xl p-3.5 flex flex-wrap items-center justify-between gap-3 text-xs">
-        <div className="flex items-center gap-2 text-left">
-          <span className="text-lg">📅</span>
+      <div className="bg-gradient-to-r from-amber-50 via-sky-50 to-indigo-50 border-2 border-amber-200 rounded-3xl p-4 md:p-5 flex flex-wrap items-center justify-between gap-3 text-sm text-slate-800 shadow-sm">
+        <div className="flex items-center gap-2.5 text-left">
+          <span className="text-2xl">📅</span>
           <div>
-            <span className="font-black text-white">4~7 歲每週 4 堂課循環練琴架構</span>
-            <p className="text-[11px] text-blue-200 mt-0.5">每週劃分三大核心模組，確保幼兒年度循環練習量：</p>
+            <span className="font-black text-slate-900 text-base">4~7 歲每週 4 堂課循環練琴架構</span>
+            <p className="text-xs text-slate-600 font-bold mt-0.5">每週劃分三大核心模組，確保幼兒年度循環練習量：</p>
           </div>
         </div>
-        <div className="flex flex-wrap items-center gap-2 text-[11px] font-bold">
-          <span className="px-2.5 py-1 rounded-xl bg-blue-900/60 text-blue-200 border border-blue-400/40">
+        <div className="flex flex-wrap items-center gap-2 text-xs md:text-sm font-black">
+          <span className="px-3 py-1.5 rounded-xl bg-sky-100 text-sky-950 border border-sky-300 shadow-xs">
             🥊 第 1 堂：熱身技巧
           </span>
-          <span className="px-2.5 py-1 rounded-xl bg-amber-900/60 text-amber-200 border border-amber-400/40">
+          <span className="px-3 py-1.5 rounded-xl bg-amber-100 text-amber-950 border border-amber-300 shadow-xs">
             🎶 第 2 堂：核心樂曲
           </span>
-          <span className="px-2.5 py-1 rounded-xl bg-purple-900/60 text-purple-200 border border-purple-400/40">
+          <span className="px-3 py-1.5 rounded-xl bg-purple-100 text-purple-950 border border-purple-300 shadow-xs">
             🖐️ 第 3 堂：雙手拓展
           </span>
-          <span className="px-2.5 py-1 rounded-xl bg-emerald-900/60 text-emerald-200 border border-emerald-400/40">
+          <span className="px-3 py-1.5 rounded-xl bg-emerald-100 text-emerald-950 border border-emerald-300 shadow-xs">
             🏆 第 4 堂：挑戰任務
           </span>
         </div>

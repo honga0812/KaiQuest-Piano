@@ -115,56 +115,56 @@ export const FreePlayView: React.FC<FreePlayViewProps> = ({
   }, [isMetronome, bpm]);
 
   return (
-    <div className={`w-full max-w-6xl mx-auto p-3 md:p-5 select-none flex flex-col justify-between gap-3 h-full ${className}`}>
-      {/* Header Deck */}
-      <div className="flex flex-col md:flex-row items-center justify-between gap-4 bg-slate-900 border border-slate-800 rounded-3xl p-4 shadow-xl">
+    <div className={`w-full max-w-6xl mx-auto p-4 md:p-6 select-none flex flex-col justify-between gap-5 h-full ${className}`}>
+      {/* Header Deck - Bright & Cheerful */}
+      <div className="flex flex-col md:flex-row items-center justify-between gap-4 bg-white border-3 border-amber-300 rounded-3xl p-6 shadow-sm">
         <div className="text-left">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-bold uppercase tracking-wider text-emerald-400 font-mono">
+            <span className="text-sm font-black uppercase tracking-wider text-emerald-600 font-mono">
               Free Play & Scale Tuner
             </span>
-            <span className="text-slate-500">·</span>
-            <span className="text-xs text-slate-400">
+            <span className="text-slate-400">·</span>
+            <span className="text-sm font-black text-amber-800">
               即時音階辨識與自由探索
             </span>
           </div>
-          <h2 className="text-xl md:text-2xl font-extrabold text-white mt-0.5">
+          <h2 className="text-2xl md:text-3xl font-black text-amber-950 mt-1">
             自由彈奏與音階辨識遊樂場
           </h2>
-          <p className="text-xs text-slate-300 mt-0.5">
+          <p className="text-base text-slate-700 mt-1 font-bold">
             在鋼琴上彈下任何琴鍵或音階，App 會即時辨認音高、唱名並點亮音階階梯！
           </p>
         </div>
 
         {/* Action buttons */}
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-3 flex-wrap shrink-0">
           <button
             onClick={() => setShowScaleModal(true)}
-            className="px-3.5 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold rounded-xl shadow-lg transition flex items-center gap-1.5"
+            className="px-5 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-base font-black rounded-2xl shadow-md transition flex items-center gap-2 active:scale-95"
           >
             <span>🎵</span>
             <span>開啟音階闖關診斷室</span>
           </button>
 
           {/* Metronome Control */}
-          <div className="flex items-center gap-2 bg-slate-800/80 px-3 py-1.5 rounded-xl border border-slate-700">
+          <div className="flex items-center gap-3 bg-amber-100/80 px-4 py-2 rounded-2xl border-2 border-amber-300">
             <button
               onClick={() => setIsMetronome(!isMetronome)}
-              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition ${
-                isMetronome ? 'bg-emerald-600 text-white' : 'bg-slate-700 text-slate-300'
+              className={`px-3 py-1.5 rounded-xl text-sm font-black transition ${
+                isMetronome ? 'bg-emerald-500 text-white shadow-sm' : 'bg-white text-slate-700 border border-amber-200'
               }`}
             >
               ⏱️ {isMetronome ? '節拍器開' : '節拍器關'}
             </button>
-            <div className="flex items-center gap-1.5 text-xs font-mono text-slate-300">
-              <span>{bpm}</span>
+            <div className="flex items-center gap-2 text-sm font-mono font-black text-amber-950">
+              <span>{bpm} BPM</span>
               <input
                 type="range"
                 min="50"
                 max="140"
                 value={bpm}
                 onChange={(e) => setBpm(Number(e.target.value))}
-                className="w-16 accent-blue-500 cursor-pointer"
+                className="w-20 accent-blue-600 cursor-pointer"
               />
             </div>
           </div>
@@ -173,49 +173,39 @@ export const FreePlayView: React.FC<FreePlayViewProps> = ({
 
       {/* Microphone prompt banner if mic not running */}
       {inputMode === 'microphone' && !isMicRunning && (
-        <div className="bg-gradient-to-r from-blue-950 via-indigo-950 to-slate-900 border-2 border-emerald-500/70 rounded-2xl p-2.5 px-3.5 flex flex-wrap items-center justify-between gap-3 shadow-xl">
-          <div className="flex items-center gap-2.5 text-left">
-            <span className="text-xl">🎙️</span>
-            <div className="max-w-xl">
-              <span className="text-xs font-bold text-white block">麥克風聽琴辨識尚未啟動</span>
-              <span className="text-[11px] text-emerald-300 leading-snug block">
+        <div className="bg-gradient-to-r from-emerald-50 via-teal-50 to-sky-50 border-3 border-emerald-400 rounded-3xl p-4 flex flex-wrap items-center justify-between gap-4 shadow-md">
+          <div className="flex items-center gap-3 text-left">
+            <span className="text-3xl">🎙️</span>
+            <div>
+              <span className="text-base font-black text-emerald-950 block">麥克風聽琴辨識尚未啟動</span>
+              <span className="text-sm text-emerald-800 font-bold block">
                 {micError
                   ? micError
-                  : '點擊右方按鈕開啟麥克風。若瀏覽器沒有跳出允許提示，請點擊網址列左側 🔒 鎖頭圖示手動改為「允許」，或點擊「在新分頁獨立開啟」！'}
+                  : '點擊右方按鈕開啟麥克風。若瀏覽器沒有跳出允許提示，請點擊網址列左側 🔒 鎖頭圖示手動改為「允許」！'}
               </span>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <a
-              href={typeof window !== 'undefined' ? window.location.href : '#'}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-3 py-1.5 bg-blue-600/40 hover:bg-blue-600/60 text-blue-200 text-xs font-semibold rounded-xl border border-blue-400/40 transition whitespace-nowrap"
-            >
-              在新分頁開啟 ↗
-            </a>
-            <button
-              onClick={handleActivateMic}
-              className="px-4 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-extrabold rounded-xl shadow-lg transition flex items-center gap-1.5 animate-pulse whitespace-nowrap"
-            >
-              <span>🎙️</span>
-              <span>點擊開啟麥克風聽琴</span>
-            </button>
-          </div>
+          <button
+            onClick={handleActivateMic}
+            className="px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white text-base font-black rounded-2xl shadow-lg transition flex items-center gap-2 animate-pulse whitespace-nowrap active:scale-95"
+          >
+            <span>🎙️</span>
+            <span>點擊啟動麥克風聽琴</span>
+          </button>
         </div>
       )}
 
-      {/* Live C Major Scale Step Ladder */}
-      <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-3 flex flex-col gap-2">
-        <div className="flex items-center justify-between text-xs">
-          <span className="font-bold text-white flex items-center gap-1.5">
-            <span>🎹</span>
+      {/* Live C Major Scale Step Ladder - Bright & Big */}
+      <div className="bg-white border-3 border-amber-300 rounded-3xl p-5 flex flex-col gap-3 shadow-md">
+        <div className="flex items-center justify-between text-sm md:text-base">
+          <span className="font-black text-amber-950 flex items-center gap-2">
+            <span className="text-xl">🎹</span>
             <span>C 大調音階即時辨識階梯 (Do Re Mi Fa Sol La Ti Do)</span>
           </span>
-          <span className="text-slate-400 text-[11px]">彈奏鋼琴即時發光驗證</span>
+          <span className="text-amber-800 text-xs md:text-sm font-bold">彈奏鋼琴即時發光驗證</span>
         </div>
 
-        <div className="grid grid-cols-4 sm:grid-cols-8 gap-2">
+        <div className="grid grid-cols-4 sm:grid-cols-8 gap-2.5">
           {SCALE_NOTES.map((s) => {
             const isTargetActive = liveMidi === s.midi || (liveMidi !== undefined && liveMidi % 12 === s.midi % 12);
             return (
@@ -226,15 +216,15 @@ export const FreePlayView: React.FC<FreePlayViewProps> = ({
                   setLiveMidi(s.midi);
                   setTimeout(() => setLiveMidi(undefined), 250);
                 }}
-                className={`py-2 px-1 rounded-xl border flex flex-col items-center justify-center cursor-pointer transition-all ${
+                className={`py-3 px-2 rounded-2xl border-2 flex flex-col items-center justify-center cursor-pointer transition-all active:scale-95 shadow-sm ${
                   isTargetActive
-                    ? 'bg-gradient-to-t from-emerald-600 to-green-500 border-emerald-300 text-white scale-110 shadow-lg ring-2 ring-emerald-400'
-                    : 'bg-slate-800/80 border-slate-700/80 text-slate-300 hover:bg-slate-800'
+                    ? 'bg-gradient-to-t from-emerald-500 to-teal-400 border-white text-white scale-105 shadow-lg ring-3 ring-emerald-300'
+                    : 'bg-amber-50 hover:bg-amber-100/80 border-amber-200 text-slate-800'
                 }`}
               >
-                <span className="text-xs font-extrabold">{s.solfege}</span>
-                <span className="text-[10px] font-mono font-bold opacity-80">{s.name}</span>
-                <span className="text-[9px] opacity-60">簡譜 {s.num}</span>
+                <span className="text-base font-black">{s.solfege}</span>
+                <span className="text-xs font-mono font-bold opacity-80">{s.name}</span>
+                <span className="text-xs font-black text-blue-700">簡譜 {s.num}</span>
               </div>
             );
           })}
@@ -242,7 +232,7 @@ export const FreePlayView: React.FC<FreePlayViewProps> = ({
       </div>
 
       {/* Mascot Cheer & Note Roll */}
-      <div className="flex flex-col md:flex-row items-center justify-between gap-3">
+      <div className="flex flex-col md:flex-row items-center justify-between gap-4">
         <KaiCharacter
           mood="listening"
           speechText={
@@ -255,23 +245,23 @@ export const FreePlayView: React.FC<FreePlayViewProps> = ({
         />
 
         {/* Note History Roll */}
-        <div className="flex items-center gap-2 bg-slate-900 border border-slate-800 rounded-2xl px-4 py-2.5 max-w-md overflow-x-auto">
-          <span className="text-xs text-slate-400 shrink-0 font-medium">最近彈奏:</span>
+        <div className="flex items-center gap-3 bg-white border-2 border-amber-300 rounded-3xl px-5 py-3 max-w-md overflow-x-auto shadow-sm">
+          <span className="text-sm font-black text-amber-950 shrink-0">最近彈奏:</span>
           {noteHistory.length > 0 ? (
             noteHistory.map((n, idx) => (
               <span
                 key={`${n}-${idx}`}
-                className={`px-2.5 py-1 rounded-lg font-mono font-bold text-xs ${
+                className={`px-3 py-1 rounded-xl font-mono font-black text-sm shadow-xs ${
                   idx === 0
-                    ? 'bg-blue-600 text-white scale-110 shadow'
-                    : 'bg-slate-800 text-slate-400'
+                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white scale-105'
+                    : 'bg-amber-100 text-amber-900 border border-amber-200'
                 }`}
               >
                 {n}
               </span>
             ))
           ) : (
-            <span className="text-xs text-slate-500 italic">尚無彈奏紀錄</span>
+            <span className="text-sm text-slate-400 italic">尚無彈奏紀錄</span>
           )}
         </div>
       </div>

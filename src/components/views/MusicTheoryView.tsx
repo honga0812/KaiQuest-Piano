@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { pianoSynth } from '../../audio/pianoSynthesizer';
 import { FoxPracticeCorner } from '../mascot/FoxPracticeCorner';
 import { TheoryStaffInteractive, ClefType, TheoryStaffNoteItem } from '../piano/TheoryStaffInteractive';
+import { MusicStaffComponent, MusicStaffItem } from '../piano/MusicStaffComponent';
 
 type TheorySubTab = 'overview' | 'beats' | 'treble' | 'bass' | 'alto' | 'quiz';
 
@@ -44,7 +45,7 @@ export const MusicTheoryView: React.FC = () => {
   const [selectedAltoMidi, setSelectedAltoMidi] = useState<number | undefined>(60);
 
   // Grand staff selected note
-  const [selectedStaffNote, setSelectedStaffNote] = useState<TheoryStaffNoteItem | null>(null);
+  const [selectedStaffNote, setSelectedStaffNote] = useState<MusicStaffItem | TheoryStaffNoteItem | null>(null);
 
   // Quiz state
   const [quizScore, setQuizScore] = useState(0);
@@ -238,29 +239,29 @@ export const MusicTheoryView: React.FC = () => {
           </div>
         </div>
 
-        <div className="absolute -right-8 -bottom-8 w-64 h-64 rounded-full bg-amber-400/20 blur-3xl pointer-events-none" />
+        <div className="absolute -right-8 -bottom-8 w-64 h-64 rounded-full bg-amber-400/30 blur-3xl pointer-events-none" />
       </div>
 
-      {/* Navigation Tabs Bar */}
-      <div className="flex flex-wrap items-center gap-2 bg-slate-900/90 border border-slate-800 p-1.5 rounded-2xl shadow-lg">
+      {/* Navigation Tabs Bar - Bright, Playful & Large */}
+      <div className="flex flex-wrap items-center gap-2.5 bg-amber-150/80 border-2 border-amber-300 p-2 rounded-3xl shadow-sm">
         {[
           { id: 'overview', label: '🌟 大譜表與中央 C', icon: '🌌' },
           { id: 'beats', label: '⏱️ 拍子與音符時值', icon: '🥁' },
           { id: 'treble', label: '🎼 高音五線譜 (右手)', icon: '🌸' },
           { id: 'bass', label: '🎵 低音五線譜 (左手)', icon: '🐻' },
           { id: 'alto', label: '🎻 中音五線譜 (C譜號)', icon: '🎻' },
-          { id: 'quiz', label: '🎮 樂理闖關五線譜測驗', icon: '🏆' },
+          { id: 'quiz', label: '🎮 樂理闖關測驗', icon: '🏆' },
         ].map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id as TheorySubTab)}
-            className={`flex-1 min-w-[140px] py-2.5 px-3 rounded-xl font-black text-xs md:text-sm transition-all flex items-center justify-center gap-1.5 whitespace-nowrap ${
+            className={`flex-1 min-w-[150px] py-3 px-4 rounded-2xl font-black text-sm md:text-base transition-all flex items-center justify-center gap-2 whitespace-nowrap active:scale-95 ${
               activeTab === tab.id
-                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-900/40 scale-[1.02]'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800/80'
+                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/30 scale-[1.02]'
+                : 'text-amber-950 hover:bg-amber-200/80 bg-white/70'
             }`}
           >
-            <span>{tab.icon}</span>
+            <span className="text-xl">{tab.icon}</span>
             <span>{tab.label}</span>
           </button>
         ))}
@@ -271,55 +272,26 @@ export const MusicTheoryView: React.FC = () => {
       {/* ============================================================== */}
       {activeTab === 'overview' && (
         <div className="flex flex-col gap-6 text-left">
-          <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 shadow-xl flex flex-col gap-5">
-            <div className="flex items-center gap-3">
-              <span className="text-3xl">🌌</span>
+          <div className="bg-white border-3 border-amber-300 rounded-3xl p-6 md:p-8 shadow-md flex flex-col gap-5">
+            <div className="flex items-center gap-4">
+              <span className="text-4xl">🌌</span>
               <div>
-                <h2 className="text-lg md:text-xl font-black text-white">
+                <h2 className="text-xl md:text-2xl font-black text-amber-950">
                   大譜表 (The Grand Staff)：雙手合奏的五線譜宇宙
                 </h2>
-                <p className="text-xs md:text-sm text-slate-300 font-medium">
+                <p className="text-base text-slate-700 font-bold mt-1">
                   鋼琴音樂同時使用「高音譜表」與「低音譜表」，左側垂直的中括弧（Brace）將兩組五線譜鎖定在一起。中央 C4 就像這座銀河正中央的太空站！
                 </p>
               </div>
             </div>
 
-            {/* Visual SVG Five-Line Grand Staff */}
-            <TheoryStaffInteractive
+            {/* Interactive Dynamic MusicStaffComponent for Grand Staff */}
+            <MusicStaffComponent
               clef="grand"
-              onSelectNote={(note) => setSelectedStaffNote(note)}
+              title="🌟 互動大譜表 (The Grand Staff)"
+              subtitle="上方高音譜（右手旋律區）+ 下方低音譜（左手伴奏區）+ 中央C彩虹橋，點擊音符發聲並同步對照琴鍵！"
+              onNoteClick={(note) => setSelectedStaffNote(note)}
             />
-
-            {/* Note Details Display */}
-            {selectedStaffNote && (
-              <div className="bg-gradient-to-r from-blue-900/80 via-slate-900 to-indigo-900/80 border-2 border-amber-400 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 animate-fade-in shadow-xl">
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={() => pianoSynth.playPianoNote(selectedStaffNote.midiNote, 0.9, 0.8)}
-                    className="w-12 h-12 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xl flex items-center justify-center shadow-lg transition active:scale-95 shrink-0"
-                    title="再聽一次音高"
-                  >
-                    ▶
-                  </button>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg font-black text-white">
-                        音名：{selectedStaffNote.noteName} ({selectedStaffNote.solfege})
-                      </span>
-                      <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-amber-400/20 text-amber-300 border border-amber-400/40">
-                        {selectedStaffNote.positionLabel}
-                      </span>
-                    </div>
-                    <p className="text-xs text-slate-200 mt-0.5">
-                      點擊的音符已在上方大譜表發聲！右手彈高音區，左手彈低音區。
-                    </p>
-                  </div>
-                </div>
-                <div className="text-right text-xs text-amber-300 font-mono font-bold bg-slate-950/60 px-3 py-1.5 rounded-xl border border-slate-700">
-                  MIDI 音高編號: {selectedStaffNote.midiNote}
-                </div>
-              </div>
-            )}
           </div>
         </div>
       )}
@@ -329,110 +301,110 @@ export const MusicTheoryView: React.FC = () => {
       {/* ============================================================== */}
       {activeTab === 'beats' && (
         <div className="flex flex-col gap-6 text-left">
-          {/* Note Values Family Card */}
-          <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 shadow-xl flex flex-col gap-5">
-            <div className="flex items-center justify-between flex-wrap gap-2">
+          {/* Note Values Family Card - Bright & Cheerful */}
+          <div className="bg-white border-3 border-amber-300 rounded-3xl p-6 md:p-8 shadow-md flex flex-col gap-6 text-slate-900">
+            <div className="flex items-center justify-between flex-wrap gap-3 border-b-2 border-amber-200 pb-4">
               <div className="flex items-center gap-3">
-                <span className="text-3xl">𝅘𝅥</span>
+                <span className="text-4xl text-amber-500 font-serif">𝅘𝅥</span>
                 <div>
-                  <h2 className="text-lg md:text-xl font-black text-white">
+                  <h2 className="text-xl md:text-2xl font-black text-amber-950">
                     音符時值家族 (Note Values & Durations)
                   </h2>
-                  <p className="text-xs text-slate-300 font-medium">
+                  <p className="text-base text-slate-700 font-bold mt-1">
                     音符就像不同大小的容器，決定了聲音持續多久的時間！
                   </p>
                 </div>
               </div>
-              <div className="text-xs bg-amber-500/20 border border-amber-400/40 text-amber-300 font-bold px-3 py-1 rounded-full">
+              <div className="text-sm bg-amber-100 border-2 border-amber-300 text-amber-950 font-black px-4 py-1.5 rounded-full shadow-sm">
                 以 4/4 拍為例
               </div>
             </div>
 
             {/* Note Types Grid (Including 1/2 beat & 1/4 beat explicitly explained) */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               {/* Whole Note */}
-              <div className="bg-slate-950/80 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between hover:border-amber-400/60 transition shadow-sm">
+              <div className="bg-amber-50/80 border-2 border-amber-300 rounded-2xl p-5 flex flex-col justify-between shadow-sm hover:shadow-md transition">
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-3xl text-amber-300 font-serif">𝅝</span>
-                    <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-amber-500/20 text-amber-300 border border-amber-400/40">
+                    <span className="text-4xl text-amber-600 font-serif">𝅝</span>
+                    <span className="px-3 py-1 rounded-full text-sm font-black bg-amber-200 text-amber-950">
                       4 拍
                     </span>
                   </div>
-                  <h3 className="text-base font-black text-white">全音符 (Whole Note)</h3>
-                  <p className="text-xs text-slate-300 mt-1 leading-relaxed">
+                  <h3 className="text-lg font-black text-amber-950">全音符 (Whole Note)</h3>
+                  <p className="text-sm text-slate-700 mt-1.5 leading-relaxed font-bold">
                     長相特徵：<strong>空心符頭，沒有符幹</strong>。<br />
                     口訣：「一、二、三、四」，像一顆圓滾滾的大麵包，吃四口才吃完！
                   </p>
                 </div>
                 <button
                   onClick={() => pianoSynth.playPianoNote(60, 0.9, 2.5)}
-                  className="mt-3 w-full py-1.5 bg-slate-900 hover:bg-slate-800 text-xs font-bold text-amber-300 rounded-xl border border-slate-700 transition"
+                  className="mt-4 w-full py-2.5 bg-gradient-to-r from-amber-400 to-orange-400 hover:from-amber-500 hover:to-orange-500 text-sm font-black text-slate-950 rounded-xl shadow-sm transition active:scale-95"
                 >
                   聽長度 (4 拍) 🔊
                 </button>
               </div>
 
               {/* Half Note */}
-              <div className="bg-slate-950/80 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between hover:border-blue-400/60 transition shadow-sm">
+              <div className="bg-sky-50/80 border-2 border-sky-300 rounded-2xl p-5 flex flex-col justify-between shadow-sm hover:shadow-md transition">
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-3xl text-blue-300 font-serif">𝅗𝅥</span>
-                    <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-blue-500/20 text-blue-300 border border-blue-400/40">
+                    <span className="text-4xl text-sky-600 font-serif">𝅗𝅥</span>
+                    <span className="px-3 py-1 rounded-full text-sm font-black bg-sky-200 text-sky-950">
                       2 拍
                     </span>
                   </div>
-                  <h3 className="text-base font-black text-white">二分音符 (Half Note)</h3>
-                  <p className="text-xs text-slate-300 mt-1 leading-relaxed">
+                  <h3 className="text-lg font-black text-sky-950">二分音符 (Half Note)</h3>
+                  <p className="text-sm text-slate-700 mt-1.5 leading-relaxed font-bold">
                     長相特徵：<strong>空心符頭，長出一條符幹</strong>。<br />
                     口訣：「一、二」，正好是全音符切一半的長度！
                   </p>
                 </div>
                 <button
                   onClick={() => pianoSynth.playPianoNote(64, 0.9, 1.4)}
-                  className="mt-3 w-full py-1.5 bg-slate-900 hover:bg-slate-800 text-xs font-bold text-blue-300 rounded-xl border border-slate-700 transition"
+                  className="mt-4 w-full py-2.5 bg-gradient-to-r from-sky-400 to-blue-500 hover:from-sky-500 hover:to-blue-600 text-sm font-black text-white rounded-xl shadow-sm transition active:scale-95"
                 >
                   聽長度 (2 拍) 🔊
                 </button>
               </div>
 
               {/* Quarter Note */}
-              <div className="bg-slate-950/80 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between hover:border-emerald-400/60 transition shadow-sm">
+              <div className="bg-emerald-50/80 border-2 border-emerald-300 rounded-2xl p-5 flex flex-col justify-between shadow-sm hover:shadow-md transition">
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-3xl text-emerald-300 font-serif">𝅘𝅥</span>
-                    <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-emerald-500/20 text-emerald-300 border border-emerald-400/40">
+                    <span className="text-4xl text-emerald-600 font-serif">𝅘𝅥</span>
+                    <span className="px-3 py-1 rounded-full text-sm font-black bg-emerald-200 text-emerald-950">
                       1 拍
                     </span>
                   </div>
-                  <h3 className="text-base font-black text-white">四分音符 (Quarter Note)</h3>
-                  <p className="text-xs text-slate-300 mt-1 leading-relaxed">
+                  <h3 className="text-lg font-black text-emerald-950">四分音符 (Quarter Note)</h3>
+                  <p className="text-sm text-slate-700 mt-1.5 leading-relaxed font-bold">
                     長相特徵：<strong>實心黑符頭，有符幹</strong>。<br />
                     口訣：「嗒！」，像心跳或走路的每一步，最標準的一拍！
                   </p>
                 </div>
                 <button
                   onClick={() => pianoSynth.playPianoNote(67, 0.9, 0.7)}
-                  className="mt-3 w-full py-1.5 bg-slate-900 hover:bg-slate-800 text-xs font-bold text-emerald-300 rounded-xl border border-slate-700 transition"
+                  className="mt-4 w-full py-2.5 bg-gradient-to-r from-emerald-400 to-teal-500 hover:from-emerald-500 hover:to-teal-600 text-sm font-black text-white rounded-xl shadow-sm transition active:scale-95"
                 >
                   聽長度 (1 拍) 🔊
                 </button>
               </div>
 
               {/* Eighth Note (1/2 beat) */}
-              <div className="bg-slate-950/80 border-2 border-pink-500/40 rounded-2xl p-4 flex flex-col justify-between shadow-md">
+              <div className="bg-pink-50/80 border-3 border-pink-300 rounded-2xl p-5 flex flex-col justify-between shadow-md">
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-3xl text-pink-400 font-serif">𝅘𝅥𝅮</span>
-                    <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-pink-500/20 text-pink-300 border border-pink-400/40">
+                    <span className="text-4xl text-pink-600 font-serif">𝅘𝅥𝅮</span>
+                    <span className="px-3 py-1 rounded-full text-sm font-black bg-pink-200 text-pink-950">
                       ½ 拍 (二分之一拍)
                     </span>
                   </div>
-                  <h3 className="text-base font-black text-white flex items-center gap-1.5">
+                  <h3 className="text-lg font-black text-pink-950 flex items-center gap-2">
                     <span>八分音符</span>
-                    <span className="text-xs font-bold text-pink-400">(單符尾)</span>
+                    <span className="text-sm font-bold text-pink-600">(單符尾)</span>
                   </h3>
-                  <p className="text-xs text-slate-300 mt-1 leading-relaxed">
+                  <p className="text-sm text-slate-700 mt-1.5 leading-relaxed font-bold">
                     長相特徵：<strong>實心黑符頭 + 符幹 + 單條小尾巴（單符尾）</strong>！<br />
                     口訣：「提、提」，速度比四分音符快一倍，<strong>兩個八分音符 = 1 個四分音符</strong>！
                   </p>
@@ -442,26 +414,26 @@ export const MusicTheoryView: React.FC = () => {
                     pianoSynth.playPianoNote(60, 0.9, 0.35);
                     setTimeout(() => pianoSynth.playPianoNote(62, 0.9, 0.35), 350);
                   }}
-                  className="mt-3 w-full py-1.5 bg-pink-950/60 hover:bg-pink-900/80 text-xs font-black text-pink-200 rounded-xl border border-pink-500/50 transition"
+                  className="mt-4 w-full py-2.5 bg-gradient-to-r from-pink-400 to-rose-500 hover:from-pink-500 hover:to-rose-600 text-sm font-black text-white rounded-xl shadow-md transition active:scale-95"
                 >
                   聽兩個八分音符 (各 ½ 拍) 🔊
                 </button>
               </div>
 
               {/* Sixteenth Note (1/4 beat) */}
-              <div className="bg-slate-950/80 border-2 border-teal-500/40 rounded-2xl p-4 flex flex-col justify-between shadow-md">
+              <div className="bg-teal-50/80 border-3 border-teal-300 rounded-2xl p-5 flex flex-col justify-between shadow-md">
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-3xl text-teal-400 font-serif">𝅘𝅥𝅯</span>
-                    <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-teal-500/20 text-teal-300 border border-teal-400/40">
+                    <span className="text-4xl text-teal-600 font-serif">𝅘𝅥𝅯</span>
+                    <span className="px-3 py-1 rounded-full text-sm font-black bg-teal-200 text-teal-950">
                       ¼ 拍 (四分之一拍)
                     </span>
                   </div>
-                  <h3 className="text-base font-black text-white flex items-center gap-1.5">
+                  <h3 className="text-lg font-black text-teal-950 flex items-center gap-2">
                     <span>十六分音符</span>
-                    <span className="text-xs font-bold text-teal-400">(雙符尾)</span>
+                    <span className="text-sm font-bold text-teal-600">(雙符尾)</span>
                   </h3>
-                  <p className="text-xs text-slate-300 mt-1 leading-relaxed">
+                  <p className="text-sm text-slate-700 mt-1.5 leading-relaxed font-bold">
                     長相特徵：<strong>實心黑符頭 + 符幹 + 兩條平行尾巴（雙符尾）</strong>！<br />
                     口訣：「嘀哩哩哩」，像小鳥急速拍翅膀，<strong>四個十六分音符 = 1 個四分音符</strong>！
                   </p>
@@ -472,7 +444,7 @@ export const MusicTheoryView: React.FC = () => {
                       setTimeout(() => pianoSynth.playPianoNote(60 + idx * 2, 0.9, 0.2), delay);
                     });
                   }}
-                  className="mt-3 w-full py-1.5 bg-teal-950/60 hover:bg-teal-900/80 text-xs font-black text-teal-200 rounded-xl border border-teal-500/50 transition"
+                  className="mt-4 w-full py-2.5 bg-gradient-to-r from-teal-400 to-emerald-500 hover:from-teal-500 hover:to-emerald-600 text-sm font-black text-white rounded-xl shadow-md transition active:scale-95"
                 >
                   聽四個十六分音符 (各 ¼ 拍) 🔊
                 </button>
@@ -608,26 +580,28 @@ export const MusicTheoryView: React.FC = () => {
       {/* ============================================================== */}
       {activeTab === 'treble' && (
         <div className="flex flex-col gap-6 text-left">
-          <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 shadow-xl flex flex-col gap-5">
-            <div className="flex items-center gap-3">
-              <span className="text-3xl text-indigo-400 font-serif">𝄞</span>
+          <div className="bg-white border-3 border-amber-300 rounded-3xl p-6 md:p-8 shadow-md flex flex-col gap-6 text-slate-900">
+            <div className="flex items-center gap-4 border-b-2 border-amber-200 pb-4">
+              <span className="text-4xl text-amber-500 font-serif">𝄞</span>
               <div>
-                <h2 className="text-lg md:text-xl font-black text-white">
+                <h2 className="text-xl md:text-2xl font-black text-amber-950">
                   高音五線譜 (Treble Staff / G 譜號)
                 </h2>
-                <p className="text-xs text-slate-300 font-medium">
+                <p className="text-base text-slate-700 font-bold mt-1">
                   由五條平行橫線和四個間構成，由下往上數：第1線、第2線...第5線！
                 </p>
               </div>
             </div>
 
-            {/* Interactive SVG Five-Line Treble Staff */}
-            <TheoryStaffInteractive
+            {/* Interactive SVG Five-Line Treble Staff using MusicStaffComponent */}
+            <MusicStaffComponent
               clef="treble"
+              title="🌸 互動高音五線譜 (Treble Staff / G 譜號)"
+              subtitle="起筆圍繞在第 2 線 (G4 / Sol)！點擊音符聆聽音高並同步對照下方鋼琴琴鍵"
               highlightLine={trebleHighlightLine}
               highlightSpace={trebleHighlightSpace}
               selectedMidi={selectedTrebleMidi}
-              onSelectNote={(note) => {
+              onNoteClick={(note) => {
                 setSelectedTrebleMidi(note.midiNote);
                 if (note.lineOrSpace === 'line') {
                   setTrebleHighlightLine(note.indexNum);
@@ -640,18 +614,18 @@ export const MusicTheoryView: React.FC = () => {
             />
 
             {/* Treble Formula Mnemonic Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               {/* Lines Mnemonic */}
-              <div className="bg-slate-950 border border-indigo-500/40 rounded-2xl p-5 flex flex-col gap-3">
+              <div className="bg-amber-50/80 border-2 border-amber-300 rounded-2xl p-5 flex flex-col gap-3 shadow-sm">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-black text-indigo-300">
+                  <span className="text-base font-black text-amber-950">
                     🎵 五條線上的音 (Lines: E - G - B - D - F)
                   </span>
-                  <span className="text-[10px] bg-indigo-900/70 text-indigo-200 px-2 py-0.5 rounded-full font-bold">
+                  <span className="text-xs bg-amber-200 text-amber-950 px-2.5 py-1 rounded-full font-black">
                     點擊高亮五線譜
                   </span>
                 </div>
-                <div className="flex items-center justify-between text-center gap-1.5">
+                <div className="flex items-center justify-between text-center gap-2">
                   {[
                     { lineNum: 1, label: '第 1 線', note: 'E4', sol: 'Mi', midi: 64 },
                     { lineNum: 2, label: '第 2 線', note: 'G4', sol: 'Sol', midi: 67 },
@@ -667,34 +641,34 @@ export const MusicTheoryView: React.FC = () => {
                         setSelectedTrebleMidi(item.midi);
                         pianoSynth.playPianoNote(item.midi, 0.9, 0.7);
                       }}
-                      className={`flex-1 p-2.5 rounded-xl transition flex flex-col items-center border ${
+                      className={`flex-1 p-3 rounded-2xl transition flex flex-col items-center border-2 active:scale-95 shadow-sm ${
                         trebleHighlightLine === item.lineNum
-                          ? 'bg-amber-500/20 border-amber-400 text-amber-300 shadow-md scale-105'
-                          : 'bg-slate-900 hover:bg-indigo-900/60 border-slate-700 hover:border-indigo-400 text-white'
+                          ? 'bg-amber-400 border-white text-slate-950 shadow-md scale-105'
+                          : 'bg-white hover:bg-amber-100 border-amber-200 text-slate-900'
                       }`}
                     >
-                      <span className="text-[10px] text-slate-400 font-bold">{item.label}</span>
-                      <span className="text-base font-black text-white mt-0.5">{item.note}</span>
-                      <span className="text-xs text-amber-300 font-bold">{item.sol}</span>
+                      <span className="text-xs text-slate-600 font-black">{item.label}</span>
+                      <span className="text-lg font-black text-slate-950 mt-0.5">{item.note}</span>
+                      <span className="text-sm text-blue-700 font-black">{item.sol}</span>
                     </button>
                   ))}
                 </div>
-                <p className="text-xs text-slate-300 mt-1 leading-relaxed">
+                <p className="text-sm text-slate-700 mt-1 leading-relaxed font-bold">
                   💡 記憶口訣：<strong>Every Good Boy Does Fine</strong> (每個好男孩都表現好) 或「米-索-西-來-發」！第 2 線是 G 譜號起筆中心！
                 </p>
               </div>
 
               {/* Spaces Mnemonic */}
-              <div className="bg-slate-950 border border-indigo-500/40 rounded-2xl p-5 flex flex-col gap-3">
+              <div className="bg-sky-50/80 border-2 border-sky-300 rounded-2xl p-5 flex flex-col gap-3 shadow-sm">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-black text-indigo-300">
+                  <span className="text-base font-black text-sky-950">
                     🎶 四個間裡的音 (Spaces: F - A - C - E)
                   </span>
-                  <span className="text-[10px] bg-indigo-900/70 text-indigo-200 px-2 py-0.5 rounded-full font-bold">
+                  <span className="text-xs bg-sky-200 text-sky-950 px-2.5 py-1 rounded-full font-black">
                     點擊高亮五線譜
                   </span>
                 </div>
-                <div className="flex items-center justify-between text-center gap-1.5">
+                <div className="flex items-center justify-between text-center gap-2">
                   {[
                     { spaceNum: 1, label: '第 1 間', note: 'F4', sol: 'Fa', midi: 65 },
                     { spaceNum: 2, label: '第 2 間', note: 'A4', sol: 'La', midi: 69 },
@@ -709,29 +683,29 @@ export const MusicTheoryView: React.FC = () => {
                         setSelectedTrebleMidi(item.midi);
                         pianoSynth.playPianoNote(item.midi, 0.9, 0.7);
                       }}
-                      className={`flex-1 p-2.5 rounded-xl transition flex flex-col items-center border ${
+                      className={`flex-1 p-3 rounded-2xl transition flex flex-col items-center border-2 active:scale-95 shadow-sm ${
                         trebleHighlightSpace === item.spaceNum
-                          ? 'bg-blue-500/20 border-blue-400 text-blue-300 shadow-md scale-105'
-                          : 'bg-slate-900 hover:bg-indigo-900/60 border-slate-700 hover:border-indigo-400 text-white'
+                          ? 'bg-sky-400 border-white text-slate-950 shadow-md scale-105'
+                          : 'bg-white hover:bg-sky-100 border-sky-200 text-slate-900'
                       }`}
                     >
-                      <span className="text-[10px] text-slate-400 font-bold">{item.label}</span>
-                      <span className="text-base font-black text-white mt-0.5">{item.note}</span>
-                      <span className="text-xs text-amber-300 font-bold">{item.sol}</span>
+                      <span className="text-xs text-slate-600 font-black">{item.label}</span>
+                      <span className="text-lg font-black text-slate-950 mt-0.5">{item.note}</span>
+                      <span className="text-sm text-blue-700 font-black">{item.sol}</span>
                     </button>
                   ))}
                 </div>
-                <p className="text-xs text-slate-300 mt-1 leading-relaxed">
+                <p className="text-sm text-slate-700 mt-1 leading-relaxed font-bold">
                   💡 記憶口訣：四個間正好拼成英文字 <strong>F-A-C-E (臉龐 Face)</strong>，由下往上一目了然！
                 </p>
               </div>
             </div>
 
             {/* Origin Story */}
-            <div className="bg-indigo-950/50 border border-indigo-500/30 rounded-2xl p-4 text-xs text-indigo-100 flex items-start gap-3">
-              <span className="text-2xl shrink-0">📖</span>
+            <div className="bg-amber-100/70 border-2 border-amber-300 rounded-2xl p-5 text-sm md:text-base text-amber-950 font-bold flex items-start gap-3 shadow-sm">
+              <span className="text-3xl shrink-0">📖</span>
               <div>
-                <strong className="text-white">高音譜號（G譜號）的小故事：</strong>
+                <strong className="text-amber-950 font-black">高音譜號（G譜號）的小故事：</strong>
                 高音譜號長得像華麗的花體字母「G」。數百年前的音樂家寫譜時，隨手畫個花體 G 圍繞在第二線，標示「這裡是 G 音！」，久而久之就演變成了今天大家看到的漂亮高音譜號！
               </div>
             </div>
@@ -744,26 +718,28 @@ export const MusicTheoryView: React.FC = () => {
       {/* ============================================================== */}
       {activeTab === 'bass' && (
         <div className="flex flex-col gap-6 text-left">
-          <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 shadow-xl flex flex-col gap-5">
-            <div className="flex items-center gap-3">
-              <span className="text-3xl text-purple-400 font-serif">𝄢</span>
+          <div className="bg-white border-3 border-amber-300 rounded-3xl p-6 md:p-8 shadow-md flex flex-col gap-6 text-slate-900">
+            <div className="flex items-center gap-4 border-b-2 border-amber-200 pb-4">
+              <span className="text-4xl text-purple-600 font-serif">𝄢</span>
               <div>
-                <h2 className="text-lg md:text-xl font-black text-white">
+                <h2 className="text-xl md:text-2xl font-black text-amber-950">
                   低音五線譜 (Bass Staff / F 譜號)
                 </h2>
-                <p className="text-xs text-slate-300 font-medium">
+                <p className="text-base text-slate-700 font-bold mt-1">
                   左手最親密的好夥伴！穩重大器，是鋼琴和聲與低音聲部的大地根基。
                 </p>
               </div>
             </div>
 
-            {/* Interactive SVG Five-Line Bass Staff */}
-            <TheoryStaffInteractive
+            {/* Interactive SVG Five-Line Bass Staff using MusicStaffComponent */}
+            <MusicStaffComponent
               clef="bass"
+              title="🐻 互動低音五線譜 (Bass Staff / F 譜號)"
+              subtitle="兩顆圓點夾住第 4 線 (F3 / Fa)！左手低音伴奏必備，點擊音符即時彈奏對照鍵盤"
               highlightLine={bassHighlightLine}
               highlightSpace={bassHighlightSpace}
               selectedMidi={selectedBassMidi}
-              onSelectNote={(note) => {
+              onNoteClick={(note) => {
                 setSelectedBassMidi(note.midiNote);
                 if (note.lineOrSpace === 'line') {
                   setBassHighlightLine(note.indexNum);
@@ -776,18 +752,18 @@ export const MusicTheoryView: React.FC = () => {
             />
 
             {/* Bass Formula Mnemonic Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               {/* Lines Mnemonic */}
-              <div className="bg-slate-950 border border-purple-500/40 rounded-2xl p-5 flex flex-col gap-3">
+              <div className="bg-purple-50/80 border-2 border-purple-300 rounded-2xl p-5 flex flex-col gap-3 shadow-sm">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-black text-purple-300">
+                  <span className="text-base font-black text-purple-950">
                     🎵 五條線上的音 (Lines: G - B - D - F - A)
                   </span>
-                  <span className="text-[10px] bg-purple-900/70 text-purple-200 px-2 py-0.5 rounded-full font-bold">
+                  <span className="text-xs bg-purple-200 text-purple-950 px-2.5 py-1 rounded-full font-black">
                     點擊高亮五線譜
                   </span>
                 </div>
-                <div className="flex items-center justify-between text-center gap-1.5">
+                <div className="flex items-center justify-between text-center gap-2">
                   {[
                     { lineNum: 1, label: '第 1 線', note: 'G2', sol: 'Sol', midi: 43 },
                     { lineNum: 2, label: '第 2 線', note: 'B2', sol: 'Ti', midi: 47 },
@@ -803,34 +779,34 @@ export const MusicTheoryView: React.FC = () => {
                         setSelectedBassMidi(item.midi);
                         pianoSynth.playPianoNote(item.midi, 0.9, 0.7);
                       }}
-                      className={`flex-1 p-2.5 rounded-xl transition flex flex-col items-center border ${
+                      className={`flex-1 p-3 rounded-2xl transition flex flex-col items-center border-2 active:scale-95 shadow-sm ${
                         bassHighlightLine === item.lineNum
-                          ? 'bg-amber-500/20 border-amber-400 text-amber-300 shadow-md scale-105'
-                          : 'bg-slate-900 hover:bg-purple-900/60 border-slate-700 hover:border-purple-400 text-white'
+                          ? 'bg-purple-400 border-white text-slate-950 shadow-md scale-105'
+                          : 'bg-white hover:bg-purple-100 border-purple-200 text-slate-900'
                       }`}
                     >
-                      <span className="text-[10px] text-slate-400 font-bold">{item.label}</span>
-                      <span className="text-base font-black text-white mt-0.5">{item.note}</span>
-                      <span className="text-xs text-amber-300 font-bold">{item.sol}</span>
+                      <span className="text-xs text-slate-600 font-black">{item.label}</span>
+                      <span className="text-lg font-black text-slate-950 mt-0.5">{item.note}</span>
+                      <span className="text-sm text-purple-700 font-black">{item.sol}</span>
                     </button>
                   ))}
                 </div>
-                <p className="text-xs text-slate-300 mt-1 leading-relaxed">
+                <p className="text-sm text-slate-700 mt-1 leading-relaxed font-bold">
                   💡 記憶口訣：<strong>Good Boys Do Fine Always</strong> (好男孩永遠都很棒)！第四線被兩點夾住，就是 Fa (F3)！
                 </p>
               </div>
 
               {/* Spaces Mnemonic */}
-              <div className="bg-slate-950 border border-purple-500/40 rounded-2xl p-5 flex flex-col gap-3">
+              <div className="bg-amber-50/80 border-2 border-amber-300 rounded-2xl p-5 flex flex-col gap-3 shadow-sm">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-black text-purple-300">
+                  <span className="text-base font-black text-amber-950">
                     🎶 四個間裡的音 (Spaces: A - C - E - G)
                   </span>
-                  <span className="text-[10px] bg-purple-900/70 text-purple-200 px-2 py-0.5 rounded-full font-bold">
+                  <span className="text-xs bg-amber-200 text-amber-950 px-2.5 py-1 rounded-full font-black">
                     點擊高亮五線譜
                   </span>
                 </div>
-                <div className="flex items-center justify-between text-center gap-1.5">
+                <div className="flex items-center justify-between text-center gap-2">
                   {[
                     { spaceNum: 1, label: '第 1 間', note: 'A2', sol: 'La', midi: 45 },
                     { spaceNum: 2, label: '第 2 間', note: 'C3', sol: 'Do', midi: 48 },
@@ -845,29 +821,29 @@ export const MusicTheoryView: React.FC = () => {
                         setSelectedBassMidi(item.midi);
                         pianoSynth.playPianoNote(item.midi, 0.9, 0.7);
                       }}
-                      className={`flex-1 p-2.5 rounded-xl transition flex flex-col items-center border ${
+                      className={`flex-1 p-3 rounded-2xl transition flex flex-col items-center border-2 active:scale-95 shadow-sm ${
                         bassHighlightSpace === item.spaceNum
-                          ? 'bg-purple-500/20 border-purple-400 text-purple-300 shadow-md scale-105'
-                          : 'bg-slate-900 hover:bg-purple-900/60 border-slate-700 hover:border-purple-400 text-white'
+                          ? 'bg-amber-400 border-white text-slate-950 shadow-md scale-105'
+                          : 'bg-white hover:bg-amber-100 border-amber-200 text-slate-900'
                       }`}
                     >
-                      <span className="text-[10px] text-slate-400 font-bold">{item.label}</span>
-                      <span className="text-base font-black text-white mt-0.5">{item.note}</span>
-                      <span className="text-xs text-amber-300 font-bold">{item.sol}</span>
+                      <span className="text-xs text-slate-600 font-black">{item.label}</span>
+                      <span className="text-lg font-black text-slate-950 mt-0.5">{item.note}</span>
+                      <span className="text-sm text-purple-700 font-black">{item.sol}</span>
                     </button>
                   ))}
                 </div>
-                <p className="text-xs text-slate-300 mt-1 leading-relaxed">
+                <p className="text-sm text-slate-700 mt-1 leading-relaxed font-bold">
                   💡 記憶口訣：<strong>All Cows Eat Grass</strong> (所有的乳牛都吃草)！
                 </p>
               </div>
             </div>
 
             {/* Origin Story */}
-            <div className="bg-purple-950/50 border border-purple-500/30 rounded-2xl p-4 text-xs text-purple-100 flex items-start gap-3">
-              <span className="text-2xl shrink-0">📖</span>
+            <div className="bg-purple-100/70 border-2 border-purple-300 rounded-2xl p-5 text-sm md:text-base text-purple-950 font-bold flex items-start gap-3 shadow-sm">
+              <span className="text-3xl shrink-0">📖</span>
               <div>
-                <strong className="text-white">低音譜號（F譜號）的小故事：</strong>
+                <strong className="text-purple-950 font-black">低音譜號（F譜號）的小故事：</strong>
                 低音譜號由古體字母「F」演變而來。譜號的大弧線起筆在第四線，後方上下各有一顆小圓點，正好把第四線夾在中間，宣示這條線就是 F (Fa) 音！
               </div>
             </div>
@@ -876,29 +852,32 @@ export const MusicTheoryView: React.FC = () => {
       )}
 
       {/* ============================================================== */}
+      {/* ============================================================== */}
       {/* Tab 5: Alto Clef in Depth (中音譜表深度解說 + 輔助五線譜) */}
       {/* ============================================================== */}
       {activeTab === 'alto' && (
         <div className="flex flex-col gap-6 text-left">
-          <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 shadow-xl flex flex-col gap-5">
-            <div className="flex items-center gap-3">
-              <span className="text-3xl text-amber-400 font-serif">𝄡</span>
+          <div className="bg-white border-3 border-amber-300 rounded-3xl p-6 md:p-8 shadow-md flex flex-col gap-6 text-slate-900">
+            <div className="flex items-center gap-4 border-b-2 border-amber-200 pb-4">
+              <span className="text-4xl text-amber-600 font-serif">𝄡</span>
               <div>
-                <h2 className="text-lg md:text-xl font-black text-white">
+                <h2 className="text-xl md:text-2xl font-black text-amber-950">
                   中音五線譜 (Alto Staff / C 譜號)
                 </h2>
-                <p className="text-xs text-slate-300 font-medium">
+                <p className="text-base text-slate-700 font-bold mt-1">
                   音樂世界中非常神奇的「可移動 C 譜號」！凹口對準哪一條線，那一條線就是中央 C (C4)！
                 </p>
               </div>
             </div>
 
-            {/* Interactive SVG Five-Line Alto Staff */}
-            <TheoryStaffInteractive
+            {/* Interactive Dynamic MusicStaffComponent for Alto Staff */}
+            <MusicStaffComponent
               clef="alto"
-              highlightLine={altoHighlightLine}
+              title="🎻 互動中音五線譜 (Alto Staff / C 譜號)"
+              subtitle="C 譜號中心凹口精準對齊第 3 線（中央 C4）！點擊音符即時發聲並同步對照琴鍵位置"
               selectedMidi={selectedAltoMidi}
-              onSelectNote={(note) => {
+              highlightLine={altoHighlightLine}
+              onNoteClick={(note) => {
                 setSelectedAltoMidi(note.midiNote);
                 if (note.lineOrSpace === 'line') {
                   setAltoHighlightLine(note.indexNum);
@@ -907,34 +886,34 @@ export const MusicTheoryView: React.FC = () => {
             />
 
             {/* Alto Clef Explanation Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-slate-950 border border-amber-500/40 rounded-2xl p-5 flex flex-col gap-3">
-                <span className="text-sm font-black text-amber-300">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="bg-amber-50/80 border-2 border-amber-300 rounded-2xl p-5 flex flex-col gap-3 shadow-sm">
+                <span className="text-base font-black text-amber-950">
                   🎯 為什麼叫 C 譜號？核心解密
                 </span>
-                <p className="text-xs text-slate-200 leading-relaxed">
+                <p className="text-sm md:text-base text-slate-800 leading-relaxed font-bold">
                   C 譜號的符號形狀像兩個對稱的「C」字背靠背，中間有一個<strong>凹進去的箭頭缺口</strong>。<br />
                   這個缺口正正好好夾在五線譜的<strong>「第 3 線」</strong>上！因此在中音譜表中：<br />
-                  <strong className="text-amber-300 text-sm block mt-1">第 3 線 = 中央 C (C4 / Do)！</strong>
+                  <strong className="text-amber-900 text-lg block mt-1">第 3 線 = 中央 C (C4 / Do)！</strong>
                 </p>
-                <div className="bg-slate-900 p-2.5 rounded-xl border border-slate-800 text-[11px] text-amber-200">
+                <div className="bg-white p-3 rounded-xl border border-amber-200 text-sm text-amber-950 font-bold shadow-xs">
                   由中央 C 向上或向下推理：第 3 線是 Do，第 3 間是 Re，第 4 線是 Mi，第 4 間是 Fa，第 5 線是 Sol！
                 </div>
               </div>
 
-              <div className="bg-slate-950 border border-amber-500/40 rounded-2xl p-5 flex flex-col gap-3">
-                <span className="text-sm font-black text-amber-300">
+              <div className="bg-sky-50/80 border-2 border-sky-300 rounded-2xl p-5 flex flex-col gap-3 shadow-sm">
+                <span className="text-base font-black text-sky-950">
                   🎻 哪些樂器使用中音譜表？
                 </span>
-                <p className="text-xs text-slate-200 leading-relaxed">
+                <p className="text-sm md:text-base text-slate-800 leading-relaxed font-bold">
                   管弦樂團中的<strong>中提琴（Viola）</strong>是最著名的代表！中提琴的音域恰好介於小提琴（高音）與大提琴（低音）之間。<br />
                   如果用高音譜寫，會有很多下加線；如果用低音譜寫，會有許多上加線。因此使用中音譜表，常用音符正好舒適地落在五條線正中央！
                 </p>
                 <div className="flex items-center gap-2 mt-auto">
-                  <span className="px-2.5 py-1 rounded-lg bg-amber-950 text-amber-300 font-bold text-xs border border-amber-400/40">
+                  <span className="px-3 py-1.5 rounded-xl bg-amber-100 text-amber-950 font-black text-sm border border-amber-300">
                     🎻 中提琴專屬
                   </span>
-                  <span className="px-2.5 py-1 rounded-lg bg-amber-950 text-amber-300 font-bold text-xs border border-amber-400/40">
+                  <span className="px-3 py-1.5 rounded-xl bg-sky-100 text-sky-950 font-black text-sm border border-sky-300">
                     🎺 英國管 / 長號中音區
                   </span>
                 </div>
@@ -949,16 +928,16 @@ export const MusicTheoryView: React.FC = () => {
       {/* ============================================================== */}
       {activeTab === 'quiz' && (
         <div className="flex flex-col gap-6 text-left">
-          <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 shadow-xl flex flex-col gap-5">
+          <div className="bg-white border-3 border-amber-300 rounded-3xl p-6 md:p-8 shadow-md flex flex-col gap-6 text-slate-900">
             {/* Quiz Header */}
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-4">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-amber-200 pb-4">
               <div className="flex items-center gap-3">
-                <span className="text-3xl">🏆</span>
+                <span className="text-4xl">🏆</span>
                 <div>
-                  <h2 className="text-lg md:text-xl font-black text-white">
+                  <h2 className="text-xl md:text-2xl font-black text-amber-950">
                     樂理五線譜小大師通關挑戰 (Visual Staff Quiz)
                   </h2>
-                  <p className="text-xs text-slate-300">
+                  <p className="text-base text-slate-700 font-bold mt-1">
                     每道題目均配有<strong>輔助五線譜視覺圖解</strong>，讓小朋友看得清清楚楚、輕鬆判斷！
                   </p>
                 </div>
@@ -966,12 +945,12 @@ export const MusicTheoryView: React.FC = () => {
 
               {/* Score & Streak */}
               <div className="flex items-center gap-3">
-                <div className="flex items-center gap-1.5 bg-amber-950/60 border border-amber-400/40 px-3 py-1 rounded-xl text-amber-300 font-black text-xs">
+                <div className="flex items-center gap-2 bg-amber-100 border-2 border-amber-300 px-4 py-2 rounded-2xl text-amber-950 font-black text-base shadow-sm">
                   <span>⭐ 總得分:</span>
-                  <span>{quizScore} 題</span>
+                  <span className="text-blue-700">{quizScore} 題</span>
                 </div>
                 {quizStreak > 1 && (
-                  <div className="flex items-center gap-1 bg-rose-950/60 border border-rose-400/40 px-3 py-1 rounded-xl text-rose-300 font-black text-xs animate-pulse">
+                  <div className="flex items-center gap-1.5 bg-rose-500 text-white px-3.5 py-1.5 rounded-2xl font-black text-sm animate-bounce shadow-md">
                     <span>🔥 連對 {quizStreak} 題!</span>
                   </div>
                 )}
@@ -979,23 +958,23 @@ export const MusicTheoryView: React.FC = () => {
             </div>
 
             {/* Quiz Card */}
-            <div className="bg-slate-950 border-2 border-indigo-500/40 rounded-3xl p-6 flex flex-col gap-5">
-              <div className="flex items-center justify-between text-xs text-indigo-300 font-bold">
+            <div className="bg-amber-50/70 border-2 border-amber-300 rounded-3xl p-6 md:p-8 flex flex-col gap-5 shadow-sm">
+              <div className="flex items-center justify-between text-sm md:text-base text-amber-950 font-black">
                 <span>題目 {currentQuizIndex + 1} / {quizQuestions.length}</span>
                 {currentQuiz.midiHint && (
                   <button
                     onClick={() => pianoSynth.playPianoNote(currentQuiz.midiHint, 0.9, 0.8)}
-                    className="flex items-center gap-1 text-amber-300 hover:text-white bg-slate-900 px-3 py-1 rounded-full border border-slate-700 transition"
+                    className="flex items-center gap-2 text-slate-950 bg-gradient-to-r from-amber-400 to-orange-400 hover:from-amber-500 hover:to-orange-500 px-4 py-2 rounded-2xl border-2 border-white shadow-sm transition active:scale-95"
                   >
-                    <span>🔊 聽聽題目提示琴音</span>
+                    <span>🔊 聽題目提示琴音</span>
                   </button>
                 )}
               </div>
 
               {/* Auxiliary Visual Five-Line Staff for Quiz Question */}
-              <div className="flex flex-col gap-2 bg-slate-900/80 border border-indigo-500/30 rounded-2xl p-3">
-                <span className="text-[11px] font-black text-amber-300 flex items-center gap-1">
-                  <span>👀</span>
+              <div className="flex flex-col gap-2.5 bg-white border-2 border-amber-200 rounded-2xl p-4 shadow-sm">
+                <span className="text-sm font-black text-amber-900 flex items-center gap-1.5">
+                  <span>👀 譜面圖解提示：</span>
                   <span>{currentQuiz.auxStaff.caption}</span>
                 </span>
                 <TheoryStaffInteractive
@@ -1009,24 +988,24 @@ export const MusicTheoryView: React.FC = () => {
                 />
               </div>
 
-              <h3 className="text-lg md:text-xl font-black text-white leading-relaxed">
+              <h3 className="text-xl md:text-2xl font-black text-amber-950 leading-relaxed">
                 {currentQuiz.question}
               </h3>
 
               {/* Options */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
                 {currentQuiz.options.map((option, idx) => {
                   const isSelected = selectedAnswer === idx;
                   const isCorrectAnswer = idx === currentQuiz.correctIdx;
 
-                  let btnStyle = 'bg-slate-900 border-slate-800 text-slate-200 hover:border-blue-400 hover:bg-slate-800/80';
+                  let btnStyle = 'bg-white border-2 border-amber-200 text-slate-900 hover:border-amber-400 hover:bg-amber-100/60 shadow-sm';
                   if (selectedAnswer !== null) {
                     if (isCorrectAnswer) {
-                      btnStyle = 'bg-emerald-600 border-emerald-400 text-white font-black shadow-lg scale-[1.02]';
+                      btnStyle = 'bg-emerald-500 border-2 border-emerald-600 text-white font-black shadow-lg scale-[1.02]';
                     } else if (isSelected) {
-                      btnStyle = 'bg-rose-600 border-rose-400 text-white font-black';
+                      btnStyle = 'bg-rose-500 border-2 border-rose-600 text-white font-black';
                     } else {
-                      btnStyle = 'bg-slate-900/40 border-slate-800/40 text-slate-500';
+                      btnStyle = 'bg-white/50 border-slate-200 text-slate-400 opacity-60';
                     }
                   }
 
@@ -1035,14 +1014,14 @@ export const MusicTheoryView: React.FC = () => {
                       key={idx}
                       disabled={selectedAnswer !== null}
                       onClick={() => handleAnswerQuiz(idx)}
-                      className={`p-4 rounded-2xl border-2 text-left font-bold text-sm transition-all duration-200 flex items-center justify-between ${btnStyle}`}
+                      className={`p-5 rounded-2xl border-2 text-left font-black text-base md:text-lg transition-all duration-200 flex items-center justify-between active:scale-95 ${btnStyle}`}
                     >
                       <span>{option}</span>
                       {selectedAnswer !== null && isCorrectAnswer && (
-                        <span className="text-xl">✅</span>
+                        <span className="text-2xl">✅</span>
                       )}
                       {selectedAnswer !== null && isSelected && !isCorrectAnswer && (
-                        <span className="text-xl">❌</span>
+                        <span className="text-2xl">❌</span>
                       )}
                     </button>
                   );
@@ -1051,21 +1030,21 @@ export const MusicTheoryView: React.FC = () => {
 
               {/* Feedback and Explanation */}
               {selectedAnswer !== null && (
-                <div className={`p-4 rounded-2xl border flex flex-col gap-2 animate-fade-in ${
+                <div className={`p-5 rounded-2xl border-2 flex flex-col gap-2.5 animate-fade-in ${
                   isAnswerCorrect
-                    ? 'bg-emerald-950/40 border-emerald-500/50 text-emerald-200'
-                    : 'bg-rose-950/40 border-rose-500/50 text-rose-200'
+                    ? 'bg-emerald-100 border-emerald-300 text-emerald-950'
+                    : 'bg-rose-100 border-rose-300 text-rose-950'
                 }`}>
-                  <div className="flex items-center gap-2 font-black text-sm">
+                  <div className="flex items-center gap-2 font-black text-base md:text-lg">
                     <span>{isAnswerCorrect ? '🎉 答對了！太厲害了！' : '💡 再接再厲！看五線譜小解說：'}</span>
                   </div>
-                  <p className="text-xs text-slate-200 leading-relaxed font-medium">
+                  <p className="text-sm md:text-base leading-relaxed font-bold">
                     {currentQuiz.explanation}
                   </p>
                   <div className="pt-2 flex justify-end">
                     <button
                       onClick={handleNextQuiz}
-                      className="px-5 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-black rounded-xl shadow-lg transition"
+                      className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-base font-black rounded-2xl shadow-lg transition active:scale-95"
                     >
                       下一題 ➔
                     </button>
