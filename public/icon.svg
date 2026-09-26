@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3B82F6"/>
+      <stop offset="50%" stop-color="#2563EB"/>
+      <stop offset="100%" stop-color="#1D4ED8"/>
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FDE047"/>
+      <stop offset="100%" stop-color="#EAB308"/>
+    </linearGradient>
+    <linearGradient id="orangeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FB923C"/>
+      <stop offset="100%" stop-color="#EA580C"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#0F172A" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <!-- Background rounded squircle with 12% padding for safe area -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad)"/>
+
+  <!-- Piano Keyboard Foundation -->
+  <g transform="translate(64, 256)" filter="url(#shadow)">
+    <!-- White Keys -->
+    <rect x="0" y="0" width="384" height="150" rx="18" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="4"/>
+    <line x1="55" y1="0" x2="55" y2="150" stroke="#CBD5E1" stroke-width="3"/>
+    <line x1="110" y1="0" x2="110" y2="150" stroke="#CBD5E1" stroke-width="3"/>
+    <line x1="165" y1="0" x2="165" y2="150" stroke="#CBD5E1" stroke-width="3"/>
+    <line x1="220" y1="0" x2="220" y2="150" stroke="#CBD5E1" stroke-width="3"/>
+    <line x1="275" y1="0" x2="275" y2="150" stroke="#CBD5E1" stroke-width="3"/>
+    <line x1="330" y1="0" x2="330" y2="150" stroke="#CBD5E1" stroke-width="3"/>
+
+    <!-- Black Keys -->
+    <rect x="36" y="0" width="36" height="92" rx="7" fill="#1E293B"/>
+    <rect x="91" y="0" width="36" height="92" rx="7" fill="#1E293B"/>
+    <rect x="201" y="0" width="36" height="92" rx="7" fill="#1E293B"/>
+    <rect x="256" y="0" width="36" height="92" rx="7" fill="#1E293B"/>
+    <rect x="311" y="0" width="36" height="92" rx="7" fill="#1E293B"/>
+  </g>
+
+  <!-- Kai Fox Cub Mascot Head in Center -->
+  <g transform="translate(256, 175)" filter="url(#shadow)">
+    <!-- Ears -->
+    <polygon points="-75,-40 -110,-115 -25,-75" fill="url(#orangeGrad)"/>
+    <polygon points="-70,-45 -95,-95 -35,-70" fill="#FEE2E2"/>
+
+    <polygon points="75,-40 110,-115 25,-75" fill="url(#orangeGrad)"/>
+    <polygon points="70,-45 95,-95 35,-70" fill="#FEE2E2"/>
+
+    <!-- Head Base -->
+    <ellipse cx="0" cy="0" rx="90" ry="75" fill="url(#orangeGrad)"/>
+
+    <!-- Cheek white fluff -->
+    <path d="M -90,10 Q -40,45 -10,30 Q -60,65 -80,45 Z" fill="#FFFFFF"/>
+    <path d="M 90,10 Q 40,45 10,30 Q 60,65 80,45 Z" fill="#FFFFFF"/>
+
+    <!-- Eyes (happy playful expression) -->
+    <ellipse cx="-35" cy="-10" rx="10" ry="14" fill="#0F172A"/>
+    <circle cx="-32" cy="-15" r="4.5" fill="#FFFFFF"/>
+    <ellipse cx="35" cy="-10" rx="10" ry="14" fill="#0F172A"/>
+    <circle cx="38" cy="-15" r="4.5" fill="#FFFFFF"/>
+
+    <!-- Cute button nose & smile -->
+    <polygon points="0,5 -10,14 10,14" fill="#0F172A"/>
+    <path d="M -16,22 Q 0,34 16,22" fill="none" stroke="#0F172A" stroke-width="4.5" stroke-linecap="round"/>
+
+    <!-- Red Adventurer Bandana Knot -->
+    <path d="M -60,60 Q 0,85 60,60 L 50,78 Q 0,100 -50,78 Z" fill="#EF4444"/>
+    <circle cx="0" cy="74" r="8" fill="#DC2626"/>
+  </g>
+
+  <!-- Golden Musical Notes Floating -->
+  <g fill="url(#goldGrad)" filter="url(#shadow)">
+    <!-- Eighth Note Right -->
+    <path d="M 370,110 L 370,60 L 415,70 L 415,120 A 18 14 0 1 1 385,130 L 385,82 L 400,86 L 400,128 A 18 14 0 1 1 370,110 Z" />
+    <!-- Star Left -->
+    <polygon points="100,120 106,134 122,135 110,146 114,162 100,152 86,162 90,146 78,135 94,134"/>
+  </g>
+</svg>

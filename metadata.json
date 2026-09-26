@@ -1,0 +1,10 @@
+{
+  "name": "KaiQuest Piano Adventure",
+  "description": "專為兒童設計的iPad橫向鋼琴互動Web App，支援麥克風與USB MIDI即時音高辨識、五線譜與簡譜引導及三大挑戰關卡。",
+  "requestFramePermissions": [
+    "microphone",
+    "midi"
+  ],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+

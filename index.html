@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>KaiQuest Piano Adventure</title>
+    <meta name="description" content="專為兒童設計的iPad橫向鋼琴互動Web App，支援麥克風與USB MIDI即時音高辨識、五線譜與簡譜引導及三大挑戰關卡。" />
+    
+    <!-- OpenGraph / Social Cards -->
+    <meta property="og:title" content="KaiQuest Piano Adventure" />
+    <meta property="og:description" content="專為兒童設計的iPad橫向鋼琴互動Web App，支援麥克風與USB MIDI即時音高辨識、五線譜與簡譜引導及三大挑戰關卡。" />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="/pwa-512x512.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="KaiQuest Piano Adventure" />
+    <meta name="twitter:description" content="專為兒童設計的iPad橫向鋼琴互動Web App，支援麥克風與USB MIDI即時音高辨識、五線譜與簡譜引導及三大挑戰關卡。" />
+    
+    <!-- PWA & Mobile Web App Meta -->
+    <meta name="theme-color" content="#1E293B" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="KaiQuest" />
+    
+    <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+  </head>
+  <body class="bg-slate-950 text-slate-100 select-none overflow-x-hidden antialiased">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
