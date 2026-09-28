@@ -236,6 +236,22 @@ export class MicrophoneInputAdapter implements PianoInputAdapter {
     };
   }
 
+  public subscribePitch(listener: (data: { frequencyHz: number; centsOff: number; rmsLevel: number; closestNoteName: string; midiNote: number }) => void): () => void {
+    const forwarder = (data: { frequency: number; midiNote: number; cents: number; rms: number; noteName: string }) => {
+      listener({
+        frequencyHz: data.frequency,
+        centsOff: data.cents,
+        rmsLevel: data.rms,
+        closestNoteName: data.noteName,
+        midiNote: data.midiNote,
+      });
+    };
+    this.pitchListeners.add(forwarder);
+    return () => {
+      this.pitchListeners.delete(forwarder);
+    };
+  }
+
   public subscribeStatus(listener: (status: { isListening: boolean; error?: string }) => void): () => void {
     this.statusListeners.add(listener);
     listener({ isListening: this.isRunning, error: this.lastError || undefined });

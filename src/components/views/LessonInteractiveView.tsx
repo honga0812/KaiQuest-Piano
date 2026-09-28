@@ -1,17 +1,17 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import confetti from 'canvas-confetti';
-import { Lesson, Challenge, TargetNote, HintToggles, InputMode, PianoNoteEvent } from '../../types/piano';
+import { Lesson, Challenge, TargetNote, HintToggles, InputMode, PianoNoteEvent, CharacterFriend } from '../../types/piano';
 import { micAdapter } from '../../audio/microphoneAdapter';
 import { midiAdapter } from '../../audio/midiAdapter';
 import { pianoSynth } from '../../audio/pianoSynthesizer';
 import { KaiCharacter, CharacterMood } from '../mascot/KaiCharacter';
+import { EliLionSvg, KabutoBeetleSvg, PicoDolphinSvg, RexDinoSvg } from '../mascot/AnimalFriends';
 import { MusicStaff } from '../piano/MusicStaff';
 import { NumberedNotation } from '../piano/NumberedNotation';
 import { LetterNotation } from '../piano/LetterNotation';
 import { DynamicKeyboard } from '../piano/DynamicKeyboard';
-import { PitchMonitorBar } from '../piano/PitchMonitorBar';
 import { ScaleRecognitionModal } from '../modals/ScaleRecognitionModal';
-import { FoxPracticeCorner } from '../mascot/FoxPracticeCorner';
+import { MagneticStudioDock } from '../layout/MagneticStudioDock';
 
 interface LessonInteractiveViewProps {
   lesson: Lesson;
@@ -43,6 +43,19 @@ export const LessonInteractiveView: React.FC<LessonInteractiveViewProps> = ({
   const [comboStreak, setComboStreak] = useState(0);
   const [consecutiveErrors, setConsecutiveErrors] = useState(0);
 
+  // Accuracy calculation state
+  const [totalAttempts, setTotalAttempts] = useState(0);
+  const [successfulHits, setSuccessfulHits] = useState(0);
+
+  // Traveling Companion Mentor state (🦁 Eli, 🪲 Kabuto, 🐬 Pico, 🦖 Rex)
+  const [activeMentor, setActiveMentor] = useState<CharacterFriend>(() => {
+    if (currentChallenge.character === 'eli_lion') return 'eli_lion';
+    if (currentChallenge.character === 'kabuto_beetle' || currentChallenge.character === 'sanjuro') return 'kabuto_beetle';
+    if (currentChallenge.character === 'pico_dolphin' || currentChallenge.character === 'gaga_duck') return 'pico_dolphin';
+    if (currentChallenge.character === 'rex_dino') return 'rex_dino';
+    return 'eli_lion';
+  });
+
   // Metronome and Tempo state
   const [bpm, setBpm] = useState(currentChallenge.bpm || 80);
   const [isMetronomeActive, setIsMetronomeActive] = useState(false);
@@ -61,8 +74,6 @@ export const LessonInteractiveView: React.FC<LessonInteractiveViewProps> = ({
   const [liveFreq, setLiveFreq] = useState(0);
   const [liveRms, setLiveRms] = useState(0);
   const [liveActiveMidi, setLiveActiveMidi] = useState<number | undefined>(undefined);
-  const [isAboveThreshold, setIsAboveThreshold] = useState(false);
-  const [noiseThreshold, setNoiseThreshold] = useState(micAdapter.getNoiseGateThreshold());
   const [lastHitTimestamp, setLastHitTimestamp] = useState<number>(0);
   const isAdvancingRef = useRef(false);
   const lastHandledOnsetIdRef = useRef<number | null>(null);
@@ -78,22 +89,22 @@ export const LessonInteractiveView: React.FC<LessonInteractiveViewProps> = ({
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [starsAwarded, setStarsAwarded] = useState(3);
 
-  // 4 Hint toggles (can be independently toggled by teacher/parent)
+  // 4 Hint toggles (default: clean layout with Staff + Keyboard)
   const [hints, setHints] = useState<HintToggles>({
     staff: true,
-    numbered: true,
-    letter: true,
+    numbered: false,
+    letter: false,
     keyboard: true,
   });
-
-  // Tablet collapsible practice toolbar
-  const [showTabletPracticeTools, setShowTabletPracticeTools] = useState(false);
 
   const metronomeTimerRef = useRef<number | null>(null);
   const beatCountRef = useRef(0);
 
   const notes = currentChallenge.notes;
   const currentTargetNote: TargetNote | undefined = notes[currentNoteIndex];
+
+  // Calculate real-time accuracy percentage
+  const accuracyRate = totalAttempts > 0 ? Math.round((successfulHits / totalAttempts) * 100) : 100;
 
   // Listen for microphone status changes
   useEffect(() => {
@@ -123,10 +134,17 @@ export const LessonInteractiveView: React.FC<LessonInteractiveViewProps> = ({
     setCurrentNoteIndex(0);
     setComboStreak(0);
     setConsecutiveErrors(0);
+    setTotalAttempts(0);
+    setSuccessfulHits(0);
     setCharacterMood('listening');
     setMascotText(newChallenge.characterPrompt);
     setMascotEn(newChallenge.characterPromptEn);
     setShowCompletionModal(false);
+
+    if (newChallenge.character === 'eli_lion') setActiveMentor('eli_lion');
+    else if (newChallenge.character === 'kabuto_beetle' || newChallenge.character === 'sanjuro') setActiveMentor('kabuto_beetle');
+    else if (newChallenge.character === 'pico_dolphin' || newChallenge.character === 'gaga_duck') setActiveMentor('pico_dolphin');
+    else if (newChallenge.character === 'rex_dino') setActiveMentor('rex_dino');
   };
 
   // Metronome tick loop
@@ -157,103 +175,102 @@ export const LessonInteractiveView: React.FC<LessonInteractiveViewProps> = ({
       setLiveFreq(event.frequencyHz || 0);
       setLiveCents(event.centsOff || 0);
 
-      // If currently advancing to next note, ignore lingering resonance
       if (isAdvancingRef.current) return;
 
-      // Prevent duplicate processing of the exact same physical strike
-      if (event.onsetId !== undefined && event.onsetId === lastHandledOnsetIdRef.current) {
-        return;
-      }
-
-      // Acoustic Resonance & Double-Hit Safeguard:
-      // When the note just played was the SAME pitch (e.g. C4 -> C4),
-      // acoustic piano string resonance will ring for 500ms+.
-      // Require at least 380ms cooldown for same-pitch note, and 220ms for different notes!
       const now = Date.now();
-      const isSameAsLastSuccess = lastSuccessMidiRef.current !== null &&
-        (event.midiNote === lastSuccessMidiRef.current || (event.midiNote % 12 === lastSuccessMidiRef.current % 12));
-      const minCooldown = isSameAsLastSuccess ? 380 : 220;
+      if (event.onsetId && event.onsetId === lastHandledOnsetIdRef.current) return;
 
-      if (now - lastSuccessTimeRef.current < minCooldown) {
+      if (
+        now - lastSuccessTimeRef.current < 260 &&
+        lastSuccessMidiRef.current === event.midiNote
+      ) {
         return;
       }
 
-      // Verify against current target note
+      if (event.onsetId) {
+        lastHandledOnsetIdRef.current = event.onsetId;
+      }
+
       if (!currentTargetNote) return;
 
-      const isOctaveEquivalent = currentTargetNote.allowOctaveShift && (event.midiNote % 12 === currentTargetNote.midiNote % 12);
-      const isTargetMatch = event.midiNote === currentTargetNote.midiNote || isOctaveEquivalent;
+      const isMatch =
+        event.midiNote === currentTargetNote.midiNote ||
+        (currentTargetNote.allowOctaveShift &&
+          (event.midiNote === currentTargetNote.midiNote + 12 ||
+            event.midiNote === currentTargetNote.midiNote - 12));
 
-      if (isTargetMatch) {
-        if (event.onsetId !== undefined) {
-          lastHandledOnsetIdRef.current = event.onsetId;
-        }
+      if (isMatch) {
         lastSuccessTimeRef.current = now;
-        lastSuccessMidiRef.current = currentTargetNote.midiNote;
-        // Correct note hit!
+        lastSuccessMidiRef.current = event.midiNote;
         handleNoteSuccess();
       } else {
-        // Wrong note hit (non-punitive)
-        handleNoteMiss(event.noteName);
+        const targetOctaveDiff = Math.abs(event.midiNote - currentTargetNote.midiNote);
+        if (targetOctaveDiff <= 2 && Math.abs(event.centsOff ?? 0) > 35) {
+          setIsNoteWobbly(true);
+          setTimeout(() => setIsNoteWobbly(false), 300);
+        } else {
+          handleNoteMiss(event.noteName);
+        }
       }
-
-      // Reset live key visual after 250ms
-      setTimeout(() => {
-        setLiveActiveMidi(undefined);
-      }, 250);
     };
 
-    if (inputMode === 'microphone') {
-      unsubNote = micAdapter.subscribe(handleIncomingNote);
-      unsubPitch = micAdapter.subscribePitchMonitor?.((data) => {
-        setLiveRms(data.rms);
-        setIsAboveThreshold(!!data.isAboveThreshold);
-        if (data.threshold !== undefined) {
-          setNoiseThreshold(data.threshold);
-        }
-        if (data.frequency > 0) {
-          setDetectedNoteName(data.noteName);
-          setLiveFreq(data.frequency);
-          setLiveCents(data.cents);
-          // Check if wobbly
-          if (Math.abs(data.cents) > 25 && Math.abs(data.cents) <= 48) {
-            setIsNoteWobbly(true);
-          } else {
-            setIsNoteWobbly(false);
-          }
-        }
-      });
-    } else if (inputMode === 'midi') {
+    if (inputMode === 'midi') {
       unsubNote = midiAdapter.subscribe(handleIncomingNote);
+    } else {
+      unsubNote = micAdapter.subscribe(handleIncomingNote);
+      unsubPitch = micAdapter.subscribePitch((data) => {
+        setLiveFreq(data.frequencyHz);
+        setLiveCents(data.centsOff);
+        setLiveRms(data.rmsLevel);
+        setDetectedNoteName(data.closestNoteName);
+      });
     }
 
     return () => {
-      unsubNote?.();
-      unsubPitch?.();
+      if (unsubNote) unsubNote();
+      if (unsubPitch) unsubPitch();
     };
-  }, [inputMode, currentTargetNote, currentNoteIndex]);
+  }, [inputMode, currentTargetNote]);
 
-  // Handle note success
+  // Handle note success with Accompanying Mentor live encouragement
   const handleNoteSuccess = useCallback(() => {
+    if (isAdvancingRef.current) return;
     isAdvancingRef.current = true;
+
+    const hitTime = Date.now();
+    setLastHitTimestamp(hitTime);
     setIsNoteCorrect(true);
     setIsNoteWobbly(false);
-    setCharacterMood('excited');
+    setConsecutiveErrors(0);
+
+    setSuccessfulHits((prev) => prev + 1);
+    setTotalAttempts((prev) => prev + 1);
+
     const newStreak = comboStreak + 1;
     setComboStreak(newStreak);
-    setLastHitTimestamp(Date.now());
 
-    // Play sparkling success hit sound effect
     pianoSynth.playCorrectHitSound();
 
-    // Mini confetti sparkle on screen
-    confetti({
-      particleCount: 18,
-      spread: 50,
-      origin: { y: 0.6 },
-      colors: ['#FBBF24', '#34D399', '#60A5FA', '#F43F5E'],
-      disableForReducedMotion: true,
-    });
+    // Minor confetti celebration on streak
+    if (newStreak >= 4 && newStreak % 3 === 0) {
+      confetti({
+        particleCount: 18,
+        spread: 50,
+        origin: { y: 0.6 },
+        colors: ['#FBBF24', '#34D399', '#60A5FA', '#F43F5E'],
+        disableForReducedMotion: true,
+      });
+    }
+
+    // Dynamic Companion Mentor Speech Encouragement
+    const mentorName =
+      activeMentor === 'eli_lion'
+        ? '獅子 Eli'
+        : activeMentor === 'kabuto_beetle'
+        ? '甲蟲 Kabuto'
+        : activeMentor === 'pico_dolphin'
+        ? '海豚 Pico'
+        : '恐龍 Rex';
 
     const nextIndex = currentNoteIndex + 1;
 
@@ -263,17 +280,18 @@ export const LessonInteractiveView: React.FC<LessonInteractiveViewProps> = ({
       if (nextIndex < notes.length) {
         setCurrentNoteIndex(nextIndex);
         setCharacterMood('listening');
+
         if (newStreak >= 8) {
-          setMascotText('太神啦！鋼琴小大師 Kai 為你拍手！');
+          setMascotText(`${mentorName}：太神啦！大師級五線譜連擊！`);
           setMascotEn(`Super Combo x${newStreak}! 👑`);
         } else if (newStreak >= 5) {
-          setMascotText('火焰連擊！手感太順暢了！');
+          setMascotText(`${mentorName}：火焰連擊！手感節奏太棒了！`);
           setMascotEn(`Fire Combo x${newStreak}! 🔥`);
         } else if (newStreak >= 3) {
-          setMascotText('好聽！保持這個節奏！');
+          setMascotText(`${mentorName}：連續命中！保持這個旋律！`);
           setMascotEn(`Awesome Streak x${newStreak}! ⭐`);
         } else {
-          setMascotText('彈對了！好棒的聲音！');
+          setMascotText(`${mentorName}：彈對了！好棒的音符～`);
           setMascotEn('Great note! ♪');
         }
       } else {
@@ -281,24 +299,32 @@ export const LessonInteractiveView: React.FC<LessonInteractiveViewProps> = ({
         handleChallengeClear();
       }
     }, 280);
-  }, [currentNoteIndex, notes.length, inputMode, comboStreak]);
+  }, [currentNoteIndex, notes.length, comboStreak, activeMentor]);
 
-  // Handle note miss (Non-punitive child experience!)
+  // Handle note miss with non-punitive gentle guidance
   const handleNoteMiss = useCallback((playedNoteName: string) => {
     setIsNoteWobbly(true);
+    setTotalAttempts((prev) => prev + 1);
+
+    const mentorName =
+      activeMentor === 'eli_lion'
+        ? '獅子 Eli'
+        : activeMentor === 'kabuto_beetle'
+        ? '甲蟲 Kabuto'
+        : activeMentor === 'pico_dolphin'
+        ? '海豚 Pico'
+        : '恐龍 Rex';
+
     setConsecutiveErrors((prev) => {
       const next = prev + 1;
-      // Adaptive help after 3 misses
       if (next >= 3) {
-        // Auto lower BPM slightly
-        setBpm((currBpm) => Math.max(60, currBpm - 6));
-        // Ensure keyboard hint is enabled to assist
+        setBpm((currBpm) => Math.max(60, currBpm - 4));
         setHints((prevHints) => ({ ...prevHints, keyboard: true }));
-        setMascotText(`沒關係慢慢來！試試大拇指或看著發光的琴鍵～`);
+        setMascotText(`${mentorName}：沒關係慢慢來！看著發光的琴鍵，我們一起彈～`);
         setMascotEn('Take your time! Look at the glowing key!');
         setCharacterMood('encouraging');
       } else {
-        setMascotText(`你彈了 ${playedNoteName}，目標是 ${currentTargetNote?.noteName} 喔！`);
+        setMascotText(`${mentorName}：你彈了 ${playedNoteName}，目標是 ${currentTargetNote?.noteName} 喔！`);
         setMascotEn(`Target is ${currentTargetNote?.noteName}!`);
         setCharacterMood('holding');
       }
@@ -308,44 +334,44 @@ export const LessonInteractiveView: React.FC<LessonInteractiveViewProps> = ({
     setTimeout(() => {
       setIsNoteWobbly(false);
     }, 450);
-  }, [currentTargetNote]);
+  }, [currentTargetNote, activeMentor]);
 
   // Challenge Clear Celebration
   const handleChallengeClear = () => {
     setCharacterMood('celebrating');
     pianoSynth.playFanfare();
 
-    // Full screen confetti burst
     confetti({
       particleCount: 80,
-      spread: 70,
-      origin: { y: 0.5 },
-      colors: ['#F59E0B', '#10B981', '#3B82F6', '#EC4899'],
+      spread: 80,
+      origin: { y: 0.55 },
+      colors: ['#F59E0B', '#10B981', '#3B82F6', '#EC4899', '#8B5CF6'],
     });
 
-    const stars = consecutiveErrors === 0 ? 3 : consecutiveErrors <= 2 ? 2 : 1;
+    let stars = 1;
+    if (accuracyRate >= 85 && consecutiveErrors === 0) stars = 3;
+    else if (accuracyRate >= 65) stars = 2;
+
     setStarsAwarded(stars);
     setShowCompletionModal(true);
 
-    // Save progress to storage
-    onCompleteLesson(stars, 100 - consecutiveErrors * 5, bpm, lesson.badgeId);
+    onCompleteLesson(stars, Math.round(accuracyRate * 10), bpm, lesson.badgeId);
   };
 
-  // Play Model Song Demo
+  // Play audio demonstration
   const playDemo = async () => {
     if (isPlayingDemo) return;
     setIsPlayingDemo(true);
-    setCharacterMood('listening');
-    setMascotText('閉上眼睛聽 Kai 為你示範這首歌曲！');
-    setMascotEn('Listen to the model demonstration!');
+    setCharacterMood('excited');
+    setMascotText('請仔細聽隨行導師的示範演奏喔！');
+    setMascotEn('Listen carefully to the demonstration!');
 
-    const noteDurationMs = (60 / bpm) * 1000;
     for (let i = 0; i < notes.length; i++) {
-      const note = notes[i];
+      const n = notes[i];
       setCurrentNoteIndex(i);
-      setLiveActiveMidi(note.midiNote);
-      pianoSynth.playNote(note.midiNote, 0.75, note.durationBeats * 0.8);
-      await new Promise((r) => setTimeout(r, note.durationBeats * noteDurationMs));
+      setLiveActiveMidi(n.midiNote);
+      pianoSynth.playPianoNote(n.midiNote, 0.85, 0.7);
+      await new Promise((res) => setTimeout(res, (60 / bpm) * 1000 * (n.durationBeats || 1)));
     }
 
     setLiveActiveMidi(undefined);
@@ -357,220 +383,118 @@ export const LessonInteractiveView: React.FC<LessonInteractiveViewProps> = ({
   };
 
   return (
-    <div className={`flex flex-col min-h-full w-full max-w-6xl mx-auto px-3 md:px-6 py-2 select-none overflow-y-auto justify-between gap-3 pb-24 ${className}`}>
-      {/* Top Header Control Deck - Bright, Cheerful & Kid-Friendly */}
-      <div className="flex flex-col gap-3 shrink-0">
-        <div className="flex flex-wrap items-center justify-between gap-3 bg-white/95 border-3 border-amber-300 rounded-3xl p-3.5 md:p-4 shadow-sm">
-          {/* Back Button & Title */}
-          <div className="flex items-center gap-3">
-            <button
-              onClick={onBackToMap}
-              className="flex items-center gap-2 px-5 py-3 bg-amber-100 hover:bg-amber-200 text-amber-950 text-base md:text-lg font-black rounded-2xl border-2 border-amber-300 transition shadow-sm active:scale-95"
-            >
-              <span>←</span>
-              <span>返回地圖</span>
-            </button>
-            <div>
-              <h2 className="text-xl md:text-2xl font-black text-amber-950 tracking-tight leading-tight line-clamp-1">
-                {lesson.songName} · {currentChallenge.title}
-              </h2>
-              <span className="text-xs md:text-sm text-amber-800 font-extrabold">
-                {currentChallenge.titleEn}
-              </span>
-            </div>
-          </div>
-
-          {/* 3 Tier Challenge Tabs (技巧 25% | 歌曲 50% | 表演 25%) */}
-          <div className="flex items-center bg-amber-100/80 rounded-2xl p-1.5 border-2 border-amber-300 shadow-sm">
-            {allChallenges.map((ch, idx) => (
-              <button
-                key={ch.id}
-                onClick={() => switchChallenge(idx)}
-                className={`px-4 py-2.5 rounded-xl text-base md:text-lg font-black transition-all whitespace-nowrap active:scale-95 ${
-                  activeChallengeIndex === idx
-                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md scale-105'
-                    : 'text-amber-950 hover:bg-amber-200/70'
-                }`}
-              >
-                {ch.type === 'technique' ? '1. 技巧特訓' : ch.type === 'song' ? '2. 歌曲挑戰' : '3. 舞台表演'}
-              </button>
-            ))}
-          </div>
-
-          {/* Quick Right Action Controls */}
-          <div className="flex items-center gap-2.5">
-            {/* Phrase combo & progress status */}
-            <div className="flex items-center gap-2 bg-amber-100 border-2 border-amber-300 px-4 py-2.5 rounded-2xl text-base md:text-lg font-black text-amber-950 shadow-sm">
-              <span className="text-amber-900">進度:</span>
-              <span className="font-mono text-blue-700 text-base md:text-lg">
-                {currentNoteIndex} / {notes.length}
-              </span>
-              {comboStreak > 1 && (
-                <span className="bg-rose-500 text-white px-2 py-0.5 rounded-full font-black text-xs md:text-sm animate-bounce shadow-sm">
-                  🔥{comboStreak}連擊
-                </span>
-              )}
-            </div>
-
-            {/* Quick Metronome Toggle */}
-            <button
-              onClick={() => setIsMetronomeActive(!isMetronomeActive)}
-              className={`flex items-center gap-2 px-4 py-2.5 text-base md:text-lg font-black rounded-2xl border-2 transition shadow-sm active:scale-95 ${
-                isMetronomeActive
-                  ? 'bg-emerald-500 border-emerald-600 text-white shadow-md'
-                  : 'bg-white border-amber-300 text-amber-950 hover:bg-amber-50'
-              }`}
-              title="開關節拍器"
-            >
-              <span>⏱️</span>
-              <span className="font-mono">{bpm} BPM</span>
-            </button>
-
-            {/* Collapsible Tool Bar Switch */}
-            <button
-              onClick={() => setShowTabletPracticeTools(!showTabletPracticeTools)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-base md:text-lg font-black transition-all border-2 shadow-sm active:scale-95 ${
-                showTabletPracticeTools
-                  ? 'bg-gradient-to-r from-amber-400 to-orange-400 border-amber-500 text-slate-950'
-                  : 'bg-white hover:bg-amber-50 border-amber-300 text-amber-950'
-              }`}
-              title="展開或收起譜面提示與示範工具"
-            >
-              <span>🎛️</span>
-              <span>{showTabletPracticeTools ? '收起提示' : '譜面提示'}</span>
-            </button>
+    <div className={`flex flex-col min-h-full w-full max-w-6xl mx-auto px-2 md:px-5 py-2 select-none overflow-y-auto justify-between gap-3 pb-24 ${className}`}>
+      {/* ========================================================================= */}
+      {/* 1. Top Minimal Header Deck (極簡頂部功能列)                                 */}
+      {/* ========================================================================= */}
+      <div className="flex flex-wrap items-center justify-between gap-2.5 bg-white/95 border-3 border-amber-300 rounded-3xl p-3 md:p-4 shadow-sm shrink-0">
+        {/* Back Button & Song Info */}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={onBackToMap}
+            className="flex items-center gap-1.5 px-4 py-2.5 bg-amber-100 hover:bg-amber-200 text-amber-950 text-sm md:text-base font-black rounded-2xl border-2 border-amber-300 transition shadow-sm active:scale-95"
+          >
+            <span>←</span>
+            <span>返回地圖</span>
+          </button>
+          <div>
+            <h2 className="text-lg md:text-xl font-black text-amber-950 tracking-tight leading-tight line-clamp-1">
+              {lesson.songName} · {currentChallenge.title}
+            </h2>
+            <span className="text-xs text-amber-800 font-extrabold">
+              {currentChallenge.titleEn}
+            </span>
           </div>
         </div>
 
-        {/* Collapsible Practice Tools Strip - Bright & Clear */}
-        {showTabletPracticeTools && (
-          <div className="bg-white border-2 border-amber-300 rounded-3xl p-3.5 md:p-4 flex flex-wrap items-center justify-between gap-3 shadow-md animate-fade-in text-base">
-            {/* 4 Hint Toggles */}
-            <div className="flex flex-wrap items-center gap-2.5">
-              <span className="text-amber-950 font-black text-sm md:text-base flex items-center gap-1">
-                <span>👀</span>
-                <span>輔助標示:</span>
-              </span>
-              <div className="flex items-center gap-2 flex-wrap">
-                <button
-                  onClick={() => setHints({ ...hints, staff: !hints.staff })}
-                  className={`px-3.5 py-2 rounded-xl text-sm md:text-base font-black transition shadow-sm active:scale-95 ${
-                    hints.staff ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow' : 'bg-slate-100 text-slate-600 border border-slate-300'
-                  }`}
-                >
-                  🎼 五線譜
-                </button>
-                <button
-                  onClick={() => setHints({ ...hints, numbered: !hints.numbered })}
-                  className={`px-3.5 py-2 rounded-xl text-sm md:text-base font-black transition shadow-sm active:scale-95 ${
-                    hints.numbered ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow' : 'bg-slate-100 text-slate-600 border border-slate-300'
-                  }`}
-                >
-                  🔢 簡譜
-                </button>
-                <button
-                  onClick={() => setHints({ ...hints, letter: !hints.letter })}
-                  className={`px-3.5 py-2 rounded-xl text-sm md:text-base font-black transition shadow-sm active:scale-95 ${
-                    hints.letter ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow' : 'bg-slate-100 text-slate-600 border border-slate-300'
-                  }`}
-                >
-                  🔤 字母音名
-                </button>
-                <button
-                  onClick={() => setHints({ ...hints, keyboard: !hints.keyboard })}
-                  className={`px-3.5 py-2 rounded-xl text-sm md:text-base font-black transition shadow-sm active:scale-95 ${
-                    hints.keyboard ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow' : 'bg-slate-100 text-slate-600 border border-slate-300'
-                  }`}
-                >
-                  🎹 琴鍵指法
-                </button>
-              </div>
-            </div>
-
-            {/* Quick Demo & Scale test actions */}
-            <div className="flex items-center gap-3">
-              <button
-                onClick={playDemo}
-                disabled={isPlayingDemo}
-                className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-amber-400 to-orange-400 hover:from-amber-500 hover:to-orange-500 disabled:opacity-50 text-slate-950 text-sm md:text-base font-black rounded-2xl shadow transition active:scale-95"
-              >
-                <span>▶</span>
-                <span>示範演奏聽聽看</span>
-              </button>
-
-              <button
-                onClick={() => setShowScaleModal(true)}
-                className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white text-sm md:text-base font-black rounded-2xl shadow transition active:scale-95"
-              >
-                <span>🎵</span>
-                <span>音階辨識測試</span>
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Microphone prompt banner if mic not running */}
-        {inputMode === 'microphone' && !isMicRunning && (
-          <div className="bg-gradient-to-r from-emerald-50 via-teal-50 to-sky-50 border-3 border-emerald-400 rounded-3xl p-4 flex flex-wrap items-center justify-between gap-4 shadow-md">
-            <div className="flex items-center gap-3 text-left">
-              <span className="text-3xl">🎙️</span>
-              <div>
-                <span className="text-base font-black text-emerald-950 block">麥克風聽琴辨識尚未啟動</span>
-                <span className="text-sm text-emerald-800 font-bold block">
-                  {micError
-                    ? micError
-                    : '點擊右方按鈕開啟麥克風。若瀏覽器沒有跳出允許提示，請點擊網址列左側 🔒 鎖頭圖示手動改為「允許」！'}
-                </span>
-              </div>
-            </div>
+        {/* 3 Challenge Tier Tabs */}
+        <div className="flex items-center bg-amber-100/80 rounded-2xl p-1 border-2 border-amber-300 shadow-sm">
+          {allChallenges.map((ch, idx) => (
             <button
-              onClick={handleActivateMic}
-              className="px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white text-base font-black rounded-2xl shadow-lg transition flex items-center gap-2 animate-pulse whitespace-nowrap active:scale-95"
+              key={ch.id}
+              onClick={() => switchChallenge(idx)}
+              className={`px-3.5 py-2 rounded-xl text-xs md:text-sm font-black transition-all whitespace-nowrap active:scale-95 ${
+                activeChallengeIndex === idx
+                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md scale-105'
+                  : 'text-amber-950 hover:bg-amber-200/70'
+              }`}
             >
-              <span>🎙️</span>
-              <span>點擊啟動麥克風聽琴</span>
+              {ch.type === 'technique' ? '1. 技巧特訓' : ch.type === 'song' ? '2. 歌曲挑戰' : '3. 舞台表演'}
             </button>
+          ))}
+        </div>
+
+        {/* Quick Progress & Accuracy Pill */}
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 bg-amber-100 border-2 border-amber-300 px-3.5 py-2 rounded-2xl text-xs md:text-sm font-black text-amber-950 shadow-sm">
+            <span className="text-amber-900">進度:</span>
+            <span className="font-mono text-blue-700">
+              {currentNoteIndex} / {notes.length}
+            </span>
+            {comboStreak > 1 && (
+              <span className="bg-rose-500 text-white px-2 py-0.5 rounded-full font-black text-xs animate-bounce shadow-sm">
+                🔥{comboStreak}連擊
+              </span>
+            )}
           </div>
-        )}
+        </div>
       </div>
 
-      {/* Middle Interactive Musical Stage */}
-      <div className="flex-1 flex flex-col justify-center gap-2 my-1">
-        {/* Mascot & Speech - Enlarged & Interactive */}
-        <div className="flex items-center justify-between gap-3">
-          <KaiCharacter
-            mood={characterMood}
-            companion={
-              currentChallenge.character === 'eli_lion'
-                ? 'eli_lion'
-                : currentChallenge.character === 'kabuto_beetle' || currentChallenge.character === 'sanjuro'
-                ? 'kabuto_beetle'
-                : currentChallenge.character === 'pico_dolphin' || currentChallenge.character === 'gaga_duck'
-                ? 'pico_dolphin'
-                : 'rex_dino'
-            }
-            comboStreak={comboStreak}
-            lastHitTimestamp={lastHitTimestamp}
-            speechText={mascotText}
-            speechEn={mascotEn}
-            size="lg"
-          />
+      {/* Microphone prompt banner if mic not running */}
+      {inputMode === 'microphone' && !isMicRunning && (
+        <div className="bg-gradient-to-r from-emerald-50 via-teal-50 to-sky-50 border-2 border-emerald-400 rounded-2xl p-3 flex flex-wrap items-center justify-between gap-3 shadow-sm text-left">
+          <div className="flex items-center gap-2.5">
+            <span className="text-2xl">🎙️</span>
+            <div>
+              <span className="text-sm font-black text-emerald-950 block">麥克風聽琴尚未啟動</span>
+              <span className="text-xs text-emerald-800 font-bold block">
+                {micError || '點選右側按鈕開啟麥克風，即可聽琴即時辨音！'}
+              </span>
+            </div>
+          </div>
+          <button
+            onClick={handleActivateMic}
+            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs md:text-sm font-black rounded-xl shadow transition animate-pulse"
+          >
+            點擊開啟麥克風
+          </button>
+        </div>
+      )}
 
-          {/* Current Target Focus Chip - Enlarged & Bright for Tablet */}
+      {/* ========================================================================= */}
+      {/* 2. Middle Interactive Musical Stage (五線譜 + 隨行導師與目標指法)          */}
+      {/* ========================================================================= */}
+      <div className="flex-1 flex flex-col justify-center gap-2 my-1">
+        {/* Mascot & Traveling Companion Mentor Dynamic Guidance */}
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            {/* Kai & Active Companion Character */}
+            <KaiCharacter
+              mood={characterMood}
+              companion={activeMentor === 'kai' ? 'none' : (activeMentor as any)}
+              comboStreak={comboStreak}
+              lastHitTimestamp={lastHitTimestamp}
+              speechText={mascotText}
+              speechEn={mascotEn}
+              size="md"
+            />
+          </div>
+
+          {/* Current Target Focus Chip */}
           {currentTargetNote && (
-            <div className="hidden sm:flex items-center gap-3.5 bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 border-3 border-white px-6 py-3 rounded-3xl shadow-lg animate-pulse text-slate-950">
-              <span className="text-sm md:text-base font-black">🎯 目標指法:</span>
-              <span className="w-10 h-10 md:w-11 md:h-11 rounded-full bg-blue-600 text-white font-black flex items-center justify-center text-lg md:text-xl border-2 border-white shadow-md">
+            <div className="flex items-center gap-2.5 bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 border-2 border-white px-5 py-2.5 rounded-2xl shadow-md text-slate-950">
+              <span className="text-xs md:text-sm font-black">🎯 目標指法:</span>
+              <span className="w-8 h-8 md:w-9 md:h-9 rounded-full bg-blue-600 text-white font-black flex items-center justify-center text-base md:text-lg border-2 border-white shadow-sm">
                 {currentTargetNote.fingerNumber}
               </span>
-              <span className="text-lg md:text-xl font-black font-mono">
+              <span className="text-sm md:text-base font-black font-mono">
                 {currentTargetNote.hand === 'left' ? '左手' : '右手'} {currentTargetNote.noteName} ({currentTargetNote.solfege})
               </span>
             </div>
           )}
         </div>
 
-        {/* 1. 五線譜 (Staff) with D3.js and dynamic real-time beat glow indicator */}
+        {/* 1. 五線譜 (Staff) with D3.js and Accompanying Mentor Beat Glow Indicator */}
         {hints.staff && (
           <MusicStaff
             notes={notes}
@@ -582,41 +506,34 @@ export const LessonInteractiveView: React.FC<LessonInteractiveViewProps> = ({
             lastHitTimestamp={lastHitTimestamp}
             bpm={bpm}
             isMetronomeActive={isMetronomeActive}
+            mentorId={activeMentor}
+            accuracyRate={accuracyRate}
+            comboStreak={comboStreak}
           />
         )}
 
-        {/* 2 & 3. 簡譜與字母音名 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-          {hints.numbered && (
-            <NumberedNotation
-              notes={notes}
-              currentIndex={currentNoteIndex}
-            />
-          )}
-          {hints.letter && (
-            <LetterNotation
-              notes={notes}
-              currentIndex={currentNoteIndex}
-            />
-          )}
-        </div>
-
-        {/* Real-time Pitch Monitor & Cents Needle */}
-        <PitchMonitorBar
-          currentDetectedNoteName={detectedNoteName}
-          centsOff={liveCents}
-          frequencyHz={liveFreq}
-          rmsLevel={liveRms}
-          isStable={!isNoteWobbly && isNoteCorrect}
-          targetNoteName={currentTargetNote?.noteName}
-          isListening={inputMode === 'microphone' ? isMicRunning : true}
-          onActivateMic={inputMode === 'microphone' ? handleActivateMic : undefined}
-          noiseThreshold={noiseThreshold}
-          isAboveThreshold={isAboveThreshold}
-        />
+        {/* 2 & 3. 簡譜與字母音名 (僅在磁吸抽屜中開啟時顯示，保持畫面純淨) */}
+        {(hints.numbered || hints.letter) && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 animate-fade-in">
+            {hints.numbered && (
+              <NumberedNotation
+                notes={notes}
+                currentIndex={currentNoteIndex}
+              />
+            )}
+            {hints.letter && (
+              <LetterNotation
+                notes={notes}
+                currentIndex={currentNoteIndex}
+              />
+            )}
+          </div>
+        )}
       </div>
 
-      {/* Bottom Dynamic Keyboard */}
+      {/* ========================================================================= */}
+      {/* 3. Bottom Dynamic Keyboard (底部鋼琴琴鍵)                                  */}
+      {/* ========================================================================= */}
       {hints.keyboard && (
         <div className="shrink-0 pt-1">
           <DynamicKeyboard
@@ -624,7 +541,6 @@ export const LessonInteractiveView: React.FC<LessonInteractiveViewProps> = ({
             liveActiveMidiNote={liveActiveMidi}
             showFingerNumbers={true}
             onKeyPress={(midiNote) => {
-              // Direct screen key tap support
               setLiveActiveMidi(midiNote);
               if (currentTargetNote && midiNote === currentTargetNote.midiNote) {
                 handleNoteSuccess();
@@ -637,81 +553,118 @@ export const LessonInteractiveView: React.FC<LessonInteractiveViewProps> = ({
         </div>
       )}
 
-      {/* Real-time Scale Recognition & Tuner Modal */}
+      {/* ========================================================================= */}
+      {/* 4. Magnetic Floating Studio Dock (磁吸式隨行輔助工具島)                      */}
+      {/* Replaces clutter with an elegant, touch-friendly floating drawer           */}
+      {/* ========================================================================= */}
+      <MagneticStudioDock
+        activeMentor={activeMentor}
+        onSelectMentor={(mentor) => {
+          setActiveMentor(mentor);
+          pianoSynth.playCorrectHitSound();
+        }}
+        accuracyRate={accuracyRate}
+        comboStreak={comboStreak}
+        totalNotes={notes.length}
+        currentNoteIndex={currentNoteIndex}
+        hints={hints}
+        onToggleHint={(key) => setHints((prev) => ({ ...prev, [key]: !prev[key] }))}
+        bpm={bpm}
+        onChangeBpm={setBpm}
+        isMetronomeActive={isMetronomeActive}
+        onToggleMetronome={() => setIsMetronomeActive(!isMetronomeActive)}
+        onPlayDemo={playDemo}
+        isPlayingDemo={isPlayingDemo}
+        onOpenScaleModal={() => setShowScaleModal(true)}
+        detectedNoteName={detectedNoteName}
+        centsOff={liveCents}
+        rmsLevel={liveRms}
+        isMicRunning={isMicRunning}
+        onActivateMic={handleActivateMic}
+        inputMode={inputMode}
+      />
+
+      {/* Scale Recognition Modal */}
       <ScaleRecognitionModal
         isOpen={showScaleModal}
         onClose={() => setShowScaleModal(false)}
       />
 
-      {/* Dynamic Animated Fox Mascot Corner Widget (Reacts in Real-time to Accuracy & Completion) */}
-      <FoxPracticeCorner
-        currentNoteIndex={currentNoteIndex}
-        totalNotes={notes.length}
-        comboStreak={comboStreak}
-        consecutiveErrors={consecutiveErrors}
-        isNoteCorrect={isNoteCorrect}
-        isNoteWobbly={isNoteWobbly}
-        accuracyPercent={
-          currentNoteIndex + consecutiveErrors > 0
-            ? Math.max(0, Math.round((currentNoteIndex / (currentNoteIndex + consecutiveErrors)) * 100))
-            : 100
-        }
-      />
-
-      {/* Completion Modal - Bright & Joyful Celebration */}
+      {/* Challenge Completion Modal */}
       {showCompletionModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/70 backdrop-blur-md p-4 animate-fade-in select-none">
-          <div className="relative w-full max-w-lg bg-white border-4 border-amber-300 rounded-3xl p-7 shadow-2xl text-center flex flex-col items-center gap-5 text-slate-950">
-            <KaiCharacter
-              mood="celebrating"
-              speechText="太棒了！恭喜順利通關！"
-              speechEn="Challenge Completed!"
-              size="lg"
-            />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4 animate-fade-in text-slate-900 select-none">
+          <div className="relative w-full max-w-md bg-white rounded-3xl p-6 md:p-8 shadow-2xl border-4 border-amber-400 flex flex-col items-center text-center gap-4">
+            <div className="w-20 h-20 rounded-3xl bg-amber-100 flex items-center justify-center text-5xl shadow-md border-2 border-amber-300 animate-bounce">
+              {activeMentor === 'eli_lion' && <EliLionSvg size={70} />}
+              {activeMentor === 'kabuto_beetle' && <KabutoBeetleSvg size={65} />}
+              {activeMentor === 'pico_dolphin' && <PicoDolphinSvg size={65} />}
+              {activeMentor === 'rex_dino' && <RexDinoSvg size={65} />}
+              {activeMentor === 'kai' && <EliLionSvg size={70} />}
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <span className="text-amber-700 font-extrabold text-xs uppercase tracking-widest">
+                Challenge Complete!
+              </span>
+              <h3 className="text-2xl md:text-3xl font-black text-slate-900">
+                🎉 挑戰成功，小探險家！
+              </h3>
+              <p className="text-xs text-slate-600 font-medium">
+                {currentChallenge.title} 演奏完畢！
+              </p>
+            </div>
 
             {/* Stars */}
-            <div className="flex items-center justify-center gap-3 text-4xl">
-              {[1, 2, 3].map((starIdx) => (
+            <div className="flex items-center gap-2 text-3xl text-amber-400 my-1">
+              {[1, 2, 3].map((s) => (
                 <span
-                  key={starIdx}
-                  className={`transition-all duration-300 ${
-                    starIdx <= starsAwarded ? 'text-amber-400 scale-125' : 'text-slate-200'
-                  }`}
+                  key={`star-${s}`}
+                  className={`transition-all ${s <= starsAwarded ? 'scale-110 drop-shadow' : 'opacity-25 grayscale'}`}
                 >
                   ★
                 </span>
               ))}
             </div>
 
-            <div className="text-slate-800 text-lg md:text-xl font-black">
-              榮獲 <strong className="text-amber-600 font-black">{starsAwarded} 顆星</strong>！解鎖「{lesson.badgeTitle}」！
+            {/* Summary stat */}
+            <div className="grid grid-cols-2 gap-2 w-full bg-slate-50 p-3 rounded-2xl border border-slate-200 text-xs">
+              <div className="flex flex-col">
+                <span className="text-slate-500 font-bold">辨音準確率</span>
+                <span className="text-base font-black text-emerald-600">{accuracyRate}%</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-slate-500 font-bold">演奏速度</span>
+                <span className="text-base font-black text-blue-600">{bpm} BPM</span>
+              </div>
             </div>
 
-            <div className="w-full flex items-center gap-3 pt-2">
+            <div className="flex items-center gap-3 w-full pt-2">
               <button
                 onClick={() => {
                   setShowCompletionModal(false);
                   setCurrentNoteIndex(0);
+                  setComboStreak(0);
+                  setTotalAttempts(0);
+                  setSuccessfulHits(0);
                 }}
-                className="flex-1 py-3.5 bg-amber-100 hover:bg-amber-200 text-amber-950 text-base font-black rounded-2xl border-2 border-amber-300 transition shadow-sm active:scale-95"
+                className="flex-1 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-sm transition active:scale-95"
               >
                 再練一次 🔄
               </button>
-              {activeChallengeIndex < allChallenges.length - 1 ? (
-                <button
-                  onClick={() => switchChallenge(activeChallengeIndex + 1)}
-                  className="flex-1 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-base font-black rounded-2xl shadow-lg transition active:scale-95"
-                >
-                  下一關卡 ➔
-                </button>
-              ) : (
-                <button
-                  onClick={onBackToMap}
-                  className="flex-1 py-3.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white text-base font-black rounded-2xl shadow-lg transition active:scale-95"
-                >
-                  回課程地圖 🗺️
-                </button>
-              )}
+
+              <button
+                onClick={() => {
+                  setShowCompletionModal(false);
+                  if (activeChallengeIndex < allChallenges.length - 1) {
+                    switchChallenge(activeChallengeIndex + 1);
+                  } else {
+                    onBackToMap();
+                  }
+                }}
+                className="flex-1 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-black text-sm shadow-md transition active:scale-95"
+              >
+                {activeChallengeIndex < allChallenges.length - 1 ? '下一關 ➔' : '返回地圖 ➔'}
+              </button>
             </div>
           </div>
         </div>

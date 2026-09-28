@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import * as d3 from 'd3';
-import { TargetNote } from '../../types/piano';
+import { TargetNote, CharacterFriend } from '../../types/piano';
 import { getStaffDiatonicStep } from '../../utils/musicMath';
 
 interface MusicStaffProps {
@@ -13,6 +13,9 @@ interface MusicStaffProps {
   lastHitTimestamp?: number;
   bpm?: number;
   isMetronomeActive?: boolean;
+  mentorId?: CharacterFriend;
+  accuracyRate?: number;
+  comboStreak?: number;
   className?: string;
 }
 
@@ -26,6 +29,9 @@ export const MusicStaff: React.FC<MusicStaffProps> = ({
   lastHitTimestamp = 0,
   bpm = 80,
   isMetronomeActive = false,
+  mentorId = 'eli_lion',
+  accuracyRate = 100,
+  comboStreak = 0,
   className = '',
 }) => {
   // Staff geometry - Enlarged for tablets and children's visual clarity
@@ -35,22 +41,27 @@ export const MusicStaff: React.FC<MusicStaffProps> = ({
   const leftMargin = 120; // Clef + Time signature
   const rightMargin = 40;
 
+  // Accompanying Mentor Theme Configuration
+  const mentorConfigs: Record<
+    CharacterFriend,
+    { emoji: string; name: string; color: string; glowColor: string; strokeColor: string }
+  > = {
+    kai: { emoji: '🧭', name: 'Kai', color: '#F59E0B', glowColor: '#F59E0B', strokeColor: '#B45309' },
+    eli_lion: { emoji: '🦁', name: 'Eli', color: '#F59E0B', glowColor: '#EA580C', strokeColor: '#C2410C' },
+    kabuto_beetle: { emoji: '🪲', name: 'Kabuto', color: '#2563EB', glowColor: '#1D4ED8', strokeColor: '#1E3A8A' },
+    pico_dolphin: { emoji: '🐬', name: 'Pico', color: '#0284C7', glowColor: '#38BDF8', strokeColor: '#0369A1' },
+    rex_dino: { emoji: '🦖', name: 'Rex', color: '#10B981', glowColor: '#059669', strokeColor: '#047857' },
+  };
+
+  const currentMentor = mentorConfigs[mentorId] || mentorConfigs.eli_lion;
+
   // D3 Scales for exact subpixel alignment on iPad Safari & all screen resolutions
-  // 5 lines:
-  // Line 5 (top) = 56px
-  // Line 1 (bottom) = 128px
   const staffLineScale = useMemo(() => {
     return d3.scaleLinear()
       .domain([1, 5])
       .range([staffTopY + 4 * lineSpacing, staffTopY]);
   }, [staffTopY, lineSpacing]);
 
-  // Diatonic pitch step to Y coordinate using D3 continuous scale
-  // C4 (step 0, 1 ledger line below Line 1) -> 146px
-  // E4 (step 2, Line 1) -> 128px
-  // B4 (step 6, Line 3 middle line) -> 92px
-  // F5 (step 10, Line 5 top line) -> 56px
-  // A5 (step 12, 1 ledger line above Line 5) -> 38px
   const diatonicYScale = useMemo(() => {
     return d3.scaleLinear()
       .domain([0, 10])
@@ -64,8 +75,6 @@ export const MusicStaff: React.FC<MusicStaffProps> = ({
 
   // Group notes into measures based on note.measureIndex or calculated beats
   const beatsPerMeasure = timeSignature[0] || 4;
-  let accumulatedBeats = 0;
-  let autoMeasureIndex = 0;
 
   interface EnrichedNoteItem {
     note: TargetNote;
@@ -131,13 +140,11 @@ export const MusicStaff: React.FC<MusicStaffProps> = ({
   // Helper for all ledger lines
   const getLedgerLinesY = (noteY: number): number[] => {
     const lines: number[] = [];
-    // Below Line 1 (Y=128): ledger lines at 146, 164, 182...
     if (noteY >= 142) {
       for (let ly = 146; ly <= noteY + 5; ly += 18) {
         lines.push(ly);
       }
     }
-    // Above Line 5 (Y=56): ledger lines at 38, 20, 2...
     if (noteY <= 42) {
       for (let ly = 38; ly >= noteY - 5; ly -= 18) {
         lines.push(ly);
@@ -162,65 +169,38 @@ export const MusicStaff: React.FC<MusicStaffProps> = ({
   return (
     <div className={`w-full select-none flex flex-col gap-2 ${className}`}>
       {/* Visual Duration & Tablet Window Navigator Header */}
-      <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-2 bg-amber-50/95 border-2 border-amber-300 rounded-2xl text-xs md:text-sm shadow-sm">
-        {/* Note Duration Badges */}
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-amber-950 font-black flex items-center gap-1.5">
-            <span>🎼</span>
-            <span>五線譜節奏符號:</span>
-          </span>
-          <div className="flex flex-wrap items-center gap-1.5 text-xs font-black">
-            <span className="px-2.5 py-1 rounded-xl bg-white border border-amber-300 text-slate-800 flex items-center gap-1.5 shadow-xs">
-              <span className="w-3.5 h-2.5 rounded-full border-2 border-amber-600 bg-white inline-block -rotate-12" />
-              <span>全音符 (4拍)</span>
-            </span>
-            <span className="px-2.5 py-1 rounded-xl bg-white border border-amber-300 text-slate-800 flex items-center gap-1.5 shadow-xs">
-              <span className="flex items-center -rotate-12">
-                <span className="w-3.5 h-2.5 rounded-full border-2 border-amber-600 bg-white inline-block" />
-                <span className="w-0.5 h-3.5 bg-amber-800 inline-block -ml-0.5 -mt-2" />
-              </span>
-              <span>二分音符 (2拍)</span>
-            </span>
-            <span className="px-2.5 py-1 rounded-xl bg-white border border-amber-300 text-slate-800 flex items-center gap-1.5 shadow-xs">
-              <span className="flex items-center -rotate-12">
-                <span className="w-3.5 h-2.5 rounded-full bg-slate-900 inline-block" />
-                <span className="w-0.5 h-3.5 bg-slate-900 inline-block -ml-0.5 -mt-2" />
-              </span>
-              <span>四分音符 (1拍)</span>
-            </span>
-            <span className="px-2.5 py-1 rounded-xl bg-white border border-amber-300 text-slate-800 flex items-center gap-1.5 shadow-xs">
-              <span className="flex items-center -rotate-12">
-                <span className="w-3 h-2 rounded-full bg-slate-900 inline-block" />
-                <span className="w-0.5 h-3 bg-slate-900 inline-block -ml-0.5 -mt-2" />
-                <span className="w-1.5 h-1.5 rounded-tr-full border-t border-r border-slate-900 -ml-0.5 -mt-2" />
-              </span>
-              <span>八分音符 (½拍)</span>
-            </span>
-          </div>
-        </div>
-
-        {/* Dynamic Beat Glow Status Indicator Tag */}
+      <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-1.5 bg-amber-50/95 border-2 border-amber-300 rounded-2xl text-xs md:text-sm shadow-sm">
+        {/* Dynamic Accompanying Mentor Rhythmic Guidance Status */}
         <div className="flex items-center gap-2">
           {targetX !== null && (
-            <div className="flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-blue-600 via-indigo-600 to-amber-500 text-white font-black text-xs rounded-xl shadow-sm animate-pulse">
-              <span>✨</span>
-              <span>節拍發光指標 · D3.js 精準同步</span>
+            <div className="flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-blue-600 via-indigo-600 to-amber-500 text-white font-black text-xs rounded-xl shadow-sm">
+              <span className="text-sm">{currentMentor.emoji}</span>
+              <span>隨行導師 {currentMentor.name} 節拍同步</span>
+              <span className="px-1.5 py-0.2 rounded-full bg-white/20 font-mono text-[10px]">
+                準確度 {accuracyRate}%
+              </span>
             </div>
           )}
 
-          {/* Time Signature Info */}
-          <div className="flex items-center gap-2 text-xs md:text-sm font-black text-amber-950 bg-amber-100 px-3 py-1 rounded-xl border border-amber-300">
-            <span>拍號 {timeSignature[0]}/{timeSignature[1]} 拍</span>
-            {totalNotesCount > MAX_VISIBLE_NOTES && (
-              <span>
-                · 視窗 {windowStart + 1}~{windowEnd} / 共 {totalNotesCount} 音
-              </span>
-            )}
-          </div>
+          {comboStreak > 2 && (
+            <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-rose-500 text-white text-xs font-black shadow-xs animate-bounce">
+              🔥 {comboStreak} 連擊能量
+            </span>
+          )}
+        </div>
+
+        {/* Time Signature Info */}
+        <div className="flex items-center gap-2 text-xs md:text-sm font-black text-amber-950 bg-amber-100 px-3 py-1 rounded-xl border border-amber-300 ml-auto">
+          <span>拍號 {timeSignature[0]}/{timeSignature[1]} 拍</span>
+          {totalNotesCount > MAX_VISIBLE_NOTES && (
+            <span>
+              · {windowStart + 1}~{windowEnd} / 共 {totalNotesCount} 音
+            </span>
+          )}
         </div>
       </div>
 
-      {/* SVG Canvas with D3 Exact Calculation & Subpixel Alignment */}
+      {/* SVG Canvas with D3 Exact Calculation & Accompanying Mentor Glow Indicator */}
       <div className="relative w-full bg-gradient-to-b from-amber-50/90 via-white to-amber-50/90 rounded-3xl shadow-md border-3 border-amber-300 flex items-center justify-center p-1 sm:p-2 overflow-hidden">
         <svg
           viewBox={`0 0 ${svgWidth} 220`}
@@ -239,28 +219,26 @@ export const MusicStaff: React.FC<MusicStaffProps> = ({
             <filter id="targetPillGlow" x="-20%" y="-20%" width="140%" height="140%">
               <feDropShadow dx="0" dy="2" stdDeviation="6" floodColor="#F59E0B" floodOpacity="0.45" />
             </filter>
-            <filter id="beatLaserGlow" x="-50%" y="-20%" width="200%" height="140%">
-              <feDropShadow dx="0" dy="0" stdDeviation="6" floodColor="#3B82F6" floodOpacity="0.8" />
+            <filter id="mentorBeamGlow" x="-50%" y="-20%" width="200%" height="140%">
+              <feDropShadow dx="0" dy="0" stdDeviation="7" floodColor={currentMentor.color} floodOpacity="0.8" />
             </filter>
-            <filter id="midiHitRippleGlow" x="-60%" y="-60%" width="220%" height="220%">
-              <feDropShadow dx="0" dy="0" stdDeviation="12" floodColor="#10B981" floodOpacity="0.9" />
+            <filter id="mentorRippleGlow" x="-60%" y="-60%" width="220%" height="220%">
+              <feDropShadow dx="0" dy="0" stdDeviation="14" floodColor={currentMentor.glowColor} floodOpacity="0.95" />
             </filter>
 
             {/* Linear Gradients for Dynamic Beat Indicator Beam */}
             <linearGradient id="beatBeamGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#3B82F6" stopOpacity="0" />
-              <stop offset="25%" stopColor="#60A5FA" stopOpacity="0.65" />
-              <stop offset="50%" stopColor="#2563EB" stopOpacity="0.9" />
-              <stop offset="75%" stopColor="#F59E0B" stopOpacity="0.85" />
-              <stop offset="100%" stopColor="#F59E0B" stopOpacity="0" />
+              <stop offset="0%" stopColor={currentMentor.color} stopOpacity="0" />
+              <stop offset="25%" stopColor={currentMentor.color} stopOpacity="0.65" />
+              <stop offset="60%" stopColor="#2563EB" stopOpacity="0.85" />
+              <stop offset="100%" stopColor="#F59E0B" stopOpacity="0.95" />
             </linearGradient>
 
             <linearGradient id="beatHitGradient" x1="0%" y1="0%" x2="0%" y2="100%">
               <stop offset="0%" stopColor="#10B981" stopOpacity="0" />
               <stop offset="30%" stopColor="#34D399" stopOpacity="0.8" />
-              <stop offset="50%" stopColor="#059669" stopOpacity="1" />
-              <stop offset="70%" stopColor="#FBBF24" stopOpacity="0.85" />
-              <stop offset="100%" stopColor="#FBBF24" stopOpacity="0" />
+              <stop offset="60%" stopColor="#059669" stopOpacity="1" />
+              <stop offset="100%" stopColor="#FBBF24" stopOpacity="1" />
             </linearGradient>
           </defs>
 
@@ -304,8 +282,7 @@ export const MusicStaff: React.FC<MusicStaffProps> = ({
           </g>
 
           {/* ========================================================================= */}
-          {/* Dynamic Beat Glow Cursor & Laser Indicator (動態節拍發光指標)              */}
-          {/* Real-time synchronization with MIDI recognition and metronome             */}
+          {/* Dynamic Beat Glow Cursor & Mentor Beacon Indicator (隨行導師節拍光柱指標)  */}
           {/* ========================================================================= */}
           {targetX !== null && targetY !== null && (
             <g className="transition-all duration-150 pointer-events-none">
@@ -316,26 +293,39 @@ export const MusicStaff: React.FC<MusicStaffProps> = ({
                 x2={targetX}
                 y2={204}
                 stroke={isNoteCorrect || isMidiMatched ? 'url(#beatHitGradient)' : 'url(#beatBeamGradient)'}
-                strokeWidth={isNoteCorrect || isMidiMatched ? '5' : '3.5'}
-                filter="url(#beatLaserGlow)"
+                strokeWidth={isNoteCorrect || isMidiMatched ? '5.5' : '3.8'}
+                filter="url(#mentorBeamGlow)"
                 strokeLinecap="round"
                 className="animate-pulse"
               />
 
-              {/* 2. Top Beacon Pointer with animated rhythmic bounce */}
-              <g transform={`translate(${targetX}, 14)`}>
+              {/* 2. Top Mentor Beacon Emblem & Animated Pointer */}
+              <g transform={`translate(${targetX}, 13)`}>
+                {/* Pointer Arrow */}
                 <polygon
-                  points="0,10 -10,-2 10,-2"
-                  fill={isNoteCorrect || isMidiMatched ? '#059669' : '#2563EB'}
+                  points="0,11 -9,-1 9,-1"
+                  fill={isNoteCorrect || isMidiMatched ? '#059669' : currentMentor.color}
                   className="animate-bounce"
                 />
+                {/* Mini Mentor Emblem Badge */}
                 <circle
                   cx="0"
-                  cy="-5"
-                  r="4"
-                  fill={isNoteCorrect || isMidiMatched ? '#34D399' : '#60A5FA'}
-                  className="animate-ping"
+                  cy="-7"
+                  r="9"
+                  fill="#FFFFFF"
+                  stroke={currentMentor.color}
+                  strokeWidth="2"
+                  className="shadow-sm"
                 />
+                <text
+                  x="0"
+                  y="-3.5"
+                  fontSize="11"
+                  textAnchor="middle"
+                  className="select-none"
+                >
+                  {currentMentor.emoji}
+                </text>
               </g>
 
               {/* 3. Orbiting Pulsating Beat Halo around active notehead */}
@@ -344,39 +334,51 @@ export const MusicStaff: React.FC<MusicStaffProps> = ({
                 cy={targetY}
                 r="22"
                 fill="none"
-                stroke={isNoteCorrect || isMidiMatched ? '#10B981' : '#3B82F6'}
-                strokeWidth="2.5"
+                stroke={isNoteCorrect || isMidiMatched ? '#10B981' : currentMentor.color}
+                strokeWidth="2.6"
                 strokeDasharray="4 3"
-                opacity={0.8}
+                opacity={0.85}
                 className="animate-spin"
                 style={{ transformOrigin: `${targetX}px ${targetY}px`, animationDuration: '4s' }}
               />
 
-              {/* 4. Instant MIDI Hit Ripple Wave upon sound identification */}
+              {/* 4. Mentor Resonance Ripple Waves upon correct hit */}
               {(isNoteCorrect || isMidiMatched || lastHitTimestamp > 0) && (
-                <circle
-                  cx={targetX}
-                  cy={targetY}
-                  r="30"
-                  fill="none"
-                  stroke={isNoteCorrect || isMidiMatched ? '#10B981' : '#F59E0B'}
-                  strokeWidth="3.2"
-                  opacity={0.9}
-                  filter="url(#midiHitRippleGlow)"
-                  className="animate-ping"
-                  style={{ animationDuration: '0.9s', animationIterationCount: 2 }}
-                />
+                <g>
+                  {/* Outer Ripple */}
+                  <circle
+                    cx={targetX}
+                    cy={targetY}
+                    r="32"
+                    fill="none"
+                    stroke={currentMentor.color}
+                    strokeWidth="3.2"
+                    opacity={0.9}
+                    filter="url(#mentorRippleGlow)"
+                    className="animate-ping"
+                    style={{ animationDuration: '0.8s', animationIterationCount: 2 }}
+                  />
+                  {/* Inner Sparkling Burst */}
+                  <circle
+                    cx={targetX}
+                    cy={targetY}
+                    r="18"
+                    fill={currentMentor.color}
+                    fillOpacity="0.25"
+                    className="animate-pulse"
+                  />
+                </g>
               )}
 
-              {/* 5. Bottom Beat Counter Tag */}
+              {/* 5. Bottom Beat Counter Tag with Mentor Identity */}
               <g transform={`translate(${targetX}, 198)`}>
                 <rect
-                  x="-28"
+                  x="-32"
                   y="-12"
-                  width="56"
+                  width="64"
                   height="18"
                   rx="9"
-                  fill={isNoteCorrect || isMidiMatched ? '#059669' : '#1D4ED8'}
+                  fill={isNoteCorrect || isMidiMatched ? '#059669' : currentMentor.strokeColor}
                   className="shadow-sm"
                 />
                 <text
@@ -455,7 +457,7 @@ export const MusicStaff: React.FC<MusicStaffProps> = ({
                       height={176}
                       rx={22}
                       fill={isNoteCorrect ? '#DCFCE7' : '#EFF6FF'}
-                      stroke={isNoteCorrect ? '#10B981' : '#3B82F6'}
+                      stroke={isNoteCorrect ? '#10B981' : currentMentor.color}
                       strokeWidth="2.5"
                       opacity={0.88}
                       filter="url(#targetPillGlow)"

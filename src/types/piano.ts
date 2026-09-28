@@ -56,13 +56,15 @@ export type DifficultyLevel = 1 | 2 | 3 | 4 | 5;
 
 export type ChallengeType = 'technique' | 'song' | 'performance';
 
+export type CharacterFriend = 'kai' | 'eli_lion' | 'kabuto_beetle' | 'pico_dolphin' | 'rex_dino';
+
 export interface Challenge {
   id: string;
   type: ChallengeType;
   title: string;
   titleEn: string;
   subtitle: string;
-  character: 'kai' | 'eli_lion' | 'kabuto_beetle' | 'pico_dolphin' | 'rex_dino' | 'sanjuro' | 'gaga_duck' | 'guanguan_bunny';
+  character: CharacterFriend | 'sanjuro' | 'gaga_duck' | 'guanguan_bunny';
   characterPrompt: string;
   characterPromptEn: string;
   notes: TargetNote[];
