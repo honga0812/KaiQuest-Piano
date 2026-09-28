@@ -186,6 +186,16 @@ export const Navbar: React.FC<NavbarProps> = ({
             <span className="hidden lg:inline">下載部署包</span>
           </button>
 
+          {/* iPad Safari & Fullscreen Button */}
+          <button
+            onClick={() => setShowIPadModal(true)}
+            className="flex items-center gap-1.5 px-3 py-2.5 rounded-2xl bg-blue-50 hover:bg-blue-100 text-blue-950 text-base font-black border-2 border-blue-300 transition active:scale-95 shadow-sm whitespace-nowrap"
+            title="iPad Safari 全螢幕與免 401 錯誤專用網址"
+          >
+            <span className="text-lg">📲</span>
+            <span className="hidden xl:inline text-xs font-black">iPad 全螢幕</span>
+          </button>
+
           {/* Quick Fullscreen Button */}
           <button
             onClick={toggleFullscreen}

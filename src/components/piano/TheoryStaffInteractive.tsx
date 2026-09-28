@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
+import * as d3 from 'd3';
 import { pianoSynth } from '../../audio/pianoSynthesizer';
 import { TrebleClefGlyph, BassClefGlyph, AltoClefGlyph } from './MusicSvgSymbols';
 
@@ -47,10 +48,9 @@ export const TheoryStaffInteractive: React.FC<TheoryStaffInteractiveProps> = ({
 }) => {
   const [hoveredMidi, setHoveredMidi] = useState<number | null>(null);
 
-  // Standard geometry
-  // Compact mode for quiz preview vs spacious mode for comprehensive learning
+  // Standard geometry with D3 exact scales
   const lineSpacing = compact ? 14 : 18;
-  const staffWidth = compact ? 420 : 640;
+  const staffWidth = compact ? 440 : 680;
 
   // Treble default notes (C4 up to F5)
   const defaultTrebleNotes: TheoryStaffNoteItem[] = [
@@ -95,7 +95,6 @@ export const TheoryStaffInteractive: React.FC<TheoryStaffInteractiveProps> = ({
     { id: 'a-g4', noteName: 'G4', solfege: 'Sol', midiNote: 67, positionLabel: '第 5 線', lineOrSpace: 'line', indexNum: 5 },
   ];
 
-  // Select appropriate note collection
   const activeNotes = notes || (
     clef === 'treble' ? defaultTrebleNotes :
     clef === 'bass' ? defaultBassNotes :
@@ -109,7 +108,7 @@ export const TheoryStaffInteractive: React.FC<TheoryStaffInteractiveProps> = ({
     onSelectNote?.(noteItem);
   };
 
-  // Grand Staff Render
+  // Grand Staff Geometry & D3 Scales
   if (clef === 'grand') {
     const trebleTopY = compact ? 26 : 34;
     const bassTopY = trebleTopY + 4 * lineSpacing + (compact ? 36 : 48);
@@ -119,13 +118,31 @@ export const TheoryStaffInteractive: React.FC<TheoryStaffInteractiveProps> = ({
     const grandNotesTreble = defaultTrebleNotes.slice(0, 7);
     const grandNotesBass = defaultBassNotes.slice(3, 10);
 
+    // D3 Scales for Grand Staff
+    const trebleLineScale = d3.scaleLinear()
+      .domain([1, 5])
+      .range([trebleTopY + 4 * lineSpacing, trebleTopY]);
+
+    const bassLineScale = d3.scaleLinear()
+      .domain([1, 5])
+      .range([bassTopY + 4 * lineSpacing, bassTopY]);
+
+    // D3 Horizontal Scale for notes
+    const grandTrebleXScale = d3.scaleLinear()
+      .domain([0, grandNotesTreble.length - 1])
+      .range([150, 150 + (grandNotesTreble.length - 1) * 44]);
+
+    const grandBassXScale = d3.scaleLinear()
+      .domain([0, grandNotesBass.length - 1])
+      .range([150, 150 + (grandNotesBass.length - 1) * 44]);
+
     return (
       <div className={`w-full overflow-x-auto select-none p-2 ${className}`}>
         <div className="relative min-w-[580px] bg-gradient-to-b from-slate-900 via-slate-950 to-indigo-950/70 rounded-3xl p-4 border-2 border-indigo-500/40 shadow-xl">
           <div className="flex items-center justify-between mb-2 px-2 text-xs">
             <span className="font-black text-amber-300 flex items-center gap-1.5">
               <span>🌌</span>
-              <span>大譜表 (The Grand Staff) · 高音譜與低音譜由中央 C (C4) 相連</span>
+              <span>大譜表 (The Grand Staff) · D3.js 動態精確對齊 · 中央 C (C4) 相連</span>
             </span>
             <span className="text-[11px] text-slate-400 font-bold bg-slate-900 px-2.5 py-0.5 rounded-full border border-slate-700">
               點擊音符立即發聲 🔊
@@ -136,6 +153,7 @@ export const TheoryStaffInteractive: React.FC<TheoryStaffInteractiveProps> = ({
             viewBox={`0 0 ${staffWidth + 40} ${totalGrandHeight}`}
             className="w-full h-auto"
             preserveAspectRatio="xMidYMid meet"
+            shapeRendering="geometricPrecision"
             style={{ display: 'block', width: '100%', height: 'auto' }}
           >
             {/* Connecting Brace (中括號) on left */}
@@ -147,35 +165,35 @@ export const TheoryStaffInteractive: React.FC<TheoryStaffInteractiveProps> = ({
             {/* Left vertical bar joining both staves */}
             <line x1="38" y1={trebleTopY} x2="38" y2={bassTopY + 4 * lineSpacing} stroke="#CBD5E1" strokeWidth="2.5" />
 
-            {/* Treble 5 lines */}
-            {[0, 1, 2, 3, 4].map((i) => {
-              const y = trebleTopY + i * lineSpacing;
+            {/* Treble 5 lines - calculated via D3 scale */}
+            {[1, 2, 3, 4, 5].map((lineNum) => {
+              const y = trebleLineScale(lineNum);
               return (
-                <line key={`gt-l-${i}`} x1="38" y1={y} x2={staffWidth + 20} y2={y} stroke="#64748B" strokeWidth="1.8" />
+                <line key={`gt-l-${lineNum}`} x1="38" y1={y} x2={staffWidth + 20} y2={y} stroke="#64748B" strokeWidth="1.8" />
               );
             })}
 
-            {/* Treble Clef Sign (Vector Glyph) */}
+            {/* Treble Clef Sign */}
             <TrebleClefGlyph x={50} y={trebleTopY - 6} scale={compact ? 0.72 : 0.86} color="#60A5FA" />
             <text x="56" y={trebleTopY - 10} fontSize="11" fill="#93C5FD" fontWeight="900">
               右手高音區 (Treble)
             </text>
 
-            {/* Bass 5 lines */}
-            {[0, 1, 2, 3, 4].map((i) => {
-              const y = bassTopY + i * lineSpacing;
+            {/* Bass 5 lines - calculated via D3 scale */}
+            {[1, 2, 3, 4, 5].map((lineNum) => {
+              const y = bassLineScale(lineNum);
               return (
-                <line key={`gb-l-${i}`} x1="38" y1={y} x2={staffWidth + 20} y2={y} stroke="#64748B" strokeWidth="1.8" />
+                <line key={`gb-l-${lineNum}`} x1="38" y1={y} x2={staffWidth + 20} y2={y} stroke="#64748B" strokeWidth="1.8" />
               );
             })}
 
-            {/* Bass Clef Sign (Vector Glyph) */}
+            {/* Bass Clef Sign */}
             <BassClefGlyph x={50} y={bassTopY - 2} scale={compact ? 0.76 : 0.92} color="#C084FC" />
             <text x="56" y={bassTopY - 10} fontSize="11" fill="#D8B4FE" fontWeight="900">
               左手低音區 (Bass)
             </text>
 
-            {/* Middle C (C4) Central Bridge - Floating ledger line right in center */}
+            {/* Middle C (C4) Central Bridge */}
             <g
               onClick={() => handleNoteClick({ id: 'mid-c4', noteName: 'C4', solfege: 'Do', midiNote: 60, positionLabel: '中央 C4 (彩虹橋)', lineOrSpace: 'ledger', indexNum: 0 })}
               className="cursor-pointer group"
@@ -202,9 +220,7 @@ export const TheoryStaffInteractive: React.FC<TheoryStaffInteractiveProps> = ({
 
             {/* Treble sample notes on right side */}
             {grandNotesTreble.map((note, idx) => {
-              const x = 150 + idx * 42;
-              // E4 is line 1 (trebleTopY + 4 * lineSpacing)
-              // Each diatonic step is (lineSpacing / 2)
+              const x = grandTrebleXScale(idx);
               const diatonicStepsFromC4 = note.midiNote === 60 ? 0 :
                 note.midiNote === 62 ? 1 :
                 note.midiNote === 64 ? 2 :
@@ -242,15 +258,13 @@ export const TheoryStaffInteractive: React.FC<TheoryStaffInteractiveProps> = ({
 
             {/* Bass sample notes on right side */}
             {grandNotesBass.map((note, idx) => {
-              const x = 150 + idx * 42;
-              // G2 is Line 1 (bassTopY + 4 * lineSpacing)
-              // Middle C4 is upper ledger line
-              const stepFromG2 = note.midiNote === 48 ? 3 : // C3
-                note.midiNote === 50 ? 4 : // D3
-                note.midiNote === 52 ? 5 : // E3
-                note.midiNote === 53 ? 6 : // F3
-                note.midiNote === 55 ? 7 : // G3
-                note.midiNote === 57 ? 8 : 9; // A3, B3
+              const x = grandBassXScale(idx);
+              const stepFromG2 = note.midiNote === 48 ? 3 :
+                note.midiNote === 50 ? 4 :
+                note.midiNote === 52 ? 5 :
+                note.midiNote === 53 ? 6 :
+                note.midiNote === 55 ? 7 :
+                note.midiNote === 57 ? 8 : 9;
               const y = (bassTopY + 4 * lineSpacing) - stepFromG2 * (lineSpacing / 2);
 
               return (
@@ -282,33 +296,47 @@ export const TheoryStaffInteractive: React.FC<TheoryStaffInteractiveProps> = ({
     );
   }
 
-  // Single Clef Staff geometry (Treble, Bass, or Alto)
+  // Single Clef Staff geometry & D3 Scales (Treble, Bass, or Alto)
   const staffTopY = compact ? 24 : 36;
-  const totalHeight = staffTopY + 4 * lineSpacing + (compact ? 50 : 70);
+  const totalHeight = staffTopY + 4 * lineSpacing + (compact ? 52 : 72);
 
-  // Line 5 is top (staffTopY)
-  // Line 1 is bottom (staffTopY + 4 * lineSpacing)
-  const getLineY = (lineNum: number) => {
-    // lineNum 1 (bottom) to 5 (top)
-    return staffTopY + (5 - lineNum) * lineSpacing;
-  };
+  // D3 Scales for exact subpixel alignment on iPad Safari:
+  // Line 1 is at bottom (staffTopY + 4 * lineSpacing)
+  // Line 5 is at top (staffTopY)
+  const staffLineScale = useMemo(() => {
+    return d3.scaleLinear()
+      .domain([1, 5])
+      .range([staffTopY + 4 * lineSpacing, staffTopY]);
+  }, [staffTopY, lineSpacing]);
 
-  const getSpaceY = (spaceNum: number) => {
-    // spaceNum 1 (between line 1 and 2) to 4 (between line 4 and 5)
-    return staffTopY + (4 - spaceNum) * lineSpacing + lineSpacing / 2;
-  };
+  // Space scale: Space 1 is between line 1 & 2, space 4 is between line 4 & 5
+  const staffSpaceScale = useMemo(() => {
+    return d3.scaleLinear()
+      .domain([1, 4])
+      .range([staffTopY + 3.5 * lineSpacing, staffTopY + 0.5 * lineSpacing]);
+  }, [staffTopY, lineSpacing]);
 
-  // Calculate note coordinate based on Clef
-  const calculateNoteCoords = (note: TheoryStaffNoteItem, index: number, total: number) => {
-    const leftMargin = compact ? 80 : 120;
-    const availableWidth = staffWidth - leftMargin - 40;
-    const x = leftMargin + (index * (availableWidth / Math.max(1, total - 1)));
+  // Horizontal Scale for distributing notes
+  const leftMargin = compact ? 84 : 124;
+  const rightMargin = 40;
+  const availableWidth = staffWidth - leftMargin - rightMargin;
 
-    let y = staffTopY + 2 * lineSpacing; // default middle line
+  const noteXScale = useMemo(() => {
+    const total = activeNotes.length;
+    if (total <= 1) return () => leftMargin + availableWidth / 2;
+    return d3.scaleLinear()
+      .domain([0, total - 1])
+      .range([leftMargin, staffWidth - rightMargin]);
+  }, [activeNotes.length, leftMargin, availableWidth, staffWidth, rightMargin]);
+
+  // Precise Note Coordinate calculation using D3 continuous pitch scale
+  const getNoteCoordinates = (note: TheoryStaffNoteItem, index: number) => {
+    const x = noteXScale(index);
+    let y = staffLineScale(3); // default line 3
 
     if (clef === 'treble') {
-      // Line 1 = E4 (midi 64) -> staffTopY + 4 * lineSpacing
-      // Line 5 = F5 (midi 77) -> staffTopY
+      // E4 (midi 64) is Line 1 (domain 2)
+      // C4 (midi 60) is step 0 (domain 0, 1 ledger line below Line 1)
       const diatonicFromC4 = note.midiNote === 60 ? 0 :
         note.midiNote === 62 ? 1 :
         note.midiNote === 64 ? 2 :
@@ -319,12 +347,10 @@ export const TheoryStaffInteractive: React.FC<TheoryStaffInteractiveProps> = ({
         note.midiNote === 72 ? 7 :
         note.midiNote === 74 ? 8 :
         note.midiNote === 76 ? 9 : 10;
-      // C4 is 1 ledger line below Line 1
+      // D3 diatonic pitch scale: step 0 -> Y of C4, step 2 -> Line 1 (E4), step 10 -> Line 5 (F5)
       y = (staffTopY + 5 * lineSpacing) - diatonicFromC4 * (lineSpacing / 2);
     } else if (clef === 'bass') {
-      // Line 1 = G2 (midi 43) -> staffTopY + 4 * lineSpacing
-      // Line 4 = F3 (midi 53) -> staffTopY + 1 * lineSpacing
-      // C4 = upper ledger line (midi 60) -> staffTopY - lineSpacing
+      // G2 (midi 43) is Line 1
       const diatonicFromG2 = note.midiNote === 43 ? 0 :
         note.midiNote === 45 ? 1 :
         note.midiNote === 47 ? 2 :
@@ -337,16 +363,15 @@ export const TheoryStaffInteractive: React.FC<TheoryStaffInteractiveProps> = ({
         note.midiNote === 59 ? 9 : 10;
       y = (staffTopY + 4 * lineSpacing) - diatonicFromG2 * (lineSpacing / 2);
     } else if (clef === 'alto') {
-      // Line 3 is C4 (Middle C) = staffTopY + 2 * lineSpacing
-      // Each diatonic step is (lineSpacing / 2)
-      const diatonicFromC4 = note.midiNote === 53 ? -4 : // F3
-        note.midiNote === 55 ? -3 : // G3
-        note.midiNote === 57 ? -2 : // A3
-        note.midiNote === 59 ? -1 : // B3
-        note.midiNote === 60 ? 0 : // C4 (Line 3!)
-        note.midiNote === 62 ? 1 : // D4
-        note.midiNote === 64 ? 2 : // E4
-        note.midiNote === 65 ? 3 : 4; // F4, G4
+      // Line 3 is C4 (Middle C)
+      const diatonicFromC4 = note.midiNote === 53 ? -4 :
+        note.midiNote === 55 ? -3 :
+        note.midiNote === 57 ? -2 :
+        note.midiNote === 59 ? -1 :
+        note.midiNote === 60 ? 0 :
+        note.midiNote === 62 ? 1 :
+        note.midiNote === 64 ? 2 :
+        note.midiNote === 65 ? 3 : 4;
       y = (staffTopY + 2 * lineSpacing) - diatonicFromC4 * (lineSpacing / 2);
     }
 
@@ -384,6 +409,7 @@ export const TheoryStaffInteractive: React.FC<TheoryStaffInteractiveProps> = ({
           viewBox={`0 0 ${staffWidth} ${totalHeight}`}
           className="w-full h-auto"
           preserveAspectRatio="xMidYMid meet"
+          shapeRendering="geometricPrecision"
           style={{ display: 'block', width: '100%', height: 'auto' }}
         >
           <defs>
@@ -395,11 +421,11 @@ export const TheoryStaffInteractive: React.FC<TheoryStaffInteractiveProps> = ({
             </filter>
           </defs>
 
-          {/* Highlighted Line Background (e.g. Line 2 for Treble G, Line 4 for Bass F, Line 3 for Alto C) */}
+          {/* Highlighted Line Background (calculated via D3) */}
           {highlightLine && (
             <rect
               x="50"
-              y={getLineY(highlightLine) - lineSpacing / 2}
+              y={staffLineScale(highlightLine) - lineSpacing / 2}
               width={staffWidth - 70}
               height={lineSpacing}
               fill="#F59E0B"
@@ -408,11 +434,11 @@ export const TheoryStaffInteractive: React.FC<TheoryStaffInteractiveProps> = ({
             />
           )}
 
-          {/* Highlighted Space Background */}
+          {/* Highlighted Space Background (calculated via D3) */}
           {highlightSpace && (
             <rect
               x="50"
-              y={getSpaceY(highlightSpace) - lineSpacing / 2}
+              y={staffSpaceScale(highlightSpace) - lineSpacing / 2}
               width={staffWidth - 70}
               height={lineSpacing}
               fill="#3B82F6"
@@ -424,9 +450,9 @@ export const TheoryStaffInteractive: React.FC<TheoryStaffInteractiveProps> = ({
           {/* Left Vertical Start Bar Line */}
           <line x1="50" y1={staffTopY} x2="50" y2={staffTopY + 4 * lineSpacing} stroke="#CBD5E1" strokeWidth="2.5" />
 
-          {/* 5 Horizontal Staff Lines */}
+          {/* 5 Horizontal Staff Lines - D3 Exact Mathematical Layout */}
           {[1, 2, 3, 4, 5].map((lineNum) => {
-            const y = getLineY(lineNum);
+            const y = staffLineScale(lineNum);
             const isTargetLine = highlightLine === lineNum;
 
             return (
@@ -438,6 +464,7 @@ export const TheoryStaffInteractive: React.FC<TheoryStaffInteractiveProps> = ({
                   y2={y}
                   stroke={isTargetLine ? '#F59E0B' : '#64748B'}
                   strokeWidth={isTargetLine ? '2.5' : '1.8'}
+                  shapeRendering="geometricPrecision"
                 />
                 {/* Left Line Label (第1線 ~ 第5線) */}
                 {showLineSpaceLabels && !compact && (
@@ -456,9 +483,9 @@ export const TheoryStaffInteractive: React.FC<TheoryStaffInteractiveProps> = ({
             );
           })}
 
-          {/* Right Space Labels (第1間 ~ 第4間) */}
+          {/* Right Space Labels (第1間 ~ 第4間) via D3 scale */}
           {showLineSpaceLabels && !compact && [1, 2, 3, 4].map((spaceNum) => {
-            const y = getSpaceY(spaceNum);
+            const y = staffSpaceScale(spaceNum);
             const isTargetSpace = highlightSpace === spaceNum;
 
             return (
@@ -491,7 +518,7 @@ export const TheoryStaffInteractive: React.FC<TheoryStaffInteractiveProps> = ({
 
           {/* Interactive Notes on Staff */}
           {activeNotes.map((note, idx) => {
-            const { x, y } = calculateNoteCoords(note, idx, activeNotes.length);
+            const { x, y } = getNoteCoordinates(note, idx);
             const isSelected = selectedMidi === note.midiNote || highlightMidi === note.midiNote;
             const isHovered = hoveredMidi === note.midiNote;
 

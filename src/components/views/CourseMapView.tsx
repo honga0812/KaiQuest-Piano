@@ -3,6 +3,7 @@ import { Lesson, UserProgress, AgeBand } from '../../types/piano';
 import { LESSONS_DATABASE, DIFFICULTY_LEVEL_INFO } from '../../data/lessons';
 import { AGE_STAGES_INFO } from '../../data/curriculumStages';
 import { KaiCharacter } from '../mascot/KaiCharacter';
+import { KaiAndFriendsEnsemble } from '../mascot/AnimalFriends';
 
 interface CourseMapViewProps {
   progress: UserProgress;
@@ -90,11 +91,12 @@ export const CourseMapView: React.FC<CourseMapViewProps> = ({
           </div>
         </div>
 
-        {/* Mascot */}
+        {/* Mascot with Eli Lion Companion */}
         <div className="z-10 shrink-0">
           <KaiCharacter
             mood="excited"
-            speechText={`歡迎來到 ${currentStageInfo.islandName}！點擊發光的關卡開始冒險吧！`}
+            companion="eli_lion"
+            speechText={`歡迎來到 ${currentStageInfo.islandName}！探險家 Kai 與動物夥伴們已準備好出發！`}
             speechEn="Ready for Adventure!"
             size="lg"
           />
@@ -102,6 +104,27 @@ export const CourseMapView: React.FC<CourseMapViewProps> = ({
 
         {/* Decorative Musical Circles */}
         <div className="absolute -right-10 -bottom-10 w-72 h-72 rounded-full bg-yellow-400/20 blur-3xl pointer-events-none" />
+      </div>
+
+      {/* Storyboard Animal Friends Expedition Showcase */}
+      <div className="bg-gradient-to-r from-amber-50 via-white to-sky-50 border-3 border-amber-300 rounded-3xl p-5 shadow-sm flex flex-col gap-3 text-center">
+        <div className="flex items-center justify-between px-2 flex-wrap gap-2">
+          <div className="flex items-center gap-2 text-left">
+            <span className="text-2xl">🐾</span>
+            <div>
+              <span className="text-sm font-black text-slate-900 block">
+                探險家 Kai 與奇幻動物好友團
+              </span>
+              <span className="text-xs text-slate-600 font-bold block">
+                獅子 Eli、甲蟲 Kabuto、海豚 Pico 與恐龍 Rex 陪你探索鋼琴島！
+              </span>
+            </div>
+          </div>
+          <span className="text-xs font-black text-amber-900 bg-amber-100 px-3 py-1 rounded-full border border-amber-300 shadow-xs">
+            🌟 故事板官方角色大集合
+          </span>
+        </div>
+        <KaiAndFriendsEnsemble />
       </div>
 
       {/* Dedicated Age-Stage Pedagogical Card - Bright & Cheerful */}

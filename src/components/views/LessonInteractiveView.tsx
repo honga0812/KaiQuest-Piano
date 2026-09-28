@@ -540,6 +540,15 @@ export const LessonInteractiveView: React.FC<LessonInteractiveViewProps> = ({
         <div className="flex items-center justify-between gap-3">
           <KaiCharacter
             mood={characterMood}
+            companion={
+              currentChallenge.character === 'eli_lion'
+                ? 'eli_lion'
+                : currentChallenge.character === 'kabuto_beetle' || currentChallenge.character === 'sanjuro'
+                ? 'kabuto_beetle'
+                : currentChallenge.character === 'pico_dolphin' || currentChallenge.character === 'gaga_duck'
+                ? 'pico_dolphin'
+                : 'rex_dino'
+            }
             comboStreak={comboStreak}
             lastHitTimestamp={lastHitTimestamp}
             speechText={mascotText}
@@ -561,7 +570,7 @@ export const LessonInteractiveView: React.FC<LessonInteractiveViewProps> = ({
           )}
         </div>
 
-        {/* 1. 五線譜 (Staff) with accurate note duration and measure concepts */}
+        {/* 1. 五線譜 (Staff) with D3.js and dynamic real-time beat glow indicator */}
         {hints.staff && (
           <MusicStaff
             notes={notes}
@@ -569,6 +578,10 @@ export const LessonInteractiveView: React.FC<LessonInteractiveViewProps> = ({
             isNoteCorrect={isNoteCorrect}
             isNoteWobbly={isNoteWobbly}
             timeSignature={currentChallenge.timeSignature || [4, 4]}
+            activeMidi={liveActiveMidi}
+            lastHitTimestamp={lastHitTimestamp}
+            bpm={bpm}
+            isMetronomeActive={isMetronomeActive}
           />
         )}
 

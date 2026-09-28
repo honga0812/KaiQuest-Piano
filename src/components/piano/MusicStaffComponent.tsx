@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import * as d3 from 'd3';
 import { pianoSynth } from '../../audio/pianoSynthesizer';
 import { TrebleClefGlyph, BassClefGlyph, AltoClefGlyph } from './MusicSvgSymbols';
 
@@ -175,6 +176,7 @@ export const MusicStaffComponent: React.FC<MusicStaffComponentProps> = ({
           viewBox={clef === 'grand' ? `0 0 ${staffWidth} 300` : `0 0 ${staffWidth} 175`}
           className="w-full h-auto min-w-[620px]"
           preserveAspectRatio="xMidYMid meet"
+          shapeRendering="geometricPrecision"
           style={{ display: 'block', width: '100%', height: 'auto' }}
         >
           <defs>

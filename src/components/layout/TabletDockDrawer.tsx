@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { AgeBand, InputMode } from '../../types/piano';
 import { micAdapter } from '../../audio/microphoneAdapter';
+import { getPublicShareUrl } from '../../utils/safariShare';
 
 interface TabletDockDrawerProps {
   currentTab: 'map' | 'lesson' | 'concert' | 'gym' | 'freeplay' | 'badges' | 'theory';
@@ -366,20 +367,35 @@ export const TabletDockDrawer: React.FC<TabletDockDrawerProps> = ({
                 </span>
               </button>
 
-              {/* iPad Safari Guide */}
-              <button
-                onClick={() => {
-                  onToggle();
-                  onOpenIPadModal();
-                }}
-                className="w-full flex items-center justify-between p-3.5 rounded-2xl bg-purple-50 hover:bg-purple-100 text-slate-900 border-2 border-purple-200 font-black transition shadow-sm active:scale-95 text-base"
-              >
-                <div className="flex items-center gap-2.5">
-                  <span className="text-2xl">🍎</span>
-                  <span>iPad Safari 加入主畫面指南</span>
-                </div>
-                <span className="text-sm text-purple-800 font-black">教學 ➔</span>
-              </button>
+              {/* iPad Safari Guide & Direct Launch */}
+              <div className="flex flex-col gap-2">
+                <button
+                  onClick={() => {
+                    onToggle();
+                    onOpenIPadModal();
+                  }}
+                  className="w-full flex items-center justify-between p-3.5 rounded-2xl bg-purple-50 hover:bg-purple-100 text-slate-900 border-2 border-purple-200 font-black transition shadow-sm active:scale-95 text-base"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-2xl">🍎</span>
+                    <div className="flex flex-col text-left">
+                      <span>iPad Safari 全螢幕指南</span>
+                      <span className="text-xs text-purple-700 font-semibold">解決 401 錯誤 · 掃碼開全螢幕</span>
+                    </div>
+                  </div>
+                  <span className="text-sm text-purple-800 font-black">指南 ➔</span>
+                </button>
+
+                <a
+                  href={getPublicShareUrl()}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-black shadow transition active:scale-95"
+                >
+                  <span>📲</span>
+                  <span>在 iPad Safari 開啟 (免 401 錯誤)</span>
+                </a>
+              </div>
 
               {/* Offline Deploy ZIP Modal */}
               <button

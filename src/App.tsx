@@ -20,6 +20,7 @@ import { FirstTimeFlowModal } from './components/modals/FirstTimeFlowModal';
 import { SettingsCalibrateModal } from './components/modals/SettingsCalibrateModal';
 import { ScaleRecognitionModal } from './components/modals/ScaleRecognitionModal';
 import { IPadInstallGuideModal } from './components/modals/IPadInstallGuideModal';
+import { getPublicShareUrl, isDevUrl } from './utils/safariShare';
 
 export default function App() {
   const [progress, setProgress] = useState<UserProgress>(loadUserProgress);
@@ -32,6 +33,10 @@ export default function App() {
   const [showIPadFullscreenTip, setShowIPadFullscreenTip] = useState<boolean>(false);
   const [isImmersiveMode, setIsImmersiveMode] = useState<boolean>(false);
   const [isOnline, setIsOnline] = useState<boolean>(typeof navigator !== 'undefined' ? navigator.onLine : true);
+  const [showDevNotice, setShowDevNotice] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    return isDevUrl() && window.self === window.top;
+  });
 
   // Check if first-time calibration needed
   useEffect(() => {
@@ -174,6 +179,31 @@ export default function App() {
 
   return (
     <div className={`min-h-screen bg-gradient-to-br from-amber-50 via-sky-50 to-indigo-50 text-slate-800 flex flex-col font-sans select-none overflow-x-hidden ${isImmersiveMode ? 'h-screen overflow-hidden' : ''}`}>
+      {/* 401 Notice Banner if standalone on ais-dev */}
+      {showDevNotice && (
+        <div className="bg-gradient-to-r from-blue-700 via-indigo-700 to-purple-700 text-white px-4 py-2.5 text-xs md:text-sm font-bold flex flex-wrap items-center justify-between gap-3 shadow-lg z-50 animate-fade-in">
+          <div className="flex items-center gap-2">
+            <span className="text-base">💡</span>
+            <span>如果在 iPad Safari 遇到「401 發生錯誤的頁面」，請使用免登入的專用共享網址！</span>
+          </div>
+          <div className="flex items-center gap-2 ml-auto">
+            <a
+              href={getPublicShareUrl()}
+              className="px-3 py-1 bg-white text-blue-900 rounded-lg font-black text-xs hover:bg-blue-50 transition shadow-xs whitespace-nowrap"
+            >
+              切換免 401 公開版 ➔
+            </a>
+            <button
+              onClick={() => setShowDevNotice(false)}
+              className="w-6 h-6 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center text-xs font-black transition"
+              title="關閉提示"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Offline Mode Indicator */}
       {!isOnline && (
         <div className="bg-amber-400 text-amber-950 px-4 py-2 text-sm font-black text-center z-50 shadow-sm animate-pulse">

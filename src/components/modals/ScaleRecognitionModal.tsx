@@ -4,6 +4,7 @@ import { pianoSynth } from '../../audio/pianoSynthesizer';
 import { PianoNoteEvent } from '../../types/piano';
 import { KaiCharacter } from '../mascot/KaiCharacter';
 import confetti from 'canvas-confetti';
+import { getPublicShareUrl } from '../../utils/safariShare';
 
 interface ScaleRecognitionModalProps {
   isOpen: boolean;
@@ -233,13 +234,13 @@ export const ScaleRecognitionModal: React.FC<ScaleRecognitionModalProps> = ({
               <span>瀏覽器沒有跳出「允許使用麥克風」的視窗？</span>
             </span>
             <a
-              href={typeof window !== 'undefined' ? window.location.href : '#'}
+              href={getPublicShareUrl()}
               target="_blank"
               rel="noopener noreferrer"
               className="px-2.5 py-1 bg-blue-600/30 hover:bg-blue-600/50 text-blue-300 font-semibold rounded-lg border border-blue-500/40 text-[11px] transition flex items-center gap-1"
             >
               <span>↗</span>
-              <span>在新分頁獨立開啟 (推薦)</span>
+              <span>在新分頁獨立開啟 (免 401 錯誤)</span>
             </a>
           </div>
 

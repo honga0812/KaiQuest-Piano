@@ -62,7 +62,7 @@ export interface Challenge {
   title: string;
   titleEn: string;
   subtitle: string;
-  character: 'kai' | 'eli_lion' | 'sanjuro' | 'gaga_duck' | 'guanguan_bunny';
+  character: 'kai' | 'eli_lion' | 'kabuto_beetle' | 'pico_dolphin' | 'rex_dino' | 'sanjuro' | 'gaga_duck' | 'guanguan_bunny';
   characterPrompt: string;
   characterPromptEn: string;
   notes: TargetNote[];
