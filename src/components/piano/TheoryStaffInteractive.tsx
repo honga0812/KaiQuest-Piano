@@ -57,7 +57,7 @@ export const TheoryStaffInteractive: React.FC<TheoryStaffInteractiveProps> = ({
     { id: 't-c4', noteName: 'C4', solfege: 'Do', midiNote: 60, positionLabel: '下加 1 線', lineOrSpace: 'ledger', indexNum: 0 },
     { id: 't-d4', noteName: 'D4', solfege: 'Re', midiNote: 62, positionLabel: '下加 1 間', lineOrSpace: 'space', indexNum: 0 },
     { id: 't-e4', noteName: 'E4', solfege: 'Mi', midiNote: 64, positionLabel: '第 1 線', lineOrSpace: 'line', indexNum: 1 },
-    { id: 't-f4', noteName: 'Fa', solfege: 'Fa', midiNote: 65, positionLabel: '第 1 間', lineOrSpace: 'space', indexNum: 1 },
+    { id: 't-f4', noteName: 'F4', solfege: 'Fa', midiNote: 65, positionLabel: '第 1 間', lineOrSpace: 'space', indexNum: 1 },
     { id: 't-g4', noteName: 'G4', solfege: 'Sol', midiNote: 67, positionLabel: '第 2 線 (G譜號中心)', lineOrSpace: 'line', indexNum: 2 },
     { id: 't-a4', noteName: 'A4', solfege: 'La', midiNote: 69, positionLabel: '第 2 間', lineOrSpace: 'space', indexNum: 2 },
     { id: 't-b4', noteName: 'B4', solfege: 'Ti', midiNote: 71, positionLabel: '第 3 線 (中線)', lineOrSpace: 'line', indexNum: 3 },
@@ -174,7 +174,7 @@ export const TheoryStaffInteractive: React.FC<TheoryStaffInteractiveProps> = ({
             })}
 
             {/* Treble Clef Sign */}
-            <TrebleClefGlyph x={50} y={trebleTopY - 6} scale={compact ? 0.72 : 0.86} color="#60A5FA" />
+            <TrebleClefGlyph x={50} y={trebleTopY} lineSpacing={lineSpacing} scale={compact ? 0.8 : 1} color="#60A5FA" />
             <text x="56" y={trebleTopY - 10} fontSize="11" fill="#93C5FD" fontWeight="900">
               右手高音區 (Treble)
             </text>
@@ -188,7 +188,7 @@ export const TheoryStaffInteractive: React.FC<TheoryStaffInteractiveProps> = ({
             })}
 
             {/* Bass Clef Sign */}
-            <BassClefGlyph x={50} y={bassTopY - 2} scale={compact ? 0.76 : 0.92} color="#C084FC" />
+            <BassClefGlyph x={50} y={bassTopY} lineSpacing={lineSpacing} scale={compact ? 0.85 : 1} color="#C084FC" />
             <text x="56" y={bassTopY - 10} fontSize="11" fill="#D8B4FE" fontWeight="900">
               左手低音區 (Bass)
             </text>
@@ -329,50 +329,31 @@ export const TheoryStaffInteractive: React.FC<TheoryStaffInteractiveProps> = ({
       .range([leftMargin, staffWidth - rightMargin]);
   }, [activeNotes.length, leftMargin, availableWidth, staffWidth, rightMargin]);
 
-  // Precise Note Coordinate calculation using D3 continuous pitch scale
+  // Precise Note Coordinate calculation using continuous pitch scale
   const getNoteCoordinates = (note: TheoryStaffNoteItem, index: number) => {
     const x = noteXScale(index);
     let y = staffLineScale(3); // default line 3
 
+    // Universal diatonic step from C4 (0 = C4, 1 = D4, 2 = E4, -1 = B3, -4 = F3, -10 = G2, etc.)
+    const semitonesFromC = ((note.midiNote % 12) + 12) % 12;
+    const octave = Math.floor(note.midiNote / 12) - 1;
+    const diatonicInOctave = [0, 0, 1, 1, 2, 3, 3, 4, 4, 5, 5, 6][semitonesFromC];
+    const diatonicStepFromC4 = (octave - 4) * 7 + diatonicInOctave;
+
     if (clef === 'treble') {
-      // E4 (midi 64) is Line 1 (domain 2)
-      // C4 (midi 60) is step 0 (domain 0, 1 ledger line below Line 1)
-      const diatonicFromC4 = note.midiNote === 60 ? 0 :
-        note.midiNote === 62 ? 1 :
-        note.midiNote === 64 ? 2 :
-        note.midiNote === 65 ? 3 :
-        note.midiNote === 67 ? 4 :
-        note.midiNote === 69 ? 5 :
-        note.midiNote === 71 ? 6 :
-        note.midiNote === 72 ? 7 :
-        note.midiNote === 74 ? 8 :
-        note.midiNote === 76 ? 9 : 10;
-      // D3 diatonic pitch scale: step 0 -> Y of C4, step 2 -> Line 1 (E4), step 10 -> Line 5 (F5)
-      y = (staffTopY + 5 * lineSpacing) - diatonicFromC4 * (lineSpacing / 2);
+      // Line 5 (F5, step 10) = staffTopY
+      // Line 1 (E4, step 2) = staffTopY + 4 * lineSpacing
+      // C4 (step 0) = staffTopY + 5 * lineSpacing
+      y = (staffTopY + 5 * lineSpacing) - diatonicStepFromC4 * (lineSpacing / 2);
     } else if (clef === 'bass') {
-      // G2 (midi 43) is Line 1
-      const diatonicFromG2 = note.midiNote === 43 ? 0 :
-        note.midiNote === 45 ? 1 :
-        note.midiNote === 47 ? 2 :
-        note.midiNote === 48 ? 3 :
-        note.midiNote === 50 ? 4 :
-        note.midiNote === 52 ? 5 :
-        note.midiNote === 53 ? 6 :
-        note.midiNote === 55 ? 7 :
-        note.midiNote === 57 ? 8 :
-        note.midiNote === 59 ? 9 : 10;
-      y = (staffTopY + 4 * lineSpacing) - diatonicFromG2 * (lineSpacing / 2);
+      // Line 1 is G2 (step -10 from C4) = staffTopY + 4 * lineSpacing
+      // Line 4 is F3 (step -4 from C4) = staffTopY + lineSpacing
+      // Line 5 is A3 (step -2 from C4) = staffTopY
+      // C4 (step 0 from C4) = staffTopY - lineSpacing
+      y = staffTopY - (diatonicStepFromC4 + 2) * (lineSpacing / 2);
     } else if (clef === 'alto') {
-      // Line 3 is C4 (Middle C)
-      const diatonicFromC4 = note.midiNote === 53 ? -4 :
-        note.midiNote === 55 ? -3 :
-        note.midiNote === 57 ? -2 :
-        note.midiNote === 59 ? -1 :
-        note.midiNote === 60 ? 0 :
-        note.midiNote === 62 ? 1 :
-        note.midiNote === 64 ? 2 :
-        note.midiNote === 65 ? 3 : 4;
-      y = (staffTopY + 2 * lineSpacing) - diatonicFromC4 * (lineSpacing / 2);
+      // Line 3 is C4 (step 0) = staffTopY + 2 * lineSpacing
+      y = (staffTopY + 2 * lineSpacing) - diatonicStepFromC4 * (lineSpacing / 2);
     }
 
     return { x, y };
@@ -505,15 +486,15 @@ export const TheoryStaffInteractive: React.FC<TheoryStaffInteractiveProps> = ({
 
           {/* Vector Clef Signs */}
           {clef === 'treble' && (
-            <TrebleClefGlyph x={58} y={staffTopY - 6} scale={compact ? 0.75 : 0.92} color="#38BDF8" />
+            <TrebleClefGlyph x={58} y={staffTopY} lineSpacing={lineSpacing} scale={compact ? 0.8 : 1} color="#38BDF8" />
           )}
 
           {clef === 'bass' && (
-            <BassClefGlyph x={58} y={staffTopY - 2} scale={compact ? 0.8 : 0.96} color="#A855F7" />
+            <BassClefGlyph x={58} y={staffTopY} lineSpacing={lineSpacing} scale={compact ? 0.85 : 1} color="#A855F7" />
           )}
 
           {clef === 'alto' && (
-            <AltoClefGlyph x={58} y={staffTopY} scale={compact ? 0.8 : 0.95} color="#F59E0B" />
+            <AltoClefGlyph x={58} y={staffTopY} lineSpacing={lineSpacing} scale={compact ? 0.85 : 1} color="#F59E0B" />
           )}
 
           {/* Interactive Notes on Staff */}

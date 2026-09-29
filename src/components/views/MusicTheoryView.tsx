@@ -15,6 +15,13 @@ import {
   TrebleClefSvg,
   BassClefSvg,
   AltoClefSvg,
+  WholeRestSvg,
+  HalfRestSvg,
+  QuarterRestSvg,
+  EighthRestSvg,
+  SharpSvg,
+  FlatSvg,
+  NaturalSvg,
   BeatDurationBar,
 } from '../piano/MusicSvgSymbols';
 
@@ -509,6 +516,185 @@ export const MusicTheoryView: React.FC = () => {
                   className="mt-3 w-full py-1.5 bg-slate-900 hover:bg-slate-800 text-xs font-bold text-purple-300 rounded-xl border border-slate-700 transition"
                 >
                   聽附點二分音符 (3 拍) 🔊
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Rest Symbols Family Card (休止符家族：靜音也是音樂的一種魔法) */}
+          <div className="bg-white border-3 border-amber-300 rounded-3xl p-6 md:p-8 shadow-md flex flex-col gap-6 text-slate-900">
+            <div className="flex items-center justify-between flex-wrap gap-3 border-b-2 border-amber-200 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-indigo-100 rounded-2xl border border-indigo-300 shadow-xs flex items-center justify-center">
+                  <QuarterRestSvg size={36} color="#4338CA" />
+                </div>
+                <div>
+                  <h2 className="text-xl md:text-2xl font-black text-amber-950">
+                    休止符家族 (Musical Rest Symbols)
+                  </h2>
+                  <p className="text-base text-slate-700 font-bold mt-1">
+                    音樂裡的「安靜休息」！休止符代表該拍子內完全保持安靜、不彈奏任何聲音。
+                  </p>
+                </div>
+              </div>
+              <div className="text-sm bg-indigo-100 border-2 border-indigo-300 text-indigo-950 font-black px-4 py-1.5 rounded-full shadow-sm">
+                安靜魔法 🤫
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Whole Rest */}
+              <div className="bg-amber-50/80 border-2 border-amber-300 rounded-2xl p-4 flex flex-col items-center text-center shadow-xs">
+                <div className="w-20 h-14 bg-white rounded-xl border border-amber-300 flex items-center justify-center mb-2 shadow-xs">
+                  <WholeRestSvg size={44} color="#D97706" />
+                </div>
+                <h4 className="text-base font-black text-amber-950">全休止符</h4>
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-amber-200 text-amber-950 mt-1">
+                  休息 4 拍
+                </span>
+                <p className="text-xs text-slate-600 mt-2 font-bold leading-relaxed">
+                  像帽子倒掛在第 4 線下方！代表整個小節都完全保持安靜。
+                </p>
+              </div>
+
+              {/* Half Rest */}
+              <div className="bg-sky-50/80 border-2 border-sky-300 rounded-2xl p-4 flex flex-col items-center text-center shadow-xs">
+                <div className="w-20 h-14 bg-white rounded-xl border border-sky-300 flex items-center justify-center mb-2 shadow-xs">
+                  <HalfRestSvg size={44} color="#0284C7" />
+                </div>
+                <h4 className="text-base font-black text-sky-950">二分休止符</h4>
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-sky-200 text-sky-950 mt-1">
+                  休息 2 拍
+                </span>
+                <p className="text-xs text-slate-600 mt-2 font-bold leading-relaxed">
+                  像一頂禮帽端坐在第 3 線上方！代表安靜休息 2 拍。
+                </p>
+              </div>
+
+              {/* Quarter Rest */}
+              <div className="bg-emerald-50/80 border-2 border-emerald-300 rounded-2xl p-4 flex flex-col items-center text-center shadow-xs">
+                <div className="w-20 h-16 bg-white rounded-xl border border-emerald-300 flex items-center justify-center mb-2 shadow-xs">
+                  <QuarterRestSvg size={40} color="#059669" />
+                </div>
+                <h4 className="text-base font-black text-emerald-950">四分休止符</h4>
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-emerald-200 text-emerald-950 mt-1">
+                  休息 1 拍
+                </span>
+                <p className="text-xs text-slate-600 mt-2 font-bold leading-relaxed">
+                  帥氣的閃電形符號！是最常見的 1 拍休息標記。
+                </p>
+              </div>
+
+              {/* Eighth Rest */}
+              <div className="bg-pink-50/80 border-2 border-pink-300 rounded-2xl p-4 flex flex-col items-center text-center shadow-xs">
+                <div className="w-20 h-16 bg-white rounded-xl border border-pink-300 flex items-center justify-center mb-2 shadow-xs">
+                  <EighthRestSvg size={38} color="#DB2777" />
+                </div>
+                <h4 className="text-base font-black text-pink-950">八分休止符</h4>
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-pink-200 text-pink-950 mt-1">
+                  休息 ½ 拍
+                </span>
+                <p className="text-xs text-slate-600 mt-2 font-bold leading-relaxed">
+                  像數字「7」頂端帶小圓點！代表短暫安靜半拍。
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Accidentals Family Card (變音記號家族：升、降、本位記號) */}
+          <div className="bg-white border-3 border-amber-300 rounded-3xl p-6 md:p-8 shadow-md flex flex-col gap-6 text-slate-900">
+            <div className="flex items-center justify-between flex-wrap gap-3 border-b-2 border-amber-200 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-purple-100 rounded-2xl border border-purple-300 shadow-xs flex items-center justify-center">
+                  <SharpSvg size={32} color="#7C3AED" />
+                </div>
+                <div>
+                  <h2 className="text-xl md:text-2xl font-black text-amber-950">
+                    變音記號家族 (Accidentals: ♯ ♭ ♮)
+                  </h2>
+                  <p className="text-base text-slate-700 font-bold mt-1">
+                    改變鋼琴琴鍵音高半音的魔法符號！讓音樂色彩更加豐富生動。
+                  </p>
+                </div>
+              </div>
+              <div className="text-sm bg-purple-100 border-2 border-purple-300 text-purple-950 font-black px-4 py-1.5 rounded-full shadow-sm">
+                半音變奏 🎹
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+              {/* Sharp */}
+              <div className="bg-purple-50/80 border-2 border-purple-300 rounded-2xl p-5 flex flex-col justify-between shadow-xs">
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="w-16 h-14 bg-white rounded-xl border border-purple-300 flex items-center justify-center shadow-xs">
+                      <SharpSvg size={36} color="#7C3AED" />
+                    </div>
+                    <span className="px-3 py-1 rounded-full text-xs font-black bg-purple-200 text-purple-950">
+                      + 半音 (升高)
+                    </span>
+                  </div>
+                  <h3 className="text-lg font-black text-purple-950">升記號 (Sharp ♯)</h3>
+                  <p className="text-sm text-slate-700 mt-1.5 leading-relaxed font-bold">
+                    長相特徵：像井字號，橫線微微往右上傾斜。<br />
+                    作用：將原本的音符<strong>往右移一格半音</strong>（通常彈奏右上方黑鍵）！
+                  </p>
+                </div>
+                <button
+                  onClick={() => pianoSynth.playPianoNote(61, 0.9, 1.2)}
+                  className="mt-4 w-full py-2 bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-xs font-black text-white rounded-xl shadow-xs transition active:scale-95"
+                >
+                  聽 C# (升 Do) 🔊
+                </button>
+              </div>
+
+              {/* Flat */}
+              <div className="bg-rose-50/80 border-2 border-rose-300 rounded-2xl p-5 flex flex-col justify-between shadow-xs">
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="w-16 h-14 bg-white rounded-xl border border-rose-300 flex items-center justify-center shadow-xs">
+                      <FlatSvg size={36} color="#E11D48" />
+                    </div>
+                    <span className="px-3 py-1 rounded-full text-xs font-black bg-rose-200 text-rose-950">
+                      - 半音 (降低)
+                    </span>
+                  </div>
+                  <h3 className="text-lg font-black text-rose-950">降記號 (Flat ♭)</h3>
+                  <p className="text-sm text-slate-700 mt-1.5 leading-relaxed font-bold">
+                    長相特徵：像小寫字母 b，右下肚子圓鼓鼓。<br />
+                    作用：將原本的音符<strong>往左移一格半音</strong>（通常彈奏左上方黑鍵）！
+                  </p>
+                </div>
+                <button
+                  onClick={() => pianoSynth.playPianoNote(63, 0.9, 1.2)}
+                  className="mt-4 w-full py-2 bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-xs font-black text-white rounded-xl shadow-xs transition active:scale-95"
+                >
+                  聽 Eb (降 Mi) 🔊
+                </button>
+              </div>
+
+              {/* Natural */}
+              <div className="bg-amber-50/80 border-2 border-amber-300 rounded-2xl p-5 flex flex-col justify-between shadow-xs">
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="w-16 h-14 bg-white rounded-xl border border-amber-300 flex items-center justify-center shadow-xs">
+                      <NaturalSvg size={36} color="#D97706" />
+                    </div>
+                    <span className="px-3 py-1 rounded-full text-xs font-black bg-amber-200 text-amber-950">
+                      還原原音
+                    </span>
+                  </div>
+                  <h3 className="text-lg font-black text-amber-950">本位記號 (Natural ♮)</h3>
+                  <p className="text-sm text-slate-700 mt-1.5 leading-relaxed font-bold">
+                    長相特徵：雙邊折線方框結構。<br />
+                    作用：<strong>取消升記號或降記號的魔法</strong>，立即還原彈奏原本的白鍵！
+                  </p>
+                </div>
+                <button
+                  onClick={() => pianoSynth.playPianoNote(64, 0.9, 1.2)}
+                  className="mt-4 w-full py-2 bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-xs font-black text-slate-950 rounded-xl shadow-xs transition active:scale-95"
+                >
+                  聽 E (本位 Mi) 🔊
                 </button>
               </div>
             </div>

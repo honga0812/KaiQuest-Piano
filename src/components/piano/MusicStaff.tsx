@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import * as d3 from 'd3';
 import { TargetNote, CharacterFriend } from '../../types/piano';
 import { getStaffDiatonicStep } from '../../utils/musicMath';
+import { TrebleClefGlyph, BassClefGlyph } from './MusicSvgSymbols';
 
 interface MusicStaffProps {
   notes: TargetNote[];
@@ -16,6 +17,7 @@ interface MusicStaffProps {
   mentorId?: CharacterFriend;
   accuracyRate?: number;
   comboStreak?: number;
+  clef?: 'treble' | 'bass';
   className?: string;
 }
 
@@ -32,6 +34,7 @@ export const MusicStaff: React.FC<MusicStaffProps> = ({
   mentorId = 'eli_lion',
   accuracyRate = 100,
   comboStreak = 0,
+  clef,
   className = '',
 }) => {
   // Staff geometry - Enlarged for tablets and children's visual clarity
@@ -55,6 +58,16 @@ export const MusicStaff: React.FC<MusicStaffProps> = ({
 
   const currentMentor = mentorConfigs[mentorId] || mentorConfigs.eli_lion;
 
+  // Effective Clef: auto-detect from notes if not explicitly passed
+  const effectiveClef: 'treble' | 'bass' = useMemo(() => {
+    if (clef) return clef;
+    if (notes && notes.length > 0) {
+      const leftOrBassCount = notes.filter((n) => n.hand === 'left' || n.midiNote < 60).length;
+      if (leftOrBassCount > notes.length / 2) return 'bass';
+    }
+    return 'treble';
+  }, [clef, notes]);
+
   // D3 Scales for exact subpixel alignment on iPad Safari & all screen resolutions
   const staffLineScale = useMemo(() => {
     return d3.scaleLinear()
@@ -62,15 +75,15 @@ export const MusicStaff: React.FC<MusicStaffProps> = ({
       .range([staffTopY + 4 * lineSpacing, staffTopY]);
   }, [staffTopY, lineSpacing]);
 
-  const diatonicYScale = useMemo(() => {
-    return d3.scaleLinear()
-      .domain([0, 10])
-      .range([146, 56]);
-  }, []);
-
+  // Exact note Y calculation for Treble or Bass clef
   const calculateNoteY = (midiNote: number): number => {
     const diatonicStep = getStaffDiatonicStep(midiNote);
-    return diatonicYScale(diatonicStep);
+    if (effectiveClef === 'bass') {
+      // Bass clef: Line 5 (A3, step -2) = 56, Line 4 (F3, step -4) = 74, Line 1 (G2, step -10) = 128, C4 (step 0) = 38
+      return staffTopY - (diatonicStep + 2) * 9;
+    }
+    // Treble clef: Line 5 (F5, step 10) = 56, Line 1 (E4, step 2) = 128, C4 (step 0) = 146
+    return staffTopY + 90 - diatonicStep * 9;
   };
 
   // Group notes into measures based on note.measureIndex or calculated beats
@@ -259,17 +272,12 @@ export const MusicStaff: React.FC<MusicStaffProps> = ({
             );
           })}
 
-          {/* Treble Clef Graphic (High resolution G Clef SVG) */}
-          <g transform="translate(32, 28) scale(1.05)">
-            <path
-              d="M 28 82 C 28 92, 18 100, 8 100 C -2 100, -8 92, -8 82 C -8 72, 4 64, 18 64 C 36 64, 46 78, 46 95 C 46 116, 26 135, -2 135 C -28 135, -44 114, -44 85 C -44 50, -18 20, 12 -15 L 12 -45 C 12 -58, 2 -68, -8 -68 C -18 -68, -24 -60, -22 -50 L -22 -30"
-              fill="none"
-              stroke="#0F172A"
-              strokeWidth="5"
-              strokeLinecap="round"
-            />
-            <circle cx="8" cy="82" r="6.5" fill="#0F172A" />
-          </g>
+          {/* Standard Vector Clef Glyphs (Treble G-Clef or Bass F-Clef) */}
+          {effectiveClef === 'bass' ? (
+            <BassClefGlyph x={32} y={staffTopY} lineSpacing={lineSpacing} color="#0F172A" />
+          ) : (
+            <TrebleClefGlyph x={32} y={staffTopY} lineSpacing={lineSpacing} color="#0F172A" />
+          )}
 
           {/* Time Signature (拍號 4/4 or 3/4) */}
           <g transform="translate(90, 8)">

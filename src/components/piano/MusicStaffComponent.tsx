@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import * as d3 from 'd3';
 import { pianoSynth } from '../../audio/pianoSynthesizer';
 import { TrebleClefGlyph, BassClefGlyph, AltoClefGlyph } from './MusicSvgSymbols';
 
@@ -57,7 +56,7 @@ export const MusicStaffComponent: React.FC<MusicStaffComponentProps> = ({
 
   // Geometry configuration
   const lineSpacing = 18; // 18px between staff lines
-  const staffWidth = 720;
+  const staffWidth = 760;
 
   // Built-in educational note collections
   const defaultTrebleNotes: MusicStaffItem[] = [
@@ -65,7 +64,7 @@ export const MusicStaffComponent: React.FC<MusicStaffComponentProps> = ({
     { id: 't-d4', noteName: 'D4', solfege: 'Re', midiNote: 62, positionLabel: '下加 1 間', lineOrSpace: 'space', indexNum: 0, clef: 'treble', hand: 'right' },
     { id: 't-e4', noteName: 'E4', solfege: 'Mi', midiNote: 64, positionLabel: '第 1 線', lineOrSpace: 'line', indexNum: 1, clef: 'treble', hand: 'right' },
     { id: 't-f4', noteName: 'F4', solfege: 'Fa', midiNote: 65, positionLabel: '第 1 間', lineOrSpace: 'space', indexNum: 1, clef: 'treble', hand: 'right' },
-    { id: 't-g4', noteName: 'G4', solfege: 'Sol', midiNote: 67, positionLabel: '第 2 線 (G譜號旋轉中心)', lineOrSpace: 'line', indexNum: 2, clef: 'treble', hand: 'right' },
+    { id: 't-g4', noteName: 'G4', solfege: 'Sol', midiNote: 67, positionLabel: '第 2 線 (G譜號中心)', lineOrSpace: 'line', indexNum: 2, clef: 'treble', hand: 'right' },
     { id: 't-a4', noteName: 'A4', solfege: 'La', midiNote: 69, positionLabel: '第 2 間', lineOrSpace: 'space', indexNum: 2, clef: 'treble', hand: 'right' },
     { id: 't-b4', noteName: 'B4', solfege: 'Ti', midiNote: 71, positionLabel: '第 3 線 (中線)', lineOrSpace: 'line', indexNum: 3, clef: 'treble', hand: 'right' },
     { id: 't-c5', noteName: 'C5', solfege: 'Do', midiNote: 72, positionLabel: '第 3 間', lineOrSpace: 'space', indexNum: 3, clef: 'treble', hand: 'right' },
@@ -81,7 +80,7 @@ export const MusicStaffComponent: React.FC<MusicStaffComponentProps> = ({
     { id: 'b-c3', noteName: 'C3', solfege: 'Do', midiNote: 48, positionLabel: '第 2 間', lineOrSpace: 'space', indexNum: 2, clef: 'bass', hand: 'left' },
     { id: 'b-d3', noteName: 'D3', solfege: 'Re', midiNote: 50, positionLabel: '第 3 線 (中線)', lineOrSpace: 'line', indexNum: 3, clef: 'bass', hand: 'left' },
     { id: 'b-e3', noteName: 'E3', solfege: 'Mi', midiNote: 52, positionLabel: '第 3 間', lineOrSpace: 'space', indexNum: 3, clef: 'bass', hand: 'left' },
-    { id: 'b-f3', noteName: 'F3', solfege: 'Fa', midiNote: 53, positionLabel: '第 4 線 (F譜號雙點中心)', lineOrSpace: 'line', indexNum: 4, clef: 'bass', hand: 'left' },
+    { id: 'b-f3', noteName: 'F3', solfege: 'Fa', midiNote: 53, positionLabel: '第 4 線 (F譜號中心)', lineOrSpace: 'line', indexNum: 4, clef: 'bass', hand: 'left' },
     { id: 'b-g3', noteName: 'G3', solfege: 'Sol', midiNote: 55, positionLabel: '第 4 間', lineOrSpace: 'space', indexNum: 4, clef: 'bass', hand: 'left' },
     { id: 'b-a3', noteName: 'A3', solfege: 'La', midiNote: 57, positionLabel: '第 5 線', lineOrSpace: 'line', indexNum: 5, clef: 'bass', hand: 'left' },
     { id: 'b-b3', noteName: 'B3', solfege: 'Ti', midiNote: 59, positionLabel: '上加 1 間', lineOrSpace: 'space', indexNum: 5, clef: 'bass', hand: 'left' },
@@ -93,7 +92,7 @@ export const MusicStaffComponent: React.FC<MusicStaffComponentProps> = ({
     { id: 'a-g3', noteName: 'G3', solfege: 'Sol', midiNote: 55, positionLabel: '第 1 間', lineOrSpace: 'space', indexNum: 1, clef: 'alto', instrument: '中提琴 Viola' },
     { id: 'a-a3', noteName: 'A3', solfege: 'La', midiNote: 57, positionLabel: '第 2 線', lineOrSpace: 'line', indexNum: 2, clef: 'alto', instrument: '中提琴 Viola' },
     { id: 'a-b3', noteName: 'B3', solfege: 'Ti', midiNote: 59, positionLabel: '第 2 間', lineOrSpace: 'space', indexNum: 2, clef: 'alto', instrument: '中提琴 Viola' },
-    { id: 'a-c4', noteName: 'C4', solfege: 'Do', midiNote: 60, positionLabel: '第 3 線 (🌟C譜號凹口指引：中央C！)', lineOrSpace: 'line', indexNum: 3, clef: 'alto', instrument: '中提琴 Viola' },
+    { id: 'a-c4', noteName: 'C4', solfege: 'Do', midiNote: 60, positionLabel: '第 3 線 (🌟中央C指引)', lineOrSpace: 'line', indexNum: 3, clef: 'alto', instrument: '中提琴 Viola' },
     { id: 'a-d4', noteName: 'D4', solfege: 'Re', midiNote: 62, positionLabel: '第 3 間', lineOrSpace: 'space', indexNum: 3, clef: 'alto', instrument: '中提琴 Viola' },
     { id: 'a-e4', noteName: 'E4', solfege: 'Mi', midiNote: 64, positionLabel: '第 4 線', lineOrSpace: 'line', indexNum: 4, clef: 'alto', instrument: '中提琴 Viola' },
     { id: 'a-f4', noteName: 'F4', solfege: 'Fa', midiNote: 65, positionLabel: '第 4 間', lineOrSpace: 'space', indexNum: 4, clef: 'alto', instrument: '中提琴 Viola' },
@@ -107,7 +106,7 @@ export const MusicStaffComponent: React.FC<MusicStaffComponentProps> = ({
     { id: 'tn-g3', noteName: 'G3', solfege: 'Sol', midiNote: 55, positionLabel: '第 2 間', lineOrSpace: 'space', indexNum: 2, clef: 'tenor', instrument: '大提琴/長號' },
     { id: 'tn-a3', noteName: 'A3', solfege: 'La', midiNote: 57, positionLabel: '第 3 線', lineOrSpace: 'line', indexNum: 3, clef: 'tenor', instrument: '大提琴/長號' },
     { id: 'tn-b3', noteName: 'B3', solfege: 'Ti', midiNote: 59, positionLabel: '第 3 間', lineOrSpace: 'space', indexNum: 3, clef: 'tenor', instrument: '大提琴/長號' },
-    { id: 'tn-c4', noteName: 'C4', solfege: 'Do', midiNote: 60, positionLabel: '第 4 線 (🌟C譜號凹口指引：中央C！)', lineOrSpace: 'line', indexNum: 4, clef: 'tenor', instrument: '大提琴/長號' },
+    { id: 'tn-c4', noteName: 'C4', solfege: 'Do', midiNote: 60, positionLabel: '第 4 線 (🌟中央C指引)', lineOrSpace: 'line', indexNum: 4, clef: 'tenor', instrument: '大提琴/長號' },
     { id: 'tn-d4', noteName: 'D4', solfege: 'Re', midiNote: 62, positionLabel: '第 4 間', lineOrSpace: 'space', indexNum: 4, clef: 'tenor', instrument: '大提琴/長號' },
     { id: 'tn-e4', noteName: 'E4', solfege: 'Mi', midiNote: 64, positionLabel: '第 5 線', lineOrSpace: 'line', indexNum: 5, clef: 'tenor', instrument: '大提琴/長號' },
   ];
@@ -128,31 +127,90 @@ export const MusicStaffComponent: React.FC<MusicStaffComponentProps> = ({
     onNoteClick?.(note);
   };
 
-  // Coordinates helper for Treble staff (Line 5=top, Line 1=bottom)
-  const getTrebleY = (diatonicStepFromC4: number, topY = 40): number => {
-    // C4 (step 0) -> Line 1 (E4, step 2) is at topY + 4 * 18 = topY + 72
-    // C4 is 2 steps below E4 -> topY + 72 + 2 * 9 = topY + 90
+  // Convert MIDI note to diatonic step from C4 (0 = C4, 1 = D4, 2 = E4, -1 = B3, etc.)
+  const getDiatonicStep = (midi: number): number => {
+    const semitonesFromC = ((midi % 12) + 12) % 12;
+    const octave = Math.floor(midi / 12) - 1; // 4 for C4 (midi 60)
+    const diatonicInOctave = [0, 0, 1, 1, 2, 3, 3, 4, 4, 5, 5, 6][semitonesFromC];
+    return (octave - 4) * 7 + diatonicInOctave;
+  };
+
+  /**
+   * Treble staff note Y calculation
+   * Line 5 (F5, step 10) = topY
+   * Line 4 (D5, step 8) = topY + 18
+   * Line 3 (B4, step 6) = topY + 36
+   * Line 2 (G4, step 4) = topY + 54
+   * Line 1 (E4, step 2) = topY + 72
+   * Lower Ledger 1 (C4, step 0) = topY + 90
+   */
+  const getTrebleY = (diatonicStepFromC4: number, topY = 36): number => {
     return topY + 90 - diatonicStepFromC4 * 9;
   };
 
-  // Coordinates helper for Bass staff
-  const getBassY = (diatonicStepFromC4: number, topY = 170): number => {
-    // C4 (step 0) is topY - 18 = ledger line above Line 5 (A3)
-    return topY - 18 - diatonicStepFromC4 * 9;
+  /**
+   * Bass staff note Y calculation
+   * Upper Ledger 1 (C4, step 0) = topY - 18
+   * Line 5 (A3, step -2) = topY
+   * Line 4 (F3, step -4) = topY + 18
+   * Line 3 (D3, step -6) = topY + 36
+   * Line 2 (B2, step -8) = topY + 54
+   * Line 1 (G2, step -10) = topY + 72
+   */
+  const getBassY = (diatonicStepFromC4: number, topY = 36): number => {
+    return topY - (diatonicStepFromC4 + 2) * 9;
   };
 
-  // Coordinates helper for Alto staff (Line 3 is C4, step 0!)
-  const getAltoY = (diatonicStepFromC4: number, topY = 40): number => {
-    // Line 3 is topY + 2 * 18 = topY + 36. C4 is exactly on Line 3.
+  /**
+   * Alto staff note Y calculation
+   * Line 3 (C4, step 0) = topY + 36 (Center notch of C-clef)
+   */
+  const getAltoY = (diatonicStepFromC4: number, topY = 36): number => {
     return topY + 36 - diatonicStepFromC4 * 9;
   };
 
-  // Convert MIDI note to diatonic step from C4 (0 = C4, 1 = D4, 2 = E4, -1 = B3, etc.)
-  const getDiatonicStep = (midi: number): number => {
-    const semitonesFromC = (midi % 12 + 12) % 12;
-    const octave = Math.floor(midi / 12) - 1; // 4 for C4 (60)
-    const diatonicInOctave = [0, 0, 1, 1, 2, 3, 3, 4, 4, 5, 5, 6][semitonesFromC];
-    return (octave - 4) * 7 + diatonicInOctave;
+  // Helper to render ledger lines when a note is placed above or below the 5 lines
+  const renderLedgerLines = (noteX: number, noteY: number, staffTop: number) => {
+    const lines: React.ReactNode[] = [];
+    const staffBottom = staffTop + 72; // Line 1
+
+    // Notes below Line 1
+    if (noteY >= staffBottom + 14) {
+      for (let ly = staffBottom + 18; ly <= noteY + 4; ly += 18) {
+        lines.push(
+          <line
+            key={`ledger-b-${ly}`}
+            x1={noteX - 16}
+            y1={ly}
+            x2={noteX + 16}
+            y2={ly}
+            stroke="#334155"
+            strokeWidth="2.4"
+            strokeLinecap="round"
+          />
+        );
+      }
+    }
+
+    // Notes above Line 5
+    if (noteY <= staffTop - 14) {
+      for (let ly = staffTop - 18; ly >= noteY - 4; ly -= 18) {
+        lines.push(
+          <line
+            key={`ledger-a-${ly}`}
+            x1={noteX - 16}
+            y1={ly}
+            x2={noteX + 16}
+            y2={ly}
+            stroke="#334155"
+            strokeWidth="2.4"
+            strokeLinecap="round"
+          />
+        );
+      }
+    }
+
+    return lines;
   };
 
   return (
@@ -173,7 +231,7 @@ export const MusicStaffComponent: React.FC<MusicStaffComponentProps> = ({
       {/* SVG Canvas Container */}
       <div className="relative w-full overflow-x-auto bg-gradient-to-b from-amber-50/95 via-white to-amber-50/95 rounded-3xl shadow-xl border-2 border-amber-300/80 p-3 scrollbar-thin">
         <svg
-          viewBox={clef === 'grand' ? `0 0 ${staffWidth} 300` : `0 0 ${staffWidth} 175`}
+          viewBox={clef === 'grand' ? `0 0 ${staffWidth} 320` : `0 0 ${staffWidth} 180`}
           className="w-full h-auto min-w-[620px]"
           preserveAspectRatio="xMidYMid meet"
           shapeRendering="geometricPrecision"
@@ -201,11 +259,11 @@ export const MusicStaffComponent: React.FC<MusicStaffComponentProps> = ({
               <line x1="42" y1="36" x2="42" y2="268" stroke="#1E293B" strokeWidth="4" />
 
               {/* Upper Treble Staff Header Text */}
-              <text x="52" y="24" fontSize="11" fontWeight="900" fill="#2563EB" fontFamily="sans-serif">
+              <text x="52" y="24" fontSize="12" fontWeight="900" fill="#2563EB" fontFamily="sans-serif">
                 🎼 高音譜表 (右手旋律區 · Treble Staff)
               </text>
               {/* Lower Bass Staff Header Text */}
-              <text x="52" y="162" fontSize="11" fontWeight="900" fill="#7C3AED" fontFamily="sans-serif">
+              <text x="52" y="184" fontSize="12" fontWeight="900" fill="#7C3AED" fontFamily="sans-serif">
                 🎵 低音譜表 (左手伴奏區 · Bass Staff)
               </text>
 
@@ -226,35 +284,22 @@ export const MusicStaffComponent: React.FC<MusicStaffComponentProps> = ({
                     />
                     {showLabels && (
                       <text x={staffWidth - 20} y={y + 3.5} fontSize="9" fontWeight="800" fill={isHighlight ? '#2563EB' : '#64748B'}>
-                        第{lineNum}線
+                        第{lineNum}線 {lineNum === 2 ? '(G4)' : ''}
                       </text>
                     )}
                   </g>
                 );
               })}
 
-              {/* Treble 4 spaces highlight band */}
-              {highlightSpace && (
-                <rect
-                  x="42"
-                  y={108 - highlightSpace * 18}
-                  width={staffWidth - 67}
-                  height="18"
-                  fill="#DBEAFE"
-                  opacity="0.45"
-                  rx="4"
-                />
-              )}
+              {/* Treble G-Clef Vector Glyph (Exact placement on Line 5 = 36) */}
+              <TrebleClefGlyph x={48} y={36} lineSpacing={18} color="#1E293B" />
 
-              {/* Treble G-Clef Vector Glyph */}
-              <TrebleClefGlyph x={48} y={24} scale={0.88} color="#1E293B" />
-
-              {/* Central Middle C Floating Bridge (Y = 138) */}
-              <g transform="translate(0, 138)">
+              {/* Central Middle C Floating Bridge (Y = 152) */}
+              <g transform="translate(0, 152)">
                 <line x1="160" y1="0" x2={staffWidth - 120} y2="0" stroke="#F59E0B" strokeWidth="1.5" strokeDasharray="4 4" opacity="0.6" />
-                <rect x="220" y="-12" width="280" height="24" rx="12" fill="#FEF3C7" stroke="#F59E0B" strokeWidth="1.5" />
+                <rect x="200" y="-12" width="320" height="24" rx="12" fill="#FEF3C7" stroke="#F59E0B" strokeWidth="1.5" />
                 <text x="360" y="4" textAnchor="middle" fontSize="11" fontWeight="900" fill="#B45309" fontFamily="sans-serif">
-                  🌟 中央 C (C4) 彩虹橋：高音譜下加1線 = 低音譜上加1線
+                  🌟 中央 C (C4) 彩虹橋：高音譜下加1線 (Y=126) ＝ 低音譜上加1線 (Y=178)
                 </text>
               </g>
 
@@ -275,91 +320,136 @@ export const MusicStaffComponent: React.FC<MusicStaffComponentProps> = ({
                     />
                     {showLabels && (
                       <text x={staffWidth - 20} y={y + 3.5} fontSize="9" fontWeight="800" fill={isHighlight ? '#7C3AED' : '#64748B'}>
-                        第{lineNum}線
+                        第{lineNum}線 {lineNum === 4 ? '(F3)' : ''}
                       </text>
                     )}
                   </g>
                 );
               })}
 
-              {/* Bass 4 spaces highlight band */}
-              {highlightSpace && (
-                <rect
-                  x="42"
-                  y={268 - highlightSpace * 18}
-                  width={staffWidth - 67}
-                  height="18"
-                  fill="#EDE9FE"
-                  opacity="0.45"
-                  rx="4"
-                />
-              )}
-
-
-              {/* Bass F-Clef Vector Glyph */}
-              <BassClefGlyph x={50} y={196} scale={0.95} color="#1E293B" />
+              {/* Bass F-Clef Vector Glyph (Exact placement on Line 5 = 196) */}
+              <BassClefGlyph x={48} y={196} lineSpacing={18} color="#1E293B" />
 
               {/* Interactive Notes on Grand Staff */}
-              {activeNotes.map((note, idx) => {
+              {/* 1. Treble Notes */}
+              {defaultTrebleNotes.map((note, idx) => {
                 const isSelected = activeMidi === note.midiNote;
                 const isHighlighted = highlightMidi === note.midiNote;
                 const diatonicStep = getDiatonicStep(note.midiNote);
+                const noteY = getTrebleY(diatonicStep, 36);
 
-                // Note Y coordinate: choose treble or bass calculation
-                const isTrebleNote = note.midiNote >= 60;
-                const noteY = isTrebleNote
-                  ? getTrebleY(diatonicStep, 20)
-                  : getBassY(diatonicStep, 178);
-
-                const noteSpacing = 52;
-                const noteX = 140 + (idx % 11) * noteSpacing;
-
-                const primaryColor = isSelected ? '#10B981' : isHighlighted ? '#F59E0B' : isTrebleNote ? '#2563EB' : '#7C3AED';
+                const noteSpacing = 50;
+                const noteX = 145 + idx * noteSpacing;
+                const primaryColor = isSelected ? '#10B981' : isHighlighted ? '#F59E0B' : '#2563EB';
 
                 return (
                   <g
-                    key={note.id}
+                    key={`gt-${note.id}`}
                     onClick={() => handleNoteItemClick(note)}
-                    className="cursor-pointer group transition-all duration-200"
+                    className="cursor-pointer group"
                   >
-                    {/* Middle C Ledger Line */}
-                    {note.midiNote === 60 && (
-                      <line x1={noteX - 16} y1={noteY} x2={noteX + 16} y2={noteY} stroke="#B45309" strokeWidth="2.5" />
-                    )}
+                    {/* Dynamic Ledger Lines */}
+                    {renderLedgerLines(noteX, noteY, 36)}
 
-                    {/* Aura on select */}
-                    {(isSelected || isHighlighted) && (
-                      <circle cx={noteX} cy={noteY} r="18" fill={isSelected ? '#DCFCE7' : '#FEF3C7'} opacity="0.8" filter="url(#musicStaffGlow)" />
-                    )}
-
-                    {/* Note Head */}
+                    {/* Note Head Ellipse */}
                     <ellipse
                       cx={noteX}
                       cy={noteY}
-                      rx="10.5"
-                      ry="7.5"
+                      rx="11.5"
+                      ry="8"
                       transform={`rotate(-22 ${noteX} ${noteY})`}
-                      fill={isSelected ? '#10B981' : primaryColor}
+                      fill={primaryColor}
                       stroke="#FFFFFF"
                       strokeWidth="1.5"
                       className="group-hover:scale-125 transition-transform"
                     />
 
-                    {/* Note Stem */}
+                    {/* Stem */}
                     <line
                       x1={noteX + 9}
                       y1={noteY}
                       x2={noteX + 9}
-                      y2={noteY - 32}
+                      y2={noteY - 30}
                       stroke={primaryColor}
                       strokeWidth="2.4"
                       strokeLinecap="round"
                     />
 
-                    {/* Note Pitch Badge */}
-                    <g transform={`translate(${noteX}, ${noteY > 150 ? noteY + 22 : noteY - 38})`}>
-                      <rect x="-17" y="-8" width="34" height="16" rx="8" fill={isSelected ? '#10B981' : '#1E293B'} />
-                      <text x="0" y="3.5" textAnchor="middle" fontSize="10" fontWeight="900" fill="#FFFFFF" fontFamily="sans-serif">
+                    {/* Note Solfege Badge */}
+                    <g transform={`translate(${noteX}, ${noteY > 72 ? noteY + 19 : noteY - 34})`}>
+                      <rect
+                        x="-17"
+                        y="-7.5"
+                        width="34"
+                        height="15"
+                        rx="7.5"
+                        fill={isSelected ? '#10B981' : '#2563EB'}
+                        className="shadow-xs"
+                      />
+                      <text x="0" y="3.5" textAnchor="middle" fontSize="9.5" fontWeight="900" fill="#FFFFFF">
+                        {note.solfege}
+                      </text>
+                    </g>
+                  </g>
+                );
+              })}
+
+              {/* 2. Bass Notes */}
+              {defaultBassNotes.map((note, idx) => {
+                const isSelected = activeMidi === note.midiNote;
+                const isHighlighted = highlightMidi === note.midiNote;
+                const diatonicStep = getDiatonicStep(note.midiNote);
+                const noteY = getBassY(diatonicStep, 196);
+
+                const noteSpacing = 50;
+                const noteX = 145 + idx * noteSpacing;
+                const primaryColor = isSelected ? '#10B981' : isHighlighted ? '#F59E0B' : '#7C3AED';
+
+                return (
+                  <g
+                    key={`gb-${note.id}`}
+                    onClick={() => handleNoteItemClick(note)}
+                    className="cursor-pointer group"
+                  >
+                    {/* Dynamic Ledger Lines */}
+                    {renderLedgerLines(noteX, noteY, 196)}
+
+                    {/* Note Head Ellipse */}
+                    <ellipse
+                      cx={noteX}
+                      cy={noteY}
+                      rx="11.5"
+                      ry="8"
+                      transform={`rotate(-22 ${noteX} ${noteY})`}
+                      fill={primaryColor}
+                      stroke="#FFFFFF"
+                      strokeWidth="1.5"
+                      className="group-hover:scale-125 transition-transform"
+                    />
+
+                    {/* Stem */}
+                    <line
+                      x1={noteX + 9}
+                      y1={noteY}
+                      x2={noteX + 9}
+                      y2={noteY - 30}
+                      stroke={primaryColor}
+                      strokeWidth="2.4"
+                      strokeLinecap="round"
+                    />
+
+                    {/* Note Solfege Badge */}
+                    <g transform={`translate(${noteX}, ${noteY > 232 ? noteY + 19 : noteY - 34})`}>
+                      <rect
+                        x="-17"
+                        y="-7.5"
+                        width="34"
+                        height="15"
+                        rx="7.5"
+                        fill={isSelected ? '#10B981' : '#7C3AED'}
+                        className="shadow-xs"
+                      />
+                      <text x="0" y="3.5" textAnchor="middle" fontSize="9.5" fontWeight="900" fill="#FFFFFF">
                         {note.solfege}
                       </text>
                     </g>
@@ -370,98 +460,76 @@ export const MusicStaffComponent: React.FC<MusicStaffComponentProps> = ({
           )}
 
           {/* ======================================================= */}
-          {/* 2. ALTO CLEF (中音譜表: C 譜號中心缺口精準鎖定第 3 線！) */}
+          {/* 2. ALTO CLEF SINGLE STAFF */}
           {/* ======================================================= */}
           {clef === 'alto' && (
             <g>
-              {/* Header Title */}
               <text x="52" y="24" fontSize="12" fontWeight="900" fill="#D97706" fontFamily="sans-serif">
                 🎻 中音譜表 (Alto Clef / C 譜號) · 中提琴 (Viola) 必修
               </text>
 
-              {/* 5 Lines (Y = 36, 54, 72, 90, 108) */}
               {[0, 1, 2, 3, 4].map((i) => {
                 const y = 36 + i * 18;
                 const lineNum = 5 - i;
-                const isLine3 = lineNum === 3;
+                const isLine = highlightLine !== undefined ? highlightLine === lineNum : lineNum === 3;
                 return (
-                  <g key={`alto-line-${i}`}>
+                  <g key={`a-line-${i}`}>
                     <line
                       x1="45"
                       y1={y}
                       x2={staffWidth - 30}
                       y2={y}
-                      stroke={isLine3 ? '#D97706' : '#334155'}
-                      strokeWidth={isLine3 ? 3.5 : 1.8}
+                      stroke={isLine ? '#F59E0B' : '#334155'}
+                      strokeWidth={isLine ? 3.5 : 1.8}
                     />
-                    {isLine3 && (
-                      <rect x="45" y={y - 8} width={staffWidth - 75} height="16" fill="#FEF3C7" opacity="0.25" />
+                    {isLine && (
+                      <rect
+                        x="45"
+                        y={y - 8}
+                        width={staffWidth - 75}
+                        height="16"
+                        fill="#FEF3C7"
+                        opacity="0.3"
+                      />
                     )}
                     {showLabels && (
-                      <text x={staffWidth - 25} y={y + 4} fontSize="10" fontWeight="800" fill={isLine3 ? '#D97706' : '#64748B'}>
-                        第{lineNum}線 {isLine3 ? '(C4 中央C)' : ''}
+                      <text x={staffWidth - 25} y={y + 4} fontSize="10" fontWeight="800" fill={isLine ? '#B45309' : '#64748B'}>
+                        第{lineNum}線 {lineNum === 3 ? '(中央C Do線)' : ''}
                       </text>
                     )}
                   </g>
                 );
               })}
 
-              {/* C-Clef SVG Glyph with Center Notch on Line 3 (Y = 72) */}
-              <g transform="translate(60, 36)">
-                <rect x="8" y="0" width="3.5" height="72" fill="#1E293B" />
-                <rect x="14" y="0" width="6" height="72" fill="#1E293B" />
-                {/* Upper arch */}
-                <path d="M 20,0 C 34,0 44,14 44,24 C 44,32 36,36 28,36 C 36,36 44,40 44,48 C 44,58 34,72 20,72" fill="none" stroke="#1E293B" strokeWidth="5" />
-                {/* Center Notch pointing directly at Line 3 (Y = 36) */}
-                <polygon points="26,36 34,31 34,41" fill="#F59E0B" filter="url(#goldStarGlow)" />
-              </g>
+              {/* Alto C-Clef Vector Glyph */}
+              <AltoClefGlyph x={48} y={36} lineSpacing={18} color="#D97706" />
 
-              {/* Center Notch Pointer Banner */}
-              <g transform="translate(120, 26)">
-                <rect x="0" y="0" width="220" height="20" rx="10" fill="#FEF3C7" stroke="#F59E0B" strokeWidth="1.5" />
-                <text x="110" y="14" textAnchor="middle" fontSize="10" fontWeight="900" fill="#B45309">
-                  👈 C 譜號凹口指引：第 3 線就是中央 C！
-                </text>
-              </g>
-
-              {/* Alto Notes */}
               {activeNotes.map((note, idx) => {
                 const isSelected = activeMidi === note.midiNote;
                 const isC4 = note.midiNote === 60;
                 const diatonicStep = getDiatonicStep(note.midiNote);
                 const noteY = getAltoY(diatonicStep, 36);
-                const noteX = 175 + idx * 56;
-
-                const noteColor = isSelected ? '#10B981' : isC4 ? '#D97706' : '#2563EB';
+                const noteSpacing = Math.min(52, (staffWidth - 190) / (activeNotes.length || 1));
+                const noteX = 145 + idx * noteSpacing;
+                const noteColor = isSelected ? '#10B981' : isC4 ? '#D97706' : '#0F172A';
 
                 return (
-                  <g
-                    key={note.id}
-                    onClick={() => handleNoteItemClick(note)}
-                    className="cursor-pointer group transition-all duration-200"
-                  >
-                    {isC4 && (
-                      <circle cx={noteX} cy={noteY} r="18" fill="#FEF3C7" opacity="0.85" filter="url(#goldStarGlow)" />
-                    )}
-
+                  <g key={note.id} onClick={() => handleNoteItemClick(note)} className="cursor-pointer group">
+                    {renderLedgerLines(noteX, noteY, 36)}
                     <ellipse
                       cx={noteX}
                       cy={noteY}
-                      rx="11"
+                      rx="11.5"
                       ry="8"
                       transform={`rotate(-22 ${noteX} ${noteY})`}
                       fill={noteColor}
                       stroke="#FFFFFF"
                       strokeWidth="1.5"
                     />
-
-                    <line x1={noteX + 9} y1={noteY} x2={noteX + 9} y2={noteY - 32} stroke={noteColor} strokeWidth="2.5" strokeLinecap="round" />
-
-                    <g transform={`translate(${noteX}, ${noteY > 80 ? noteY + 20 : noteY - 38})`}>
-                      <rect x="-18" y="-8" width="36" height="16" rx="8" fill={isC4 ? '#F59E0B' : isSelected ? '#10B981' : '#1E293B'} />
-                      <text x="0" y="3.5" textAnchor="middle" fontSize="10" fontWeight="900" fill="#FFFFFF" fontFamily="sans-serif">
-                        {note.noteName}
-                      </text>
+                    <line x1={noteX + 9} y1={noteY} x2={noteX + 9} y2={noteY - 30} stroke={noteColor} strokeWidth="2.4" strokeLinecap="round" />
+                    <g transform={`translate(${noteX}, ${noteY > 72 ? noteY + 19 : noteY - 34})`}>
+                      <rect x="-17" y="-7.5" width="34" height="15" rx="7.5" fill={isC4 ? '#D97706' : isSelected ? '#10B981' : '#1E293B'} />
+                      <text x="0" y="3.5" textAnchor="middle" fontSize="9.5" fontWeight="900" fill="#FFFFFF">{note.solfege}</text>
                     </g>
                   </g>
                 );
@@ -495,39 +563,39 @@ export const MusicStaffComponent: React.FC<MusicStaffComponentProps> = ({
                 );
               })}
 
-              {/* Treble space highlight band */}
-              {highlightSpace && (
-                <rect
-                  x="45"
-                  y={108 - highlightSpace * 18}
-                  width={staffWidth - 75}
-                  height="18"
-                  fill="#DBEAFE"
-                  opacity="0.45"
-                  rx="4"
-                />
-              )}
-
-              {/* Treble G-Clef Vector Glyph */}
-              <TrebleClefGlyph x={48} y={24} scale={0.88} color="#2563EB" />
+              {/* Treble G-Clef Vector Glyph (Exact placement on Line 5 = 36) */}
+              <TrebleClefGlyph x={48} y={36} lineSpacing={18} color="#2563EB" />
 
               {activeNotes.map((note, idx) => {
                 const isSelected = activeMidi === note.midiNote;
                 const isG4 = note.midiNote === 67;
-                const isC4 = note.midiNote === 60;
                 const diatonicStep = getDiatonicStep(note.midiNote);
-                const noteY = getTrebleY(diatonicStep, 18);
-                const noteX = 145 + idx * 48;
+                // Correct formula: Line 5 is at 36. C4 is at 36 + 90 = 126. E4 (line 1) is at 108. G4 (line 2) is at 90.
+                const noteY = getTrebleY(diatonicStep, 36);
+                const noteSpacing = Math.min(52, (staffWidth - 190) / (activeNotes.length || 1));
+                const noteX = 145 + idx * noteSpacing;
                 const noteColor = isSelected ? '#10B981' : isG4 ? '#2563EB' : '#0F172A';
 
                 return (
                   <g key={note.id} onClick={() => handleNoteItemClick(note)} className="cursor-pointer group">
-                    {isC4 && <line x1={noteX - 16} y1={noteY} x2={noteX + 16} y2={noteY} stroke="#334155" strokeWidth="2.5" />}
-                    <ellipse cx={noteX} cy={noteY} rx="11" ry="8" transform={`rotate(-22 ${noteX} ${noteY})`} fill={noteColor} stroke="#FFFFFF" strokeWidth="1.5" />
-                    <line x1={noteX + 9} y1={noteY} x2={noteX + 9} y2={noteY - 32} stroke={noteColor} strokeWidth="2.5" strokeLinecap="round" />
-                    <g transform={`translate(${noteX}, ${noteY > 80 ? noteY + 20 : noteY - 38})`}>
-                      <rect x="-18" y="-8" width="36" height="16" rx="8" fill={isG4 ? '#2563EB' : isSelected ? '#10B981' : '#1E293B'} />
-                      <text x="0" y="3.5" textAnchor="middle" fontSize="10" fontWeight="900" fill="#FFFFFF">{note.solfege}</text>
+                    {/* Dynamic Ledger Lines */}
+                    {renderLedgerLines(noteX, noteY, 36)}
+
+                    <ellipse
+                      cx={noteX}
+                      cy={noteY}
+                      rx="11.5"
+                      ry="8"
+                      transform={`rotate(-22 ${noteX} ${noteY})`}
+                      fill={noteColor}
+                      stroke="#FFFFFF"
+                      strokeWidth="1.5"
+                      className="group-hover:scale-125 transition-transform"
+                    />
+                    <line x1={noteX + 9} y1={noteY} x2={noteX + 9} y2={noteY - 30} stroke={noteColor} strokeWidth="2.4" strokeLinecap="round" />
+                    <g transform={`translate(${noteX}, ${noteY > 72 ? noteY + 19 : noteY - 34})`}>
+                      <rect x="-17" y="-7.5" width="34" height="15" rx="7.5" fill={isG4 ? '#2563EB' : isSelected ? '#10B981' : '#1E293B'} />
+                      <text x="0" y="3.5" textAnchor="middle" fontSize="9.5" fontWeight="900" fill="#FFFFFF">{note.solfege}</text>
                     </g>
                   </g>
                 );
@@ -561,40 +629,39 @@ export const MusicStaffComponent: React.FC<MusicStaffComponentProps> = ({
                 );
               })}
 
-              {/* Bass space highlight band */}
-              {highlightSpace && (
-                <rect
-                  x="45"
-                  y={108 - highlightSpace * 18}
-                  width={staffWidth - 75}
-                  height="18"
-                  fill="#EDE9FE"
-                  opacity="0.45"
-                  rx="4"
-                />
-              )}
-
-
-              {/* Bass F-Clef Vector Glyph */}
-              <BassClefGlyph x={50} y={36} scale={0.95} color="#7C3AED" />
+              {/* Bass F-Clef Vector Glyph (Exact placement on Line 5 = 36) */}
+              <BassClefGlyph x={48} y={36} lineSpacing={18} color="#7C3AED" />
 
               {activeNotes.map((note, idx) => {
                 const isSelected = activeMidi === note.midiNote;
                 const isF3 = note.midiNote === 53;
-                const isC4 = note.midiNote === 60;
                 const diatonicStep = getDiatonicStep(note.midiNote);
+                // Correct formula: Line 5 is at 36. Line 4 (F3) is at 54. Line 1 (G2) is at 108. C4 is at 18.
                 const noteY = getBassY(diatonicStep, 36);
-                const noteX = 145 + idx * 48;
+                const noteSpacing = Math.min(52, (staffWidth - 190) / (activeNotes.length || 1));
+                const noteX = 145 + idx * noteSpacing;
                 const noteColor = isSelected ? '#10B981' : isF3 ? '#7C3AED' : '#0F172A';
 
                 return (
                   <g key={note.id} onClick={() => handleNoteItemClick(note)} className="cursor-pointer group">
-                    {isC4 && <line x1={noteX - 16} y1={noteY} x2={noteX + 16} y2={noteY} stroke="#334155" strokeWidth="2.5" />}
-                    <ellipse cx={noteX} cy={noteY} rx="11" ry="8" transform={`rotate(-22 ${noteX} ${noteY})`} fill={noteColor} stroke="#FFFFFF" strokeWidth="1.5" />
-                    <line x1={noteX + 9} y1={noteY} x2={noteX + 9} y2={noteY - 32} stroke={noteColor} strokeWidth="2.5" strokeLinecap="round" />
-                    <g transform={`translate(${noteX}, ${noteY > 80 ? noteY + 20 : noteY - 38})`}>
-                      <rect x="-18" y="-8" width="36" height="16" rx="8" fill={isF3 ? '#7C3AED' : isSelected ? '#10B981' : '#1E293B'} />
-                      <text x="0" y="3.5" textAnchor="middle" fontSize="10" fontWeight="900" fill="#FFFFFF">{note.solfege}</text>
+                    {/* Dynamic Ledger Lines */}
+                    {renderLedgerLines(noteX, noteY, 36)}
+
+                    <ellipse
+                      cx={noteX}
+                      cy={noteY}
+                      rx="11.5"
+                      ry="8"
+                      transform={`rotate(-22 ${noteX} ${noteY})`}
+                      fill={noteColor}
+                      stroke="#FFFFFF"
+                      strokeWidth="1.5"
+                      className="group-hover:scale-125 transition-transform"
+                    />
+                    <line x1={noteX + 9} y1={noteY} x2={noteX + 9} y2={noteY - 30} stroke={noteColor} strokeWidth="2.4" strokeLinecap="round" />
+                    <g transform={`translate(${noteX}, ${noteY > 72 ? noteY + 19 : noteY - 34})`}>
+                      <rect x="-17" y="-7.5" width="34" height="15" rx="7.5" fill={isF3 ? '#7C3AED' : isSelected ? '#10B981' : '#1E293B'} />
+                      <text x="0" y="3.5" textAnchor="middle" fontSize="9.5" fontWeight="900" fill="#FFFFFF">{note.solfege}</text>
                     </g>
                   </g>
                 );
@@ -652,7 +719,7 @@ export const MusicStaffComponent: React.FC<MusicStaffComponentProps> = ({
           </div>
 
           <div className="relative flex justify-center items-start overflow-x-auto py-1">
-            {/* 14 White keys (C3 to B4) */}
+            {/* White keys (C3 to B4) */}
             <div className="flex relative">
               {[
                 { midi: 48, name: 'C3' },
