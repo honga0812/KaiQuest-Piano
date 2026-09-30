@@ -163,16 +163,26 @@ export const ALL_HANON_TECHNIQUES: FullPiece[] = [
       { id: 'h1-15', midiNote: 65, noteName: 'F4', solfege: 'Fa', numbered: '4', durationBeats: 1, fingerNumber: 3, hand: 'right', lyrics: '3指', lyricEn: 'F', measureIndex: 3 },
       { id: 'h1-16', midiNote: 64, noteName: 'E4', solfege: 'Mi', numbered: '3', durationBeats: 1, fingerNumber: 2, hand: 'right', lyrics: '2指', lyricEn: 'E', measureIndex: 3 },
 
-      { id: 'h1-17', midiNote: 64, noteName: 'E4', solfege: 'Mi', numbered: '3', durationBeats: 1, fingerNumber: 3, hand: 'right', lyrics: '順', lyricEn: 'E', measureIndex: 4 },
-      { id: 'h1-18', midiNote: 62, noteName: 'D4', solfege: 'Re', numbered: '2', durationBeats: 1, fingerNumber: 2, hand: 'right', lyrics: '暢', lyricEn: 'D', measureIndex: 4 },
-      { id: 'h1-19', midiNote: 60, noteName: 'C4', solfege: 'Do', numbered: '1', durationBeats: 2, fingerNumber: 1, hand: 'right', lyrics: '到家！', lyricEn: 'C!', measureIndex: 4 },
+      { id: 'h1-17', midiNote: 64, noteName: 'E4', solfege: 'Mi', numbered: '3', durationBeats: 1, fingerNumber: 1, hand: 'right', lyrics: '1指', lyricEn: 'E', measureIndex: 4 },
+      { id: 'h1-18', midiNote: 65, noteName: 'F4', solfege: 'Fa', numbered: '4', durationBeats: 1, fingerNumber: 2, hand: 'right', lyrics: '2指', lyricEn: 'F', measureIndex: 4 },
+      { id: 'h1-19', midiNote: 67, noteName: 'G4', solfege: 'Sol', numbered: '5', durationBeats: 1, fingerNumber: 3, hand: 'right', lyrics: '3指', lyricEn: 'G', measureIndex: 4 },
+      { id: 'h1-20', midiNote: 69, noteName: 'A4', solfege: 'La', numbered: '6', durationBeats: 1, fingerNumber: 4, hand: 'right', lyrics: '4指', lyricEn: 'A', measureIndex: 4 },
+
+      { id: 'h1-21', midiNote: 71, noteName: 'B4', solfege: 'Ti', numbered: '7', durationBeats: 1, fingerNumber: 5, hand: 'right', lyrics: '5峰', lyricEn: 'B', measureIndex: 5 },
+      { id: 'h1-22', midiNote: 69, noteName: 'A4', solfege: 'La', numbered: '6', durationBeats: 1, fingerNumber: 4, hand: 'right', lyrics: '4下', lyricEn: 'A', measureIndex: 5 },
+      { id: 'h1-23', midiNote: 67, noteName: 'G4', solfege: 'Sol', numbered: '5', durationBeats: 1, fingerNumber: 3, hand: 'right', lyrics: '3下', lyricEn: 'G', measureIndex: 5 },
+      { id: 'h1-24', midiNote: 65, noteName: 'F4', solfege: 'Fa', numbered: '4', durationBeats: 1, fingerNumber: 2, hand: 'right', lyrics: '2下', lyricEn: 'F', measureIndex: 5 },
+
+      { id: 'h1-25', midiNote: 64, noteName: 'E4', solfege: 'Mi', numbered: '3', durationBeats: 1, fingerNumber: 3, hand: 'right', lyrics: '3轉', lyricEn: 'E', measureIndex: 6 },
+      { id: 'h1-26', midiNote: 62, noteName: 'D4', solfege: 'Re', numbered: '2', durationBeats: 1, fingerNumber: 2, hand: 'right', lyrics: '2順', lyricEn: 'D', measureIndex: 6 },
+      { id: 'h1-27', midiNote: 60, noteName: 'C4', solfege: 'Do', numbered: '1', durationBeats: 2, fingerNumber: 1, hand: 'right', lyrics: '大功告成！', lyricEn: 'Done!', measureIndex: 6 },
     ],
   },
   {
     id: 'hanon-2',
     category: 'hanon',
     title: '《哈農 No. 2：3-4 指擴展與無名指敏捷練習》',
-    titleEn: 'Hanon No. 2: Finger 3 & 4 Independence',
+    titleEn: 'Hanon No. 2: Finger 3 & 4 Independence (Full)',
     subtitle: '攻克鋼琴最難獨立的無名指（第 4 指），打造靈巧手指！',
     composerOrOrigin: 'C.L. Hanon (1819-1900)',
     character: 'sanjuro',
@@ -203,8 +213,18 @@ export const ALL_HANON_TECHNIQUES: FullPiece[] = [
 
       { id: 'h2-13', midiNote: 67, noteName: 'G4', solfege: 'Sol', numbered: '5', durationBeats: 1, fingerNumber: 4, hand: 'right', lyrics: '4落', lyricEn: 'G', measureIndex: 3 },
       { id: 'h2-14', midiNote: 65, noteName: 'F4', solfege: 'Fa', numbered: '4', durationBeats: 1, fingerNumber: 3, hand: 'right', lyrics: '3回', lyricEn: 'F', measureIndex: 3 },
-      { id: 'h2-15', midiNote: 62, noteName: 'D4', solfege: 'Re', numbered: '2', durationBeats: 1, fingerNumber: 2, hand: 'right', lyrics: '2順', lyricEn: 'D', measureIndex: 3 },
-      { id: 'h2-16', midiNote: 60, noteName: 'C4', solfege: 'Do', numbered: '1', durationBeats: 2, fingerNumber: 1, hand: 'right', lyrics: '大功告成！', lyricEn: 'Done!', measureIndex: 3 },
+      { id: 'h2-15', midiNote: 64, noteName: 'E4', solfege: 'Mi', numbered: '3', durationBeats: 1, fingerNumber: 2, hand: 'right', lyrics: '2順', lyricEn: 'E', measureIndex: 3 },
+      { id: 'h2-16', midiNote: 62, noteName: 'D4', solfege: 'Re', numbered: '2', durationBeats: 1, fingerNumber: 1, hand: 'right', lyrics: '1穩', lyricEn: 'D', measureIndex: 3 },
+
+      { id: 'h2-17', midiNote: 64, noteName: 'E4', solfege: 'Mi', numbered: '3', durationBeats: 1, fingerNumber: 1, hand: 'right', lyrics: '1攀', lyricEn: 'E', measureIndex: 4 },
+      { id: 'h2-18', midiNote: 67, noteName: 'G4', solfege: 'Sol', numbered: '5', durationBeats: 1, fingerNumber: 3, hand: 'right', lyrics: '3跳', lyricEn: 'G', measureIndex: 4 },
+      { id: 'h2-19', midiNote: 69, noteName: 'A4', solfege: 'La', numbered: '6', durationBeats: 1, fingerNumber: 4, hand: 'right', lyrics: '4立', lyricEn: 'A', measureIndex: 4 },
+      { id: 'h2-20', midiNote: 71, noteName: 'B4', solfege: 'Ti', numbered: '7', durationBeats: 1, fingerNumber: 5, hand: 'right', lyrics: '5峰', lyricEn: 'B', measureIndex: 4 },
+
+      { id: 'h2-21', midiNote: 69, noteName: 'A4', solfege: 'La', numbered: '6', durationBeats: 1, fingerNumber: 4, hand: 'right', lyrics: '4落', lyricEn: 'A', measureIndex: 5 },
+      { id: 'h2-22', midiNote: 67, noteName: 'G4', solfege: 'Sol', numbered: '5', durationBeats: 1, fingerNumber: 3, hand: 'right', lyrics: '3回', lyricEn: 'G', measureIndex: 5 },
+      { id: 'h2-23', midiNote: 64, noteName: 'E4', solfege: 'Mi', numbered: '3', durationBeats: 1, fingerNumber: 2, hand: 'right', lyrics: '2順', lyricEn: 'E', measureIndex: 5 },
+      { id: 'h2-24', midiNote: 60, noteName: 'C4', solfege: 'Do', numbered: '1', durationBeats: 2, fingerNumber: 1, hand: 'right', lyrics: '完美通關！', lyricEn: 'C!', measureIndex: 5 },
     ],
   },
   {

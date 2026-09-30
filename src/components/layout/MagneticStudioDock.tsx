@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { HintToggles, CharacterFriend } from '../../types/piano';
 import { EliLionSvg, KabutoBeetleSvg, PicoDolphinSvg, RexDinoSvg } from '../mascot/AnimalFriends';
 
@@ -103,22 +103,94 @@ export const MagneticStudioDock: React.FC<MagneticStudioDockProps> = ({
 
   const currentMentorInfo = mentorConfigs[activeMentor] || mentorConfigs.eli_lion;
 
+  // Draggable Floating Pill State for MagneticStudioDock
+  const [dragPos, setDragPos] = useState<{ x: number; y: number } | null>(null);
+  const isDraggingRef = useRef(false);
+  const pointerStartRef = useRef<{ clientX: number; clientY: number; startX: number; startY: number }>({
+    clientX: 0,
+    clientY: 0,
+    startX: 0,
+    startY: 0,
+  });
+
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.button !== 0 && e.pointerType === 'mouse') return;
+    const target = e.currentTarget;
+    target.setPointerCapture(e.pointerId);
+
+    const rect = target.getBoundingClientRect();
+    pointerStartRef.current = {
+      clientX: e.clientX,
+      clientY: e.clientY,
+      startX: rect.left,
+      startY: rect.top,
+    };
+    isDraggingRef.current = false;
+  };
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!e.currentTarget.hasPointerCapture(e.pointerId)) return;
+    const dx = e.clientX - pointerStartRef.current.clientX;
+    const dy = e.clientY - pointerStartRef.current.clientY;
+
+    if (Math.hypot(dx, dy) > 6) {
+      isDraggingRef.current = true;
+    }
+
+    if (isDraggingRef.current) {
+      const elWidth = e.currentTarget.offsetWidth || 160;
+      const elHeight = e.currentTarget.offsetHeight || 50;
+      const maxX = Math.max(10, window.innerWidth - elWidth - 10);
+      const maxY = Math.max(10, window.innerHeight - elHeight - 10);
+
+      const nextX = Math.min(maxX, Math.max(10, pointerStartRef.current.startX + dx));
+      const nextY = Math.min(maxY, Math.max(10, pointerStartRef.current.startY + dy));
+
+      setDragPos({ x: nextX, y: nextY });
+    }
+  };
+
+  const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    }
+    if (!isDraggingRef.current) {
+      setIsOpen(!isOpen);
+    }
+    isDraggingRef.current = false;
+  };
+
   return (
     <>
       {/* ========================================================================= */}
-      {/* 1. Magnetic Floating Dock Island Trigger (磁吸浮動膠囊按鈕)                   */}
-      {/* Always follows scroll on right edge, minimalistic & touch-friendly         */}
+      {/* 1. Magnetic Floating Dock Island Trigger (可拖移磁吸浮動膠囊按鈕)            */}
+      {/* 支援滑鼠點擊拖拉、手指與觸控筆拖移，避免遮擋五線譜或按鈕                    */}
       {/* ========================================================================= */}
-      <div className="fixed top-20 right-3 z-40 flex items-center gap-2 select-none">
+      <div
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        style={
+          dragPos
+            ? { left: `${dragPos.x}px`, top: `${dragPos.y}px`, right: 'auto' }
+            : undefined
+        }
+        className={`fixed ${dragPos ? '' : 'top-20 right-3'} z-40 flex items-center gap-1.5 select-none touch-none cursor-grab active:cursor-grabbing`}
+      >
         <button
-          onClick={() => setIsOpen(!isOpen)}
+          type="button"
           className={`flex items-center gap-2 px-3.5 py-2.5 rounded-full border-2 shadow-xl backdrop-blur-md transition-all active:scale-95 group ${
             isOpen
               ? 'bg-amber-400 border-white text-slate-950 ring-4 ring-amber-400/40'
-              : 'bg-white/90 hover:bg-white border-amber-300 text-slate-800'
+              : 'bg-white/95 hover:bg-white border-amber-300 text-slate-800'
           }`}
-          title="開啟/收起磁吸式隨行輔助工具島"
+          title="開啟/收起磁吸式隨行輔助工具島 · 拖曳可移動位置"
         >
+          {/* Drag grip */}
+          <span className="text-slate-400 group-hover:text-slate-800 text-xs font-black">
+            ⠿
+          </span>
+
           {/* Mini Avatar of Current Mentor */}
           <div className="w-8 h-8 rounded-full overflow-hidden bg-amber-100 border border-amber-300 flex items-center justify-center shrink-0 shadow-xs">
             {activeMentor === 'eli_lion' && <EliLionSvg size={32} />}
@@ -144,6 +216,19 @@ export const MagneticStudioDock: React.FC<MagneticStudioDockProps> = ({
             {isOpen ? '✕' : '⚙️'}
           </span>
         </button>
+
+        {dragPos && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setDragPos(null);
+            }}
+            className="w-7 h-7 rounded-full bg-slate-900/80 hover:bg-slate-950 text-white text-xs font-black shadow-md border border-white/40 flex items-center justify-center"
+            title="復原位置"
+          >
+            ↩
+          </button>
+        )}
       </div>
 
       {/* ========================================================================= */}

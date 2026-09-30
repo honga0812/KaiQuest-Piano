@@ -107,15 +107,27 @@ export const GOLDEN_SONGS_AGE_6_AND_7: FullPiece[] = [
       { id: 'sl-7', midiNote: 62, noteName: 'D4', solfege: 'Re', numbered: '2', durationBeats: 2, fingerNumber: 1, hand: 'right', lyrics: '白', lyricEn: 'Gleam-', measureIndex: 2 },
       { id: 'sl-8', midiNote: 64, noteName: 'E4', solfege: 'Mi', numbered: '3', durationBeats: 1, fingerNumber: 2, hand: 'right', lyrics: '羽', lyricEn: 'ing', measureIndex: 2 },
       { id: 'sl-9', midiNote: 65, noteName: 'F4', solfege: 'Fa', numbered: '4', durationBeats: 1, fingerNumber: 3, hand: 'right', lyrics: '如', lyricEn: 'soft', measureIndex: 2 },
+      { id: 'sl-10', midiNote: 64, noteName: 'E4', solfege: 'Mi', numbered: '3', durationBeats: 2, fingerNumber: 2, hand: 'right', lyrics: '雪', lyricEn: 'snow', measureIndex: 3 },
 
-      { id: 'sl-10', midiNote: 64, noteName: 'E4', solfege: 'Mi', numbered: '3', durationBeats: 4, fingerNumber: 2, hand: 'right', lyrics: '雪！', lyricEn: 'snow!', measureIndex: 3 },
+      { id: 'sl-11', midiNote: 69, noteName: 'A4', solfege: 'La', numbered: '6', durationBeats: 2, fingerNumber: 5, hand: 'right', lyrics: '月', lyricEn: 'Moon', measureIndex: 4 },
+      { id: 'sl-12', midiNote: 64, noteName: 'E4', solfege: 'Mi', numbered: '3', durationBeats: 1, fingerNumber: 2, hand: 'right', lyrics: '色', lyricEn: 'beam', measureIndex: 4 },
+      { id: 'sl-13', midiNote: 65, noteName: 'F4', solfege: 'Fa', numbered: '4', durationBeats: 1, fingerNumber: 3, hand: 'right', lyrics: '倒', lyricEn: 'on', measureIndex: 4 },
+
+      { id: 'sl-14', midiNote: 67, noteName: 'G4', solfege: 'Sol', numbered: '5', durationBeats: 2, fingerNumber: 4, hand: 'right', lyrics: '映', lyricEn: 'the', measureIndex: 5 },
+      { id: 'sl-15', midiNote: 65, noteName: 'F4', solfege: 'Fa', numbered: '4', durationBeats: 1, fingerNumber: 3, hand: 'right', lyrics: '湖', lyricEn: 'wa-', measureIndex: 5 },
+      { id: 'sl-16', midiNote: 64, noteName: 'E4', solfege: 'Mi', numbered: '3', durationBeats: 1, fingerNumber: 2, hand: 'right', lyrics: '心', lyricEn: 'ter', measureIndex: 5 },
+
+      { id: 'sl-17', midiNote: 62, noteName: 'D4', solfege: 'Re', numbered: '2', durationBeats: 2, fingerNumber: 1, hand: 'right', lyrics: '輕', lyricEn: 'gent-', measureIndex: 6 },
+      { id: 'sl-18', midiNote: 60, noteName: 'C4', solfege: 'Do', numbered: '1', durationBeats: 1, fingerNumber: 1, hand: 'right', lyrics: '輕', lyricEn: 'ly', measureIndex: 6 },
+      { id: 'sl-19', midiNote: 59, noteName: 'B3', solfege: '低音Ti', numbered: '7̣', durationBeats: 1, fingerNumber: 1, hand: 'right', lyrics: '飛', lyricEn: 'flow', measureIndex: 6 },
+      { id: 'sl-20', midiNote: 57, noteName: 'A3', solfege: '低音La', numbered: '6̣', durationBeats: 4, fingerNumber: 1, hand: 'right', lyrics: '翔！', lyricEn: 'free!', measureIndex: 7 },
     ],
   },
   {
     id: 'full-canon',
     category: 'song',
     title: '《帕海貝爾：卡農》經典抒情主題',
-    titleEn: 'Pachelbel: Canon in D/C',
+    titleEn: 'Pachelbel: Canon in D/C (Full Concert)',
     subtitle: '婚禮與音樂會永恆經典！平穩長音階的層層交疊。',
     composerOrOrigin: '約翰·帕海貝爾 (Johann Pachelbel)',
     character: 'kai',
@@ -139,7 +151,19 @@ export const GOLDEN_SONGS_AGE_6_AND_7: FullPiece[] = [
       { id: 'pc-6', midiNote: 64, noteName: 'E4', solfege: 'Mi', numbered: '3', durationBeats: 2, fingerNumber: 2, hand: 'right', lyrics: '轉', lyricEn: 'ing', measureIndex: 2 },
 
       { id: 'pc-7', midiNote: 65, noteName: 'F4', solfege: 'Fa', numbered: '4', durationBeats: 2, fingerNumber: 3, hand: 'right', lyrics: '永', lyricEn: 'ev-', measureIndex: 3 },
-      { id: 'pc-8', midiNote: 67, noteName: 'G4', solfege: 'Sol', numbered: '5', durationBeats: 2, fingerNumber: 4, hand: 'right', lyrics: '恆！', lyricEn: 'er!', measureIndex: 3 },
+      { id: 'pc-8', midiNote: 67, noteName: 'G4', solfege: 'Sol', numbered: '5', durationBeats: 2, fingerNumber: 4, hand: 'right', lyrics: '恆', lyricEn: 'er', measureIndex: 3 },
+
+      { id: 'pc-9', midiNote: 64, noteName: 'E4', solfege: 'Mi', numbered: '3', durationBeats: 1, fingerNumber: 2, hand: 'right', lyrics: '愛', lyricEn: 'Love', measureIndex: 4 },
+      { id: 'pc-10', midiNote: 65, noteName: 'F4', solfege: 'Fa', numbered: '4', durationBeats: 1, fingerNumber: 3, hand: 'right', lyrics: '的', lyricEn: 'that', measureIndex: 4 },
+      { id: 'pc-11', midiNote: 67, noteName: 'G4', solfege: 'Sol', numbered: '5', durationBeats: 1, fingerNumber: 4, hand: 'right', lyrics: '光', lyricEn: 'shines', measureIndex: 4 },
+      { id: 'pc-12', midiNote: 69, noteName: 'A4', solfege: 'La', numbered: '6', durationBeats: 1, fingerNumber: 5, hand: 'right', lyrics: '芒', lyricEn: 'bright', measureIndex: 4 },
+
+      { id: 'pc-13', midiNote: 67, noteName: 'G4', solfege: 'Sol', numbered: '5', durationBeats: 1, fingerNumber: 4, hand: 'right', lyrics: '照', lyricEn: 'o-', measureIndex: 5 },
+      { id: 'pc-14', midiNote: 65, noteName: 'F4', solfege: 'Fa', numbered: '4', durationBeats: 1, fingerNumber: 3, hand: 'right', lyrics: '亮', lyricEn: 'ver', measureIndex: 5 },
+      { id: 'pc-15', midiNote: 64, noteName: 'E4', solfege: 'Mi', numbered: '3', durationBeats: 1, fingerNumber: 2, hand: 'right', lyrics: '前', lyricEn: 'all', measureIndex: 5 },
+      { id: 'pc-16', midiNote: 62, noteName: 'D4', solfege: 'Re', numbered: '2', durationBeats: 1, fingerNumber: 1, hand: 'right', lyrics: '方', lyricEn: 'earth', measureIndex: 5 },
+
+      { id: 'pc-17', midiNote: 60, noteName: 'C4', solfege: 'Do', numbered: '1', durationBeats: 4, fingerNumber: 1, hand: 'right', lyrics: '永不息！', lyricEn: 'peace!', measureIndex: 6 },
     ],
   },
   {
@@ -305,25 +329,43 @@ export const GOLDEN_SONGS_AGE_6_AND_7: FullPiece[] = [
     notes: [
       { id: 'rat-1', midiNote: 71, noteName: 'B4', solfege: 'Ti', numbered: '7', durationBeats: 0.5, fingerNumber: 4, hand: 'right', lyrics: '噠', lyricEn: 'B', measureIndex: 0 },
       { id: 'rat-2', midiNote: 69, noteName: 'A4', solfege: 'La', numbered: '6', durationBeats: 0.5, fingerNumber: 3, hand: 'right', lyrics: '噠', lyricEn: 'A', measureIndex: 0 },
-      { id: 'rat-3', midiNote: 67, noteName: 'G4', solfege: 'Sol', numbered: '5', durationBeats: 0.5, fingerNumber: 2, hand: 'right', lyrics: '噠', lyricEn: 'G', measureIndex: 0 },
+      { id: 'rat-3', midiNote: 68, noteName: 'G#4', solfege: '升Sol', numbered: '#5', durationBeats: 0.5, fingerNumber: 2, hand: 'right', lyrics: '噠', lyricEn: 'G#', measureIndex: 0 },
       { id: 'rat-4', midiNote: 69, noteName: 'A4', solfege: 'La', numbered: '6', durationBeats: 0.5, fingerNumber: 3, hand: 'right', lyrics: '噠', lyricEn: 'A', measureIndex: 0 },
 
       { id: 'rat-5', midiNote: 72, noteName: 'C5', solfege: '高音Do', numbered: '1̇', durationBeats: 1, fingerNumber: 5, hand: 'right', lyrics: '登', lyricEn: 'C5', measureIndex: 1 },
-      { id: 'rat-6', midiNote: 72, noteName: 'C5', solfege: '高音Do', numbered: '1̇', durationBeats: 1, fingerNumber: 5, hand: 'right', lyrics: '頂！', lyricEn: 'C5', measureIndex: 1 },
+      { id: 'rat-6', midiNote: 72, noteName: 'C5', solfege: '高音Do', numbered: '1̇', durationBeats: 1, fingerNumber: 5, hand: 'right', lyrics: '頂', lyricEn: 'C5', measureIndex: 1 },
 
       { id: 'rat-7', midiNote: 74, noteName: 'D5', solfege: '高音Re', numbered: '2̇', durationBeats: 0.5, fingerNumber: 5, hand: 'right', lyrics: '飛', lyricEn: 'D5', measureIndex: 2 },
       { id: 'rat-8', midiNote: 72, noteName: 'C5', solfege: '高音Do', numbered: '1̇', durationBeats: 0.5, fingerNumber: 4, hand: 'right', lyrics: '奔', lyricEn: 'C5', measureIndex: 2 },
       { id: 'rat-9', midiNote: 71, noteName: 'B4', solfege: 'Ti', numbered: '7', durationBeats: 0.5, fingerNumber: 3, hand: 'right', lyrics: '回', lyricEn: 'B4', measureIndex: 2 },
       { id: 'rat-10', midiNote: 72, noteName: 'C5', solfege: '高音Do', numbered: '1̇', durationBeats: 0.5, fingerNumber: 4, hand: 'right', lyrics: '旋', lyricEn: 'C5', measureIndex: 2 },
 
-      { id: 'rat-11', midiNote: 69, noteName: 'A4', solfege: 'La', numbered: '6', durationBeats: 2, fingerNumber: 2, hand: 'right', lyrics: '大勝！', lyricEn: 'Bravo!', measureIndex: 3 },
+      { id: 'rat-11', midiNote: 76, noteName: 'E5', solfege: '高音Mi', numbered: '3̇', durationBeats: 1, fingerNumber: 5, hand: 'right', lyrics: '高', lyricEn: 'E5', measureIndex: 3 },
+      { id: 'rat-12', midiNote: 76, noteName: 'E5', solfege: '高音Mi', numbered: '3̇', durationBeats: 1, fingerNumber: 5, hand: 'right', lyrics: '躍', lyricEn: 'E5', measureIndex: 3 },
+
+      { id: 'rat-13', midiNote: 77, noteName: 'F5', solfege: '高音Fa', numbered: '4̇', durationBeats: 0.5, fingerNumber: 5, hand: 'right', lyrics: '如', lyricEn: 'F5', measureIndex: 4 },
+      { id: 'rat-14', midiNote: 76, noteName: 'E5', solfege: '高音Mi', numbered: '3̇', durationBeats: 0.5, fingerNumber: 4, hand: 'right', lyrics: '風', lyricEn: 'E5', measureIndex: 4 },
+      { id: 'rat-15', midiNote: 75, noteName: 'D#5', solfege: '高音升Re', numbered: '#2̇', durationBeats: 0.5, fingerNumber: 3, hand: 'right', lyrics: '飛', lyricEn: 'D#5', measureIndex: 4 },
+      { id: 'rat-16', midiNote: 76, noteName: 'E5', solfege: '高音Mi', numbered: '3̇', durationBeats: 0.5, fingerNumber: 4, hand: 'right', lyrics: '馳', lyricEn: 'E5', measureIndex: 4 },
+
+      { id: 'rat-17', midiNote: 71, noteName: 'B4', solfege: 'Ti', numbered: '7', durationBeats: 0.5, fingerNumber: 2, hand: 'right', lyrics: '騎', lyricEn: 'B4', measureIndex: 5 },
+      { id: 'rat-18', midiNote: 69, noteName: 'A4', solfege: 'La', numbered: '6', durationBeats: 0.5, fingerNumber: 1, hand: 'right', lyrics: '兵', lyricEn: 'A4', measureIndex: 5 },
+      { id: 'rat-19', midiNote: 68, noteName: 'G#4', solfege: '升Sol', numbered: '#5', durationBeats: 0.5, fingerNumber: 2, hand: 'right', lyrics: '衝', lyricEn: 'G#4', measureIndex: 5 },
+      { id: 'rat-20', midiNote: 69, noteName: 'A4', solfege: 'La', numbered: '6', durationBeats: 0.5, fingerNumber: 3, hand: 'right', lyrics: '鋒', lyricEn: 'A4', measureIndex: 5 },
+
+      { id: 'rat-21', midiNote: 72, noteName: 'C5', solfege: '高音Do', numbered: '1̇', durationBeats: 0.5, fingerNumber: 5, hand: 'right', lyrics: '榮', lyricEn: 'C5', measureIndex: 6 },
+      { id: 'rat-22', midiNote: 71, noteName: 'B4', solfege: 'Ti', numbered: '7', durationBeats: 0.5, fingerNumber: 4, hand: 'right', lyrics: '耀', lyricEn: 'B4', measureIndex: 6 },
+      { id: 'rat-23', midiNote: 69, noteName: 'A4', solfege: 'La', numbered: '6', durationBeats: 0.5, fingerNumber: 3, hand: 'right', lyrics: '凱', lyricEn: 'A4', measureIndex: 6 },
+      { id: 'rat-24', midiNote: 68, noteName: 'G#4', solfege: '升Sol', numbered: '#5', durationBeats: 0.5, fingerNumber: 2, hand: 'right', lyrics: '旋', lyricEn: 'G#4', measureIndex: 6 },
+
+      { id: 'rat-25', midiNote: 69, noteName: 'A4', solfege: 'La', numbered: '6', durationBeats: 3, fingerNumber: 3, hand: 'right', lyrics: '大勝歸來！', lyricEn: 'Bravo!', measureIndex: 7 },
     ],
   },
   {
     id: 'full-fur-elise',
     category: 'song',
     title: '《貝多芬：給愛麗絲》經典傳世主題',
-    titleEn: 'Beethoven: Für Elise (WoO 59)',
+    titleEn: 'Beethoven: Für Elise (WoO 59 Complete)',
     subtitle: '世界上最著名的鋼琴名段！E-D#-E-D#-E 半音交織的浪漫傳奇！',
     composerOrOrigin: '路德維希·凡·貝多芬 (WoO 59)',
     character: 'eli_lion',
@@ -347,7 +389,28 @@ export const GOLDEN_SONGS_AGE_6_AND_7: FullPiece[] = [
       { id: 'fe-7', midiNote: 62, noteName: 'D4', solfege: 'Re', numbered: '2', durationBeats: 1, fingerNumber: 3, hand: 'right', lyrics: 'D', lyricEn: 'D', measureIndex: 1 },
       { id: 'fe-8', midiNote: 60, noteName: 'C4', solfege: 'Do', numbered: '1', durationBeats: 1, fingerNumber: 1, hand: 'right', lyrics: 'C', lyricEn: 'C', measureIndex: 1 },
 
-      { id: 'fe-9', midiNote: 57, noteName: 'A3', solfege: '低音La', numbered: '6̣', durationBeats: 3, fingerNumber: 1, hand: 'right', lyrics: 'A！', lyricEn: 'A!', measureIndex: 2 },
+      { id: 'fe-9', midiNote: 57, noteName: 'A3', solfege: '低音La', numbered: '6̣', durationBeats: 2, fingerNumber: 1, hand: 'right', lyrics: 'A', lyricEn: 'A', measureIndex: 2 },
+      { id: 'fe-10', midiNote: 60, noteName: 'C4', solfege: 'Do', numbered: '1', durationBeats: 1, fingerNumber: 1, hand: 'right', lyrics: 'C', lyricEn: 'C', measureIndex: 2 },
+
+      { id: 'fe-11', midiNote: 64, noteName: 'E4', solfege: 'Mi', numbered: '3', durationBeats: 1, fingerNumber: 2, hand: 'right', lyrics: 'E', lyricEn: 'E', measureIndex: 3 },
+      { id: 'fe-12', midiNote: 69, noteName: 'A4', solfege: 'La', numbered: '6', durationBeats: 1, fingerNumber: 4, hand: 'right', lyrics: 'A', lyricEn: 'A', measureIndex: 3 },
+      { id: 'fe-13', midiNote: 71, noteName: 'B4', solfege: 'Ti', numbered: '7', durationBeats: 2, fingerNumber: 5, hand: 'right', lyrics: 'B', lyricEn: 'B', measureIndex: 3 },
+
+      { id: 'fe-14', midiNote: 64, noteName: 'E4', solfege: 'Mi', numbered: '3', durationBeats: 1, fingerNumber: 1, hand: 'right', lyrics: 'E', lyricEn: 'E', measureIndex: 4 },
+      { id: 'fe-15', midiNote: 68, noteName: 'G#4', solfege: '升Sol', numbered: '#5', durationBeats: 1, fingerNumber: 3, hand: 'right', lyrics: 'G#', lyricEn: 'G#', measureIndex: 4 },
+      { id: 'fe-16', midiNote: 71, noteName: 'B4', solfege: 'Ti', numbered: '7', durationBeats: 1, fingerNumber: 4, hand: 'right', lyrics: 'B', lyricEn: 'B', measureIndex: 4 },
+      { id: 'fe-17', midiNote: 72, noteName: 'C5', solfege: '高音Do', numbered: '1̇', durationBeats: 2, fingerNumber: 5, hand: 'right', lyrics: 'C', lyricEn: 'C', measureIndex: 4 },
+
+      { id: 'fe-18', midiNote: 64, noteName: 'E4', solfege: 'Mi', numbered: '3', durationBeats: 1, fingerNumber: 5, hand: 'right', lyrics: 'E', lyricEn: 'E', measureIndex: 5 },
+      { id: 'fe-19', midiNote: 63, noteName: 'D#4', solfege: '升Re', numbered: '#2', durationBeats: 1, fingerNumber: 4, hand: 'right', lyrics: 'D#', lyricEn: 'D#', measureIndex: 5 },
+      { id: 'fe-20', midiNote: 64, noteName: 'E4', solfege: 'Mi', numbered: '3', durationBeats: 1, fingerNumber: 5, hand: 'right', lyrics: 'E', lyricEn: 'E', measureIndex: 5 },
+      { id: 'fe-21', midiNote: 63, noteName: 'D#4', solfege: '升Re', numbered: '#2', durationBeats: 1, fingerNumber: 4, hand: 'right', lyrics: 'D#', lyricEn: 'D#', measureIndex: 5 },
+      { id: 'fe-22', midiNote: 64, noteName: 'E4', solfege: 'Mi', numbered: '3', durationBeats: 1, fingerNumber: 5, hand: 'right', lyrics: 'E', lyricEn: 'E', measureIndex: 5 },
+
+      { id: 'fe-23', midiNote: 59, noteName: 'B3', solfege: '低音Ti', numbered: '7̣', durationBeats: 1, fingerNumber: 2, hand: 'right', lyrics: 'B', lyricEn: 'B', measureIndex: 6 },
+      { id: 'fe-24', midiNote: 62, noteName: 'D4', solfege: 'Re', numbered: '2', durationBeats: 1, fingerNumber: 3, hand: 'right', lyrics: 'D', lyricEn: 'D', measureIndex: 6 },
+      { id: 'fe-25', midiNote: 60, noteName: 'C4', solfege: 'Do', numbered: '1', durationBeats: 1, fingerNumber: 1, hand: 'right', lyrics: 'C', lyricEn: 'C', measureIndex: 6 },
+      { id: 'fe-26', midiNote: 57, noteName: 'A3', solfege: '低音La', numbered: '6̣', durationBeats: 3, fingerNumber: 1, hand: 'right', lyrics: 'A！', lyricEn: 'A!', measureIndex: 7 },
     ],
   },
   {

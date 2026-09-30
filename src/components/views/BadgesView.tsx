@@ -1,31 +1,56 @@
 import React, { useState, useEffect, useRef } from 'react';
 import confetti from 'canvas-confetti';
-import { UserProgress, Lesson } from '../../types/piano';
+import { UserProgress, Lesson, MUSIC_EXPLORER_BADGE, CommemorativeBadge } from '../../types/piano';
 import { LESSONS_DATABASE } from '../../data/lessons';
 import { exportProgressToJson } from '../../utils/storage';
 import { pianoSynth } from '../../audio/pianoSynthesizer';
 import { ExplorerKaiSvg, EliLionSvg, KabutoBeetleSvg } from '../mascot/AnimalFriends';
+import { formatLocalDate, QUALIFIED_PRACTICE_SECONDS } from '../../utils/checkInStorage';
 
 interface BadgesViewProps {
   progress: UserProgress;
   onUpdateStudentName?: (name: string) => void;
+  onOpenCheckInModal?: () => void;
   className?: string;
 }
 
 export const BadgesView: React.FC<BadgesViewProps> = ({
   progress,
+  onOpenCheckInModal,
   className = '',
 }) => {
   const [studentName, setStudentName] = useState(progress.studentName || '小琴童探險家');
   const [showCertificate, setShowCertificate] = useState(false);
   const [selectedBadgeLesson, setSelectedBadgeLesson] = useState<Lesson | null>(null);
+  const [selectedCommemorativeBadge, setSelectedCommemorativeBadge] = useState<CommemorativeBadge | null>(null);
   const [hasNewBadgeAlert, setHasNewBadgeAlert] = useState(false);
+  const [filterCategory, setFilterCategory] = useState<'all' | 'special' | 'lessons'>('all');
+  const [viewMode, setViewMode] = useState<'carousel' | 'grid'>('carousel');
 
+  const [poppingBadgeId, setPoppingBadgeId] = useState<string | null>(null);
+
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const prevBadgeCountRef = useRef<number | null>(null);
+
+  const handleScroll = (direction: 'left' | 'right') => {
+    if (scrollContainerRef.current) {
+      const scrollAmount = direction === 'left' ? -340 : 340;
+      scrollContainerRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    }
+  };
 
   // Calculate stats
   const totalStars = Object.values(progress.completedLessons).reduce((sum, l) => sum + l.stars, 0);
   const lessonsCompletedCount = Object.keys(progress.completedLessons).length;
+
+  const todayStr = formatLocalDate();
+  const checkInState = progress.checkInState;
+  const todayRecord = checkInState?.history?.[todayStr];
+  const todaySeconds = todayRecord?.practiceSeconds || 0;
+  const currentStreak = checkInState?.currentStreak || 0;
+  const isMusicExplorerUnlocked =
+    Boolean(checkInState?.musicExplorerUnlocked) ||
+    progress.unlockedBadges.includes(MUSIC_EXPLORER_BADGE.id);
 
   // Multi-burst fireworks celebratory animation
   const triggerFireworks = (playAudio = true) => {
@@ -79,12 +104,37 @@ export const BadgesView: React.FC<BadgesViewProps> = ({
   }, [progress.unlockedBadges.length]);
 
   const handleCardClick = (lesson: Lesson, isUnlocked: boolean) => {
-    setSelectedBadgeLesson(lesson);
     if (isUnlocked) {
-      pianoSynth.playCorrectHitSound();
+      setPoppingBadgeId(lesson.badgeId);
+      triggerFireworks(true);
+      setTimeout(() => {
+        setSelectedBadgeLesson(lesson);
+        setPoppingBadgeId(null);
+      }, 300);
     } else {
+      setSelectedBadgeLesson(lesson);
       pianoSynth.playGentlePrompt();
     }
+  };
+
+  const handleCommemorativeCardClick = (badge: CommemorativeBadge) => {
+    if (isMusicExplorerUnlocked) {
+      setPoppingBadgeId(badge.id);
+      triggerFireworks(true);
+      setTimeout(() => {
+        setSelectedCommemorativeBadge(badge);
+        setPoppingBadgeId(null);
+      }, 300);
+    } else {
+      setSelectedCommemorativeBadge(badge);
+      pianoSynth.playGentlePrompt();
+    }
+  };
+
+  const formatMinutesSeconds = (secs: number) => {
+    const m = Math.floor(secs / 60);
+    const s = secs % 60;
+    return `${m}分${s < 10 ? '0' : ''}${s}秒`;
   };
 
   return (
@@ -139,11 +189,22 @@ export const BadgesView: React.FC<BadgesViewProps> = ({
             探險家成就徽章與結業證書
           </h1>
           <p className="text-base text-slate-700 mt-1 max-w-xl font-bold">
-            完成每一堂課程的三大挑戰，即可解鎖對應的專屬榮譽徽章！點擊徽章卡片可查看詳細說明。
+            包含<strong>每日簽到紀念勳章</strong>與<strong>課程挑戰成就徽章</strong>！持之以恆練琴，點亮整座音樂榮譽星空！
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-3 shrink-0">
+          {onOpenCheckInModal && (
+            <button
+              onClick={onOpenCheckInModal}
+              className="flex items-center gap-2 px-4 py-3.5 bg-gradient-to-r from-amber-400 to-orange-400 hover:from-amber-500 hover:to-orange-500 text-slate-950 font-black text-sm md:text-base rounded-2xl shadow-md transition active:scale-95 border-2 border-white"
+              title="查看每日簽到與打卡進度"
+            >
+              <span>📅</span>
+              <span>每日簽到打卡</span>
+            </button>
+          )}
+
           <button
             onClick={() => triggerFireworks(true)}
             className="flex items-center gap-2 px-4 py-3.5 bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white font-black text-sm md:text-base rounded-2xl shadow-md transition active:scale-95 border-2 border-white"
@@ -169,70 +230,544 @@ export const BadgesView: React.FC<BadgesViewProps> = ({
         </div>
       </div>
 
-      {/* Badges Grid - Interactive Cards with Click-to-View Details */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-        {LESSONS_DATABASE.map((lesson) => {
-          const isUnlocked = progress.unlockedBadges.includes(lesson.badgeId) ||
-            Boolean(progress.completedLessons[lesson.id] && progress.completedLessons[lesson.id].stars > 0);
-          const completion = progress.completedLessons[lesson.id];
-
-          return (
-            <button
-              key={lesson.badgeId}
-              type="button"
-              onClick={() => handleCardClick(lesson, isUnlocked)}
-              className={`p-5 rounded-3xl border-3 text-center flex flex-col items-center justify-center gap-2.5 transition-all shadow-sm group active:scale-95 cursor-pointer relative ${
-                isUnlocked
-                  ? 'bg-gradient-to-b from-amber-50/95 to-amber-100/90 border-amber-400 shadow-md hover:shadow-xl hover:border-amber-500 hover:-translate-y-1'
-                  : 'bg-white border-slate-200 opacity-65 hover:opacity-90 hover:border-slate-300'
-              }`}
-              title={isUnlocked ? `點擊查看「${lesson.badgeTitle}」詳情` : `尚未解鎖「${lesson.badgeTitle}」`}
-            >
-              {/* Unlocked Star Ribbon Tag */}
-              {isUnlocked && (
-                <div className="absolute top-2 right-2.5 bg-amber-400 text-slate-950 px-2 py-0.5 rounded-full text-[10px] font-black shadow-xs flex items-center gap-0.5">
-                  <span>★</span>
-                  <span>{completion ? completion.stars : 3}</span>
-                </div>
-              )}
-
-              {/* Badge Icon */}
-              <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-4xl shadow-inner transition-transform group-hover:scale-110 ${
-                isUnlocked
-                  ? 'bg-amber-200/80 ring-3 ring-amber-400 shadow-amber-300/40'
-                  : 'bg-slate-100 ring-2 ring-slate-200'
-              }`}>
-                {isUnlocked ? lesson.badgeIcon : '🔒'}
-              </div>
-
-              {/* Title & Lesson info */}
-              <div className="flex flex-col gap-0.5">
-                <span className="text-sm font-black text-slate-900 line-clamp-1 group-hover:text-amber-900">
-                  {lesson.badgeTitle}
+      {/* ========================================================================= */}
+      {/* Featured Special Commemorative Badge Showcase: 「音樂探索家」紀念勳章      */}
+      {/* ========================================================================= */}
+      <section className="bg-gradient-to-br from-amber-50 via-white to-orange-50 border-3 border-amber-400 rounded-3xl p-5 md:p-6 shadow-md flex flex-col gap-4 text-left">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-amber-200/80 pb-3">
+          <div className="flex items-center gap-2.5">
+            <span className="w-8 h-8 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center font-black text-base shadow-xs">
+              🌟
+            </span>
+            <div>
+              <h2 className="text-lg md:text-xl font-black text-amber-950 flex items-center gap-2">
+                <span>特別紀念勳章專區</span>
+                <span className="text-xs bg-amber-200 text-amber-950 font-bold px-2 py-0.5 rounded-full font-mono">
+                  Special Milestone
                 </span>
-                <span className="text-xs text-amber-800 font-bold font-mono">
-                  第 {lesson.lessonNumber} 課
-                </span>
-              </div>
-
-              {/* Tap to view tip */}
-              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full transition ${
-                isUnlocked
-                  ? 'bg-emerald-100 text-emerald-800'
-                  : 'bg-slate-100 text-slate-500'
-              }`}>
-                {isUnlocked ? '查看榮譽 ➔' : '解鎖說明 ➔'}
+              </h2>
+              <span className="text-xs text-slate-600 font-bold">
+                達成特定連續天數或專注練琴目標，即可解鎖獨一無二的專屬紀念獎牌！
               </span>
+            </div>
+          </div>
+
+          {onOpenCheckInModal && (
+            <button
+              onClick={onOpenCheckInModal}
+              className="text-xs md:text-sm font-black text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-3 py-1.5 rounded-xl transition active:scale-95 flex items-center gap-1.5"
+            >
+              <span>⏱️</span>
+              <span>查看今日打卡狀態 ➔</span>
             </button>
-          );
-        })}
+          )}
+        </div>
+
+        {/* Featured Music Explorer Card */}
+        <div
+          onClick={() => handleCommemorativeCardClick(MUSIC_EXPLORER_BADGE)}
+          className={`cursor-pointer rounded-3xl p-5 md:p-6 border-3 transition-all flex flex-col md:flex-row items-center justify-between gap-5 relative group ${
+            isMusicExplorerUnlocked
+              ? 'bg-gradient-to-r from-amber-100 via-orange-100 to-amber-100 border-amber-400 shadow-lg hover:shadow-xl hover:border-amber-500 hover:-translate-y-0.5'
+              : 'bg-white/80 border-slate-200 hover:border-amber-300 opacity-90 hover:opacity-100'
+          }`}
+        >
+          {/* Badge Icon & Info */}
+          <div className="flex items-center gap-4 text-left w-full md:w-auto">
+            <div
+              className={`w-20 h-20 md:w-24 md:h-24 rounded-3xl flex items-center justify-center text-5xl md:text-6xl shrink-0 shadow-lg transition-transform group-hover:scale-105 ${
+                isMusicExplorerUnlocked
+                  ? 'bg-gradient-to-br from-amber-400 via-orange-400 to-amber-500 ring-4 ring-amber-300 shadow-amber-400/50'
+                  : 'bg-slate-100 ring-2 ring-slate-200 text-slate-400'
+              }`}
+            >
+              {isMusicExplorerUnlocked ? MUSIC_EXPLORER_BADGE.icon : '🔒'}
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-black uppercase tracking-wider text-amber-700 font-mono">
+                  Daily Check-in Commemorative Badge
+                </span>
+                <span
+                  className={`text-[10px] font-black px-2 py-0.5 rounded-full shadow-xs ${
+                    isMusicExplorerUnlocked
+                      ? 'bg-emerald-500 text-white'
+                      : 'bg-amber-100 text-amber-900 border border-amber-300'
+                  }`}
+                >
+                  {isMusicExplorerUnlocked ? '✅ 已榮獲' : `🔒 進行中 (${currentStreak}/3 天)`}
+                </span>
+              </div>
+
+              <h3 className="text-xl md:text-2xl font-black text-slate-950 flex items-center gap-2">
+                <span>{MUSIC_EXPLORER_BADGE.title}</span>
+                <span className="text-base text-amber-600 font-normal">紀念勳章</span>
+              </h3>
+
+              <p className="text-xs md:text-sm text-slate-700 font-bold max-w-lg leading-relaxed">
+                {MUSIC_EXPLORER_BADGE.description}
+              </p>
+
+              {/* Requirement pill */}
+              <div className="flex flex-wrap items-center gap-2 pt-1 text-xs">
+                <span className="bg-white/80 border border-amber-300 text-amber-950 font-bold px-2.5 py-1 rounded-xl">
+                  🎯 解鎖條件：連續 3 天開啟 App 且每日練習超過 5 分鐘
+                </span>
+                <span className="text-slate-500 font-mono text-[11px]">
+                  今日練習：{formatMinutesSeconds(todaySeconds)} / 5分鐘
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Action / Progress Pod */}
+          <div className="flex flex-col items-center md:items-end justify-center gap-2 shrink-0 w-full md:w-auto border-t md:border-t-0 md:border-l border-amber-200 pt-3 md:pt-0 md:pl-5">
+            <div className="flex items-center gap-2 text-xs font-black">
+              <span className="text-orange-600">🔥 連續打卡：</span>
+              <span className="text-base font-black text-slate-900 font-mono">
+                {currentStreak} 天
+              </span>
+              <span className="text-slate-400">/</span>
+              <span className="text-emerald-700 font-mono">目標 3 天</span>
+            </div>
+
+            {/* 3-Dot Progress Indicator */}
+            <div className="flex items-center gap-2">
+              <span
+                className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-black shadow-xs ${
+                  currentStreak >= 1 ? 'bg-emerald-500 text-white' : 'bg-slate-200 text-slate-600'
+                }`}
+                title="第 1 天達標"
+              >
+                {currentStreak >= 1 ? '✓' : '1'}
+              </span>
+              <span className="text-slate-300 font-black">―</span>
+              <span
+                className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-black shadow-xs ${
+                  currentStreak >= 2 ? 'bg-emerald-500 text-white' : 'bg-slate-200 text-slate-600'
+                }`}
+                title="第 2 天達標"
+              >
+                {currentStreak >= 2 ? '✓' : '2'}
+              </span>
+              <span className="text-slate-300 font-black">―</span>
+              <span
+                className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-black shadow-xs ${
+                  isMusicExplorerUnlocked ? 'bg-amber-400 text-slate-950 ring-2 ring-amber-500' : 'bg-slate-200 text-slate-600'
+                }`}
+                title="第 3 天解鎖音樂探索家勳章"
+              >
+                {isMusicExplorerUnlocked ? '🧭' : '3'}
+              </span>
+            </div>
+
+            <button
+              type="button"
+              className={`mt-1 px-4 py-2 rounded-xl text-xs md:text-sm font-black transition active:scale-95 shadow-xs ${
+                isMusicExplorerUnlocked
+                  ? 'bg-amber-400 hover:bg-amber-500 text-slate-950'
+                  : 'bg-blue-600 hover:bg-blue-700 text-white'
+              }`}
+            >
+              {isMusicExplorerUnlocked ? '查看榮譽詳情 ➔' : '查看簽到進度 ➔'}
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* Filter Tabs & Tablet View Mode Switcher */}
+      <div className="flex items-center justify-between border-b-2 border-slate-200 pb-3 flex-wrap gap-2 text-left">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-base font-black text-slate-900">
+            全部榮譽勳章名錄
+          </span>
+          <span className="bg-amber-100 text-amber-900 text-xs font-black px-2.5 py-0.5 rounded-full font-mono">
+            已解鎖 {progress.unlockedBadges.length} / {LESSONS_DATABASE.length + 1}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-2 flex-wrap ml-auto">
+          {/* Tablet Display Mode Switcher */}
+          <div className="flex items-center bg-amber-50 p-1 rounded-2xl border border-amber-200 text-xs font-bold">
+            <button
+              onClick={() => setViewMode('carousel')}
+              className={`px-3 py-1.5 rounded-xl transition flex items-center gap-1.5 ${
+                viewMode === 'carousel'
+                  ? 'bg-amber-400 text-slate-950 font-black shadow-xs'
+                  : 'text-slate-600 hover:text-slate-950'
+              }`}
+              title="平板手勢水平滑動查看"
+            >
+              <span>📱</span>
+              <span>水平滑動捲軸 (平板推薦)</span>
+            </button>
+            <button
+              onClick={() => setViewMode('grid')}
+              className={`px-3 py-1.5 rounded-xl transition flex items-center gap-1.5 ${
+                viewMode === 'grid'
+                  ? 'bg-amber-400 text-slate-950 font-black shadow-xs'
+                  : 'text-slate-600 hover:text-slate-950'
+              }`}
+              title="全覽網格排列"
+            >
+              <span>🔲</span>
+              <span>網格排列</span>
+            </button>
+          </div>
+
+          {/* Filter Pills */}
+          <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-2xl text-xs font-bold text-slate-600">
+            <button
+              onClick={() => setFilterCategory('all')}
+              className={`px-2.5 py-1.5 rounded-xl transition ${
+                filterCategory === 'all'
+                  ? 'bg-white text-slate-900 font-black shadow-xs'
+                  : 'hover:text-slate-900'
+              }`}
+            >
+              全部 ({LESSONS_DATABASE.length + 1})
+            </button>
+            <button
+              onClick={() => setFilterCategory('special')}
+              className={`px-2.5 py-1.5 rounded-xl transition ${
+                filterCategory === 'special'
+                  ? 'bg-white text-amber-900 font-black shadow-xs'
+                  : 'hover:text-slate-900'
+              }`}
+            >
+              特別紀念 (1)
+            </button>
+            <button
+              onClick={() => setFilterCategory('lessons')}
+              className={`px-2.5 py-1.5 rounded-xl transition ${
+                filterCategory === 'lessons'
+                  ? 'bg-white text-blue-900 font-black shadow-xs'
+                  : 'hover:text-slate-900'
+              }`}
+            >
+              課程挑戰 ({LESSONS_DATABASE.length})
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Horizontal Carousel Controls if in Carousel Mode */}
+      {viewMode === 'carousel' && (
+        <div className="flex items-center justify-between px-1 text-xs text-slate-500 font-bold">
+          <span className="flex items-center gap-1.5">
+            <span>👈👉</span>
+            <span>手指左右滑動或點擊兩側箭頭瀏覽全部勳章，點擊已解鎖勳章即刻放大慶祝！</span>
+          </span>
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => handleScroll('left')}
+              className="px-3 py-1 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-black text-xs transition active:scale-95 border border-slate-200 shadow-xs flex items-center gap-1"
+            >
+              <span>◀</span>
+              <span>向左滑</span>
+            </button>
+            <button
+              onClick={() => handleScroll('right')}
+              className="px-3 py-1 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-black text-xs transition active:scale-95 border border-slate-200 shadow-xs flex items-center gap-1"
+            >
+              <span>向右滑</span>
+              <span>▶</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Badges Container: Either Horizontal Swiping Ribbon or Responsive Grid */}
+      <div
+        ref={scrollContainerRef}
+        className={
+          viewMode === 'carousel'
+            ? 'flex overflow-x-auto gap-4 pb-4 pt-1 px-1 snap-x snap-mandatory scrollbar-thin scroll-smooth'
+            : 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4'
+        }
+      >
+        {/* If viewing All or Special, show the Music Explorer Commemorative Badge in the grid too! */}
+        {(filterCategory === 'all' || filterCategory === 'special') && (
+          <button
+            type="button"
+            onClick={() => handleCommemorativeCardClick(MUSIC_EXPLORER_BADGE)}
+            className={`p-5 rounded-3xl border-3 text-center flex flex-col items-center justify-center gap-2.5 transition-all duration-300 shadow-sm group active:scale-95 cursor-pointer relative ${
+              viewMode === 'carousel' ? 'w-48 sm:w-56 shrink-0 snap-center min-h-[220px]' : ''
+            } ${
+              poppingBadgeId === MUSIC_EXPLORER_BADGE.id
+                ? 'scale-125 rotate-3 z-50 ring-4 ring-amber-400 shadow-2xl bg-amber-200'
+                : isMusicExplorerUnlocked
+                ? 'bg-gradient-to-b from-amber-100/95 to-amber-200/90 border-amber-400 shadow-md hover:shadow-xl hover:border-amber-500 hover:-translate-y-1'
+                : 'bg-white border-amber-200 opacity-80 hover:opacity-100 hover:border-amber-300'
+            }`}
+            title={isMusicExplorerUnlocked ? '點擊查看「音樂探索家」紀念勳章詳情' : '連續 3 天每日練習滿 5 分鐘解鎖'}
+          >
+            {/* Special Commemorative Tag */}
+            <div className="absolute top-2 right-2.5 bg-gradient-to-r from-red-600 to-amber-600 text-white px-2 py-0.5 rounded-full text-[9px] font-black shadow-xs">
+              特別紀念
+            </div>
+
+            {/* Badge Icon */}
+            <div
+              className={`w-16 h-16 rounded-2xl flex items-center justify-center text-4xl shadow-inner transition-transform group-hover:scale-110 ${
+                isMusicExplorerUnlocked
+                  ? 'bg-amber-300/90 ring-3 ring-amber-400 shadow-amber-300/50'
+                  : 'bg-slate-100 ring-2 ring-slate-200 text-slate-400'
+              }`}
+            >
+              {isMusicExplorerUnlocked ? MUSIC_EXPLORER_BADGE.icon : '🔒'}
+            </div>
+
+            {/* Title & Info */}
+            <div className="flex flex-col gap-0.5">
+              <span className="text-sm font-black text-slate-900 line-clamp-1 group-hover:text-amber-900">
+                {MUSIC_EXPLORER_BADGE.title}
+              </span>
+              <span className="text-xs text-amber-800 font-bold font-mono">
+                連續 3 天 5分鐘
+              </span>
+            </div>
+
+            {/* Status tip */}
+            <span
+              className={`text-[10px] font-bold px-2 py-0.5 rounded-full transition ${
+                isMusicExplorerUnlocked
+                  ? 'bg-emerald-100 text-emerald-800'
+                  : 'bg-amber-100 text-amber-900'
+              }`}
+            >
+              {isMusicExplorerUnlocked ? '查看紀念 ➔' : `連續 ${currentStreak}/3 天 ➔`}
+            </span>
+          </button>
+        )}
+
+        {/* Regular Lesson Badges */}
+        {(filterCategory === 'all' || filterCategory === 'lessons') &&
+          LESSONS_DATABASE.map((lesson) => {
+            const isUnlocked =
+              progress.unlockedBadges.includes(lesson.badgeId) ||
+              Boolean(progress.completedLessons[lesson.id] && progress.completedLessons[lesson.id].stars > 0);
+            const completion = progress.completedLessons[lesson.id];
+            const isPopping = poppingBadgeId === lesson.badgeId;
+
+            return (
+              <button
+                key={lesson.badgeId}
+                type="button"
+                onClick={() => handleCardClick(lesson, isUnlocked)}
+                className={`p-5 rounded-3xl border-3 text-center flex flex-col items-center justify-center gap-2.5 transition-all duration-300 shadow-sm group active:scale-95 cursor-pointer relative ${
+                  viewMode === 'carousel' ? 'w-48 sm:w-56 shrink-0 snap-center min-h-[220px]' : ''
+                } ${
+                  isPopping
+                    ? 'scale-125 rotate-3 z-50 ring-4 ring-amber-400 shadow-2xl bg-amber-200'
+                    : isUnlocked
+                    ? 'bg-gradient-to-b from-amber-50/95 to-amber-100/90 border-amber-400 shadow-md hover:shadow-xl hover:border-amber-500 hover:-translate-y-1'
+                    : 'bg-white border-slate-200 opacity-65 hover:opacity-90 hover:border-slate-300'
+                }`}
+                title={isUnlocked ? `點擊查看「${lesson.badgeTitle}」詳情` : `尚未解鎖「${lesson.badgeTitle}」`}
+              >
+                {/* Unlocked Star Ribbon Tag */}
+                {isUnlocked && (
+                  <div className="absolute top-2 right-2.5 bg-amber-400 text-slate-950 px-2 py-0.5 rounded-full text-[10px] font-black shadow-xs flex items-center gap-0.5">
+                    <span>★</span>
+                    <span>{completion ? completion.stars : 3}</span>
+                  </div>
+                )}
+
+                {/* Badge Icon */}
+                <div
+                  className={`w-16 h-16 rounded-2xl flex items-center justify-center text-4xl shadow-inner transition-transform group-hover:scale-110 ${
+                    isUnlocked
+                      ? 'bg-amber-200/80 ring-3 ring-amber-400 shadow-amber-300/40'
+                      : 'bg-slate-100 ring-2 ring-slate-200'
+                  }`}
+                >
+                  {isUnlocked ? lesson.badgeIcon : '🔒'}
+                </div>
+
+                {/* Title & Lesson info */}
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-sm font-black text-slate-900 line-clamp-1 group-hover:text-amber-900">
+                    {lesson.badgeTitle}
+                  </span>
+                  <span className="text-xs text-amber-800 font-bold font-mono">
+                    第 {lesson.lessonNumber} 課
+                  </span>
+                </div>
+
+                {/* Tap to view tip */}
+                <span
+                  className={`text-[10px] font-bold px-2 py-0.5 rounded-full transition ${
+                    isUnlocked
+                      ? 'bg-emerald-100 text-emerald-800'
+                      : 'bg-slate-100 text-slate-500'
+                  }`}
+                >
+                  {isUnlocked ? '查看榮譽 ➔' : '解鎖說明 ➔'}
+                </span>
+              </button>
+            );
+          })}
       </div>
 
       {/* ========================================================================= */}
-      {/* Badge Details Modal (徽章榮譽詳細說明彈窗)                                 */}
+      {/* Commemorative Badge Details Modal (特別紀念勳章詳細彈窗)                   */}
+      {/* ========================================================================= */}
+      {selectedCommemorativeBadge && (
+        <div
+          className="fixed inset-0 z-[125] flex items-center justify-center bg-slate-950/75 backdrop-blur-md p-4 animate-fade-in text-left select-none"
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="relative w-full max-w-lg bg-white rounded-3xl p-6 md:p-8 shadow-2xl border-4 border-amber-400 flex flex-col gap-5 text-slate-800 animate-scale-up max-h-[90vh] overflow-y-auto scrollbar-thin">
+            {/* Close Button */}
+            <button
+              onClick={() => setSelectedCommemorativeBadge(null)}
+              className="absolute top-4 right-4 w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 flex items-center justify-center font-black text-base transition active:scale-95"
+              title="關閉"
+            >
+              ✕
+            </button>
+
+            {/* Header with Magnified Bouncy Animated Badge */}
+            <div className="flex items-center gap-4 border-b-2 border-amber-100 pb-4">
+              <div
+                className={`w-24 h-24 rounded-3xl flex items-center justify-center text-6xl shadow-2xl shrink-0 transition-transform ${
+                  isMusicExplorerUnlocked
+                    ? 'bg-gradient-to-br from-amber-300 via-orange-400 to-amber-500 ring-6 ring-amber-300 shadow-amber-400/60 scale-110 animate-bounce'
+                    : 'bg-slate-100 ring-3 ring-slate-200 text-slate-400'
+                }`}
+              >
+                {isMusicExplorerUnlocked ? selectedCommemorativeBadge.icon : '🔒'}
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-xs font-black uppercase tracking-wider text-amber-600 font-mono">
+                    ★ 特別紀念榮譽 ★
+                  </span>
+                  <span
+                    className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
+                      isMusicExplorerUnlocked
+                        ? 'bg-emerald-500 text-white'
+                        : 'bg-slate-200 text-slate-700'
+                    }`}
+                  >
+                    {isMusicExplorerUnlocked ? '✅ 已解鎖獲得' : '🔒 進行中'}
+                  </span>
+                  {isMusicExplorerUnlocked && (
+                    <span className="text-[10px] bg-amber-200 text-amber-950 font-black px-2 py-0.5 rounded-full animate-pulse">
+                      ✨ 閃耀綻放中
+                    </span>
+                  )}
+                </div>
+
+                <h2 className="text-xl md:text-2xl font-black text-slate-950">
+                  {selectedCommemorativeBadge.title}紀念勳章
+                </h2>
+
+                <span className="text-xs text-slate-500 font-mono">
+                  Badge ID: {selectedCommemorativeBadge.id}
+                </span>
+              </div>
+            </div>
+
+            {/* Lore & Story */}
+            <div className="flex flex-col gap-3 text-sm">
+              <div className="bg-amber-50/90 border-2 border-amber-200 rounded-2xl p-4 flex flex-col gap-1.5">
+                <span className="text-xs font-black text-amber-900 uppercase">
+                  📜 勳章背景與榮譽象徵
+                </span>
+                <p className="text-xs text-slate-700 leading-relaxed font-bold">
+                  {selectedCommemorativeBadge.description}
+                </p>
+              </div>
+
+              {/* Requirement Box */}
+              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 flex flex-col gap-2">
+                <div className="flex items-center justify-between text-xs font-black text-slate-700">
+                  <span>🎯 達成要求</span>
+                  <span className="text-amber-700">{selectedCommemorativeBadge.requirement}</span>
+                </div>
+
+                {/* Progress bars */}
+                <div className="grid grid-cols-2 gap-2 text-xs pt-1">
+                  <div className="bg-white p-2.5 rounded-xl border border-slate-200 shadow-xs">
+                    <span className="text-slate-500 block text-[10px] font-bold">目前連續天數</span>
+                    <span className="text-base font-black text-orange-600">
+                      🔥 {currentStreak} / 3 天
+                    </span>
+                  </div>
+                  <div className="bg-white p-2.5 rounded-xl border border-slate-200 shadow-xs">
+                    <span className="text-slate-500 block text-[10px] font-bold">今日練習時長</span>
+                    <span className="text-base font-black text-blue-700">
+                      ⏱️ {formatMinutesSeconds(todaySeconds)} / 5分
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Status Note */}
+              {isMusicExplorerUnlocked ? (
+                <div className="bg-emerald-50 border-2 border-emerald-300 rounded-2xl p-4 flex items-center gap-3">
+                  <span className="text-3xl">🎉</span>
+                  <div className="text-xs text-emerald-950 font-bold leading-relaxed">
+                    <strong>恭喜小琴童！</strong>此榮譽勳章已正式歸入你的個人榮譽星空，代表你具備持續不懈、勇於探索的卓越音樂精神！
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-amber-50 border-2 border-amber-300 rounded-2xl p-4 flex items-center gap-3">
+                  <span className="text-3xl">💪</span>
+                  <div className="text-xs text-amber-950 font-bold leading-relaxed">
+                    <strong>加油！再接再厲！</strong>只要連續三天每日練習超過 5 分鐘，系統就會自動發放「{selectedCommemorativeBadge.title}」專屬紀念勳章喔！
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Actions */}
+            <div className="pt-2 border-t-2 border-slate-100 flex flex-wrap items-center justify-between gap-3">
+              {isMusicExplorerUnlocked ? (
+                <button
+                  onClick={() => triggerFireworks(true)}
+                  className="flex items-center gap-1.5 px-4 py-2.5 bg-gradient-to-r from-amber-400 to-orange-400 hover:from-amber-500 hover:to-orange-500 text-slate-950 font-black rounded-xl text-xs md:text-sm shadow-md transition active:scale-95 border-2 border-white"
+                >
+                  <span>🎆</span>
+                  <span>放煙火慶祝此勳章！</span>
+                </button>
+              ) : (
+                onOpenCheckInModal && (
+                  <button
+                    onClick={() => {
+                      setSelectedCommemorativeBadge(null);
+                      onOpenCheckInModal();
+                    }}
+                    className="flex items-center gap-1.5 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition active:scale-95 shadow-sm"
+                  >
+                    <span>📅</span>
+                    <span>開啟每日簽到儀表板</span>
+                  </button>
+                )
+              )}
+
+              <button
+                onClick={() => setSelectedCommemorativeBadge(null)}
+                className="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-black rounded-xl text-xs md:text-sm shadow transition ml-auto"
+              >
+                關閉
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* Lesson Badge Details Modal (課程徽章詳細說明彈窗)                         */}
       {/* ========================================================================= */}
       {selectedBadgeLesson && (() => {
-        const isUnlocked = progress.unlockedBadges.includes(selectedBadgeLesson.badgeId) ||
+        const isUnlocked =
+          progress.unlockedBadges.includes(selectedBadgeLesson.badgeId) ||
           Boolean(progress.completedLessons[selectedBadgeLesson.id] && progress.completedLessons[selectedBadgeLesson.id].stars > 0);
         const completion = progress.completedLessons[selectedBadgeLesson.id];
 
@@ -252,26 +787,35 @@ export const BadgesView: React.FC<BadgesViewProps> = ({
                 ✕
               </button>
 
-              {/* Modal Top Header with Large Glowing Badge Icon */}
+              {/* Modal Top Header with Large Glowing Bouncy Badge Icon */}
               <div className="flex items-center gap-4 border-b-2 border-amber-100 pb-4">
-                <div className={`w-20 h-20 rounded-3xl flex items-center justify-center text-5xl shadow-lg shrink-0 transition-transform ${
-                  isUnlocked
-                    ? 'bg-gradient-to-br from-amber-300 via-orange-300 to-amber-400 ring-4 ring-amber-400 shadow-amber-300/50 animate-pulse'
-                    : 'bg-slate-100 ring-3 ring-slate-200 text-slate-400'
-                }`}>
+                <div
+                  className={`w-24 h-24 rounded-3xl flex items-center justify-center text-6xl shadow-2xl shrink-0 transition-transform ${
+                    isUnlocked
+                      ? 'bg-gradient-to-br from-amber-300 via-orange-400 to-amber-500 ring-6 ring-amber-300 shadow-amber-400/60 scale-110 animate-bounce'
+                      : 'bg-slate-100 ring-3 ring-slate-200 text-slate-400'
+                  }`}
+                >
                   {isUnlocked ? selectedBadgeLesson.badgeIcon : '🔒'}
                 </div>
 
                 <div className="flex flex-col gap-1">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-xs font-black uppercase tracking-wider text-amber-600 font-mono">
                       第 {selectedBadgeLesson.lessonNumber} 課榮譽徽章
                     </span>
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
-                      isUnlocked ? 'bg-emerald-500 text-white' : 'bg-slate-200 text-slate-700'
-                    }`}>
-                      {isUnlocked ? '✅ 已解鎖' : '🔒 尚未解鎖'}
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
+                        isUnlocked ? 'bg-emerald-500 text-white' : 'bg-slate-200 text-slate-700'
+                      }`}
+                    >
+                      {isUnlocked ? '✅ 已解鎖獲得' : '🔒 尚未解鎖'}
                     </span>
+                    {isUnlocked && (
+                      <span className="text-[10px] bg-amber-200 text-amber-950 font-black px-2 py-0.5 rounded-full animate-pulse">
+                        ✨ 閃耀綻放中
+                      </span>
+                    )}
                   </div>
 
                   <h2 className="text-xl md:text-2xl font-black text-slate-950">
@@ -441,6 +985,14 @@ export const BadgesView: React.FC<BadgesViewProps> = ({
                 <span className="text-xl font-black text-blue-600">{progress.unlockedBadges.length} 🏅</span>
               </div>
             </div>
+
+            {/* Music Explorer Special Seal if unlocked */}
+            {isMusicExplorerUnlocked && (
+              <div className="bg-amber-200/80 border-2 border-amber-400 rounded-2xl px-4 py-2 flex items-center gap-2 text-xs font-black text-amber-950 shadow-xs animate-pulse">
+                <span>🧭</span>
+                <span>榮譽加註：已通過「音樂探索家」連續 3 天每日 5 分鐘專注認證！</span>
+              </div>
+            )}
 
             {/* Mentor Stamps & Signatures */}
             <div className="flex items-center justify-center gap-4 py-1">

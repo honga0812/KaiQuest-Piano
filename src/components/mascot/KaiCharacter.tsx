@@ -296,13 +296,13 @@ export const KaiCharacter: React.FC<KaiCharacterProps> = ({
           <div className="absolute top-1/2 -left-2 -translate-y-1/2 w-0 h-0 border-y-7 border-y-transparent border-r-[10px] border-r-white" />
 
           {speechEn && (
-            <div className="text-xs md:text-sm font-black uppercase tracking-wider text-blue-600 mb-1 font-mono flex items-center gap-1.5">
+            <div className="text-sm md:text-base font-black uppercase tracking-wider text-blue-600 mb-1 font-mono flex items-center gap-1.5">
               <span>{isMaestroCrownMode ? '👑' : isFireMode ? '🔥' : isStarMode ? '⭐' : '🧭'}</span>
               <span>{speechEn}</span>
             </div>
           )}
 
-          <div className="text-sm md:text-base font-black text-slate-800 leading-snug">
+          <div className="text-lg md:text-2xl font-black text-slate-900 leading-snug">
             {speechText}
           </div>
         </div>

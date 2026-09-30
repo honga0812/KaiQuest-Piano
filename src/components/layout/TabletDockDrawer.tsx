@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { AgeBand, InputMode } from '../../types/piano';
 import { micAdapter } from '../../audio/microphoneAdapter';
 import { getPublicShareUrl } from '../../utils/safariShare';
@@ -13,6 +13,9 @@ interface TabletDockDrawerProps {
   onOpenScaleModal?: () => void;
   onOpenIPadModal: () => void;
   onOpenDeployModal: () => void;
+  onOpenCheckInModal?: () => void;
+  streakCount?: number;
+  isTodayQualified?: boolean;
   isMicListening: boolean;
   isInstallable: boolean;
   isInstalled: boolean;
@@ -31,6 +34,9 @@ export const TabletDockDrawer: React.FC<TabletDockDrawerProps> = ({
   onOpenScaleModal,
   onOpenIPadModal,
   onOpenDeployModal,
+  onOpenCheckInModal,
+  streakCount = 0,
+  isTodayQualified = false,
   isMicListening,
   isInstallable,
   isInstalled,
@@ -122,30 +128,104 @@ export const TabletDockDrawer: React.FC<TabletDockDrawerProps> = ({
     touch: { label: '觸控螢幕鍵盤', icon: '👆' },
   };
 
+  // Draggable Floating Follow Pill State (Supports Mouse, Touch, & Stylus/Apple Pencil)
+  const [dragPos, setDragPos] = useState<{ x: number; y: number } | null>(null);
+  const isDraggingRef = useRef(false);
+  const pointerStartRef = useRef<{ clientX: number; clientY: number; startX: number; startY: number }>({
+    clientX: 0,
+    clientY: 0,
+    startX: 0,
+    startY: 0,
+  });
+
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    // Only drag with primary pointer (mouse left button or touch/pen)
+    if (e.button !== 0 && e.pointerType === 'mouse') return;
+    const target = e.currentTarget;
+    target.setPointerCapture(e.pointerId);
+
+    const rect = target.getBoundingClientRect();
+    pointerStartRef.current = {
+      clientX: e.clientX,
+      clientY: e.clientY,
+      startX: rect.left,
+      startY: rect.top,
+    };
+    isDraggingRef.current = false;
+  };
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!e.currentTarget.hasPointerCapture(e.pointerId)) return;
+    const dx = e.clientX - pointerStartRef.current.clientX;
+    const dy = e.clientY - pointerStartRef.current.clientY;
+
+    if (Math.hypot(dx, dy) > 6) {
+      isDraggingRef.current = true;
+    }
+
+    if (isDraggingRef.current) {
+      const elWidth = e.currentTarget.offsetWidth || 180;
+      const elHeight = e.currentTarget.offsetHeight || 56;
+      const maxX = Math.max(10, window.innerWidth - elWidth - 10);
+      const maxY = Math.max(10, window.innerHeight - elHeight - 10);
+
+      const nextX = Math.min(maxX, Math.max(10, pointerStartRef.current.startX + dx));
+      const nextY = Math.min(maxY, Math.max(10, pointerStartRef.current.startY + dy));
+
+      setDragPos({ x: nextX, y: nextY });
+    }
+  };
+
+  const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    }
+    // If it was just a tap/click without dragging, toggle the drawer!
+    if (!isDraggingRef.current) {
+      onToggle();
+    }
+    isDraggingRef.current = false;
+  };
+
   return (
     <>
-      {/* 1. True Viewport-Floating Follow Pill (吸附式隨屏浮動控制島) */}
-      {/* 固定在視窗右下角，隨畫面滾動始終可見，專為平板拇指操作設計 */}
-      <div className="fixed bottom-6 right-5 sm:right-7 z-[90] select-none pointer-events-auto shadow-2xl">
+      {/* 1. Viewport-Floating Follow Pill (可任意拖移、吸附式隨屏浮動控制島) */}
+      {/* 支援滑鼠點擊拖拉、平板手指觸摸拖拉與觸控筆拖移，避免遮擋畫面按鈕 */}
+      <div
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        style={
+          dragPos
+            ? { left: `${dragPos.x}px`, top: `${dragPos.y}px`, right: 'auto', bottom: 'auto' }
+            : undefined
+        }
+        className={`fixed ${dragPos ? '' : 'bottom-6 right-5 sm:right-7'} z-[90] select-none pointer-events-auto touch-none cursor-grab active:cursor-grabbing shadow-2xl flex items-center gap-1.5 group`}
+      >
         <button
-          onClick={onToggle}
-          className={`flex items-center gap-3.5 px-5 py-3.5 rounded-full border-3 transition-all duration-300 transform active:scale-95 group shadow-xl ${
+          type="button"
+          className={`flex items-center gap-2.5 sm:gap-3.5 px-4 py-3 sm:px-5 sm:py-3.5 rounded-full border-3 transition-transform duration-200 active:scale-95 shadow-xl ${
             isOpen
               ? 'bg-gradient-to-r from-blue-600 to-indigo-600 border-white text-white scale-105 shadow-blue-500/50'
               : 'bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 hover:from-amber-500 hover:to-orange-500 border-white text-slate-950 shadow-amber-400/60'
           }`}
-          title="開啟平板輔助控制島（年齡、麥克風、校準、全螢幕、離線包下載）"
+          title="點擊展開輔助控制島 · 長按或拖曳可任意移動位置"
           aria-expanded={isOpen}
         >
+          {/* Drag Grip Handle */}
+          <span className="text-slate-800/60 group-hover:text-slate-950 text-base font-black px-0.5 tracking-tighter" title="拖移移動位置">
+            ⠿
+          </span>
+
           {/* Age capsule */}
-          <span className="w-9 h-9 rounded-full bg-white text-amber-900 font-black text-base flex items-center justify-center shadow-md">
+          <span className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white text-amber-900 font-black text-sm sm:text-base flex items-center justify-center shadow-md shrink-0">
             {userAge}歲
           </span>
 
           {/* Mode & Live status */}
           <div className="flex items-center gap-2">
             <span
-              className={`w-3.5 h-3.5 rounded-full ${
+              className={`w-3 h-3 sm:w-3.5 sm:h-3.5 rounded-full ${
                 inputMode === 'microphone'
                   ? isMicListening
                     ? 'bg-emerald-400 shadow-[0_0_12px_#34D399] animate-pulse'
@@ -153,15 +233,29 @@ export const TabletDockDrawer: React.FC<TabletDockDrawerProps> = ({
                   : 'bg-blue-600'
               }`}
             />
-            <span className="text-base font-black tracking-tight">
+            <span className="text-sm sm:text-base font-black tracking-tight whitespace-nowrap">
               {isOpen ? '收起控制島' : '🎈 輔助工具'}
             </span>
           </div>
 
-          <span className="text-xl group-hover:rotate-45 transition-transform duration-300">
+          <span className="text-lg sm:text-xl group-hover:rotate-45 transition-transform duration-300">
             ⚙️
           </span>
         </button>
+
+        {/* Reset Position Button if dragged away */}
+        {dragPos && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setDragPos(null);
+            }}
+            className="w-8 h-8 rounded-full bg-slate-900/80 hover:bg-slate-950 text-white text-xs font-black shadow-lg border border-white/50 flex items-center justify-center transition active:scale-95"
+            title="復原至右下角預設位置"
+          >
+            ↩
+          </button>
+        )}
       </div>
 
       {/* 2. Slide-out Drawer Overlay Backdrop */}
@@ -336,6 +430,34 @@ export const TabletDockDrawer: React.FC<TabletDockDrawerProps> = ({
                     <span>即時音階辨識與診斷室</span>
                   </div>
                   <span className="text-sm text-sky-800 font-black">測試 ➔</span>
+                </button>
+              )}
+
+              {/* Daily Check-in Button */}
+              {onOpenCheckInModal && (
+                <button
+                  onClick={() => {
+                    onToggle();
+                    onOpenCheckInModal();
+                  }}
+                  className={`w-full flex items-center justify-between p-3.5 rounded-2xl border-2 font-black transition shadow-sm active:scale-95 text-base ${
+                    isTodayQualified
+                      ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-950 border-emerald-300'
+                      : 'bg-amber-50 hover:bg-amber-100 text-slate-900 border-amber-300'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-2xl">📅</span>
+                    <div className="flex flex-col text-left">
+                      <span>每日簽到與練琴計時</span>
+                      <span className="text-xs text-slate-600 font-bold">
+                        連續 {streakCount} 天 · {isTodayQualified ? '✅ 今日已達標' : '滿 5 分鐘領探索家勳章'}
+                      </span>
+                    </div>
+                  </div>
+                  <span className="text-xs bg-amber-400 text-slate-950 px-2.5 py-1 rounded-full font-black shadow-xs">
+                    簽到 ➔
+                  </span>
                 </button>
               )}
             </div>

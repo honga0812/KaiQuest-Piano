@@ -55,12 +55,15 @@ export interface TargetNote {
 export type DifficultyLevel = 1 | 2 | 3 | 4 | 5;
 
 export type ChallengeType = 'technique' | 'song' | 'performance';
+export type StageRole = 'technique' | 'verse' | 'chorus' | 'full_song';
 
 export type CharacterFriend = 'kai' | 'eli_lion' | 'kabuto_beetle' | 'pico_dolphin' | 'rex_dino';
 
 export interface Challenge {
   id: string;
   type: ChallengeType;
+  stageRole?: StageRole; // 1. technique (技巧練習) | 2. verse (歌曲主歌) | 3. chorus (歌曲副歌) | 4. full_song (全曲大挑戰)
+  stageNumber?: 1 | 2 | 3 | 4;
   title: string;
   titleEn: string;
   subtitle: string;
@@ -105,6 +108,47 @@ export interface HintToggles {
   keyboard: boolean; // 動態鍵盤指法
 }
 
+export interface DailyCheckInRecord {
+  date: string; // YYYY-MM-DD
+  practiceSeconds: number; // accumulated practice duration in seconds
+  isQualified: boolean; // whether practiceSeconds >= 300 (5 minutes)
+  openedAt: number; // timestamp of first open on this day
+  lastActiveAt: number; // timestamp of last activity
+}
+
+export interface CheckInState {
+  currentStreak: number; // consecutive qualified days (>= 5 min)
+  longestStreak: number;
+  lastCheckInDate: string; // YYYY-MM-DD
+  history: Record<string, DailyCheckInRecord>; // date -> record
+  musicExplorerUnlocked: boolean; // whether "音樂探索家" badge is awarded
+  unlockedAt?: number;
+}
+
+export interface CommemorativeBadge {
+  id: string;
+  title: string;
+  subtitle: string;
+  icon: string;
+  description: string;
+  requirement: string;
+  category: 'daily_checkin' | 'milestone' | 'special';
+  requiredDays: number;
+  requiredMinutesPerDay: number;
+}
+
+export const MUSIC_EXPLORER_BADGE: CommemorativeBadge = {
+  id: 'badge-music-explorer',
+  title: '音樂探索家',
+  subtitle: '連續 3 天開啟 App 且每日練習超過 5 分鐘',
+  icon: '🧭',
+  description: '熱愛音樂、持之以恆的小探險家！連續三天每天專注練琴超過五分鐘，用琴聲踏出探索音樂奇幻島的第一步！',
+  requirement: '連續 3 天開啟 App 並每天練琴超過 5 分鐘（300 秒）',
+  category: 'daily_checkin',
+  requiredDays: 3,
+  requiredMinutesPerDay: 5,
+};
+
 export interface UserProgress {
   userAge: AgeBand;
   selectedInputMode: InputMode;
@@ -115,4 +159,6 @@ export interface UserProgress {
   calibration: CalibrationResult;
   teacherNotes: string[];
   studentName: string;
+  checkInState?: CheckInState;
 }
+

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import confetti from 'canvas-confetti';
 import { Lesson, Challenge, TargetNote, HintToggles, InputMode, PianoNoteEvent, CharacterFriend } from '../../types/piano';
 import { micAdapter } from '../../audio/microphoneAdapter';
@@ -12,6 +12,7 @@ import { LetterNotation } from '../piano/LetterNotation';
 import { DynamicKeyboard } from '../piano/DynamicKeyboard';
 import { ScaleRecognitionModal } from '../modals/ScaleRecognitionModal';
 import { MagneticStudioDock } from '../layout/MagneticStudioDock';
+import { getStandardizedLessonStages, STAGE_METAS } from '../../utils/curriculumStagesHelper';
 
 interface LessonInteractiveViewProps {
   lesson: Lesson;
@@ -28,12 +29,9 @@ export const LessonInteractiveView: React.FC<LessonInteractiveViewProps> = ({
   onCompleteLesson,
   className = '',
 }) => {
-  // Available challenges in this lesson
-  const allChallenges = [
-    ...lesson.techniqueChallenges,
-    ...lesson.songChallenges,
-    ...lesson.performanceChallenges,
-  ];
+  // Standardized 4-Stage Pedagogical Progression for every lesson:
+  // Stage 1: 技巧初探 -> Stage 2: 歌曲主歌 -> Stage 3: 歌曲副歌 -> Stage 4: 全曲大挑戰
+  const allChallenges = useMemo(() => getStandardizedLessonStages(lesson), [lesson]);
 
   const [activeChallengeIndex, setActiveChallengeIndex] = useState(0);
   const currentChallenge: Challenge = allChallenges[activeChallengeIndex] || allChallenges[0];
@@ -79,6 +77,12 @@ export const LessonInteractiveView: React.FC<LessonInteractiveViewProps> = ({
   const lastHandledOnsetIdRef = useRef<number | null>(null);
   const lastSuccessTimeRef = useRef<number>(0);
   const lastSuccessMidiRef = useRef<number | null>(null);
+
+  // Real-time Rhythm Accuracy & Cartoon Note Mascot state
+  const [rhythmAccuracy, setRhythmAccuracy] = useState<number>(92);
+  const [isRhythmStable, setIsRhythmStable] = useState<boolean>(true);
+  const [noteSwayDirection, setNoteSwayDirection] = useState<'left' | 'right'>('left');
+  const lastHitTimeRef = useRef<number>(0);
 
   // Mic state & scale tester modal
   const [isMicRunning, setIsMicRunning] = useState(micAdapter.getIsRunning());
@@ -140,6 +144,9 @@ export const LessonInteractiveView: React.FC<LessonInteractiveViewProps> = ({
     setMascotText(newChallenge.characterPrompt);
     setMascotEn(newChallenge.characterPromptEn);
     setShowCompletionModal(false);
+    setRhythmAccuracy(92);
+    setIsRhythmStable(true);
+    lastHitTimeRef.current = 0;
 
     if (newChallenge.character === 'eli_lion') setActiveMentor('eli_lion');
     else if (newChallenge.character === 'kabuto_beetle' || newChallenge.character === 'sanjuro') setActiveMentor('kabuto_beetle');
@@ -157,6 +164,7 @@ export const LessonInteractiveView: React.FC<LessonInteractiveViewProps> = ({
     metronomeTimerRef.current = window.setInterval(() => {
       beatCountRef.current = (beatCountRef.current + 1) % 4;
       pianoSynth.playMetronomeTick(beatCountRef.current === 0);
+      setNoteSwayDirection((prev) => (prev === 'left' ? 'right' : 'left'));
     }, intervalMs);
 
     return () => {
@@ -383,56 +391,68 @@ export const LessonInteractiveView: React.FC<LessonInteractiveViewProps> = ({
   };
 
   return (
-    <div className={`flex flex-col min-h-full w-full max-w-6xl mx-auto px-2 md:px-5 py-2 select-none overflow-y-auto justify-between gap-3 pb-24 ${className}`}>
+    <div className={`flex flex-col min-h-0 h-full max-h-[calc(100vh-68px)] w-full max-w-7xl mx-auto px-2 md:px-4 py-1 select-none overflow-y-auto lg:overflow-hidden justify-between gap-1 sm:gap-1.5 ${className}`}>
       {/* ========================================================================= */}
-      {/* 1. Top Minimal Header Deck (極簡頂部功能列)                                 */}
+      {/* 1. Top Minimal Header Deck (極簡頂部功能列) - 平板與電腦通用比例設計        */}
       {/* ========================================================================= */}
-      <div className="flex flex-wrap items-center justify-between gap-2.5 bg-white/95 border-3 border-amber-300 rounded-3xl p-3 md:p-4 shadow-sm shrink-0">
+      <div className="flex flex-wrap items-center justify-between gap-1.5 bg-white/95 border-2 border-amber-300 rounded-2xl p-2 md:p-2.5 shadow-xs shrink-0">
         {/* Back Button & Song Info */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-2.5">
           <button
             onClick={onBackToMap}
-            className="flex items-center gap-1.5 px-4 py-2.5 bg-amber-100 hover:bg-amber-200 text-amber-950 text-sm md:text-base font-black rounded-2xl border-2 border-amber-300 transition shadow-sm active:scale-95"
+            className="flex items-center gap-1 px-3 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-950 text-xs md:text-sm font-black rounded-xl border border-amber-300 transition shadow-xs active:scale-95 shrink-0"
           >
             <span>←</span>
             <span>返回地圖</span>
           </button>
           <div>
-            <h2 className="text-lg md:text-xl font-black text-amber-950 tracking-tight leading-tight line-clamp-1">
+            <h2 className="text-sm sm:text-base md:text-lg lg:text-xl font-black text-amber-950 tracking-tight leading-tight truncate max-w-[180px] sm:max-w-xs md:max-w-md">
               {lesson.songName} · {currentChallenge.title}
             </h2>
-            <span className="text-xs text-amber-800 font-extrabold">
+            <span className="text-[11px] md:text-xs text-amber-800 font-extrabold block truncate max-w-[180px] sm:max-w-xs">
               {currentChallenge.titleEn}
             </span>
           </div>
         </div>
 
-        {/* 3 Challenge Tier Tabs */}
-        <div className="flex items-center bg-amber-100/80 rounded-2xl p-1 border-2 border-amber-300 shadow-sm">
-          {allChallenges.map((ch, idx) => (
-            <button
-              key={ch.id}
-              onClick={() => switchChallenge(idx)}
-              className={`px-3.5 py-2 rounded-xl text-xs md:text-sm font-black transition-all whitespace-nowrap active:scale-95 ${
-                activeChallengeIndex === idx
-                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md scale-105'
-                  : 'text-amber-950 hover:bg-amber-200/70'
-              }`}
-            >
-              {ch.type === 'technique' ? '1. 技巧特訓' : ch.type === 'song' ? '2. 歌曲挑戰' : '3. 舞台表演'}
-            </button>
-          ))}
+        {/* 4 Pedagogical Stage Tabs: 1. 技巧 -> 2. 主歌 -> 3. 副歌 -> 4. 全曲 */}
+        <div className="flex items-center bg-amber-100/90 rounded-xl p-0.5 border border-amber-300 shadow-xs">
+          {allChallenges.map((ch, idx) => {
+            const meta = STAGE_METAS[(idx + 1) as 1 | 2 | 3 | 4] || {
+              shortLabel: `${idx + 1}. 關卡`,
+              tabTitle: `${idx + 1}. 關卡`,
+              icon: '⭐',
+              description: '',
+            };
+            const isActive = activeChallengeIndex === idx;
+
+            return (
+              <button
+                key={ch.id}
+                onClick={() => switchChallenge(idx)}
+                className={`flex items-center gap-1 px-2 py-1 sm:px-2.5 sm:py-1 md:px-3 md:py-1.5 rounded-lg text-xs md:text-sm font-black transition-all whitespace-nowrap active:scale-95 ${
+                  isActive
+                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-xs font-black'
+                    : 'text-amber-950 hover:bg-amber-200/70'
+                }`}
+                title={meta.description}
+              >
+                <span className="hidden sm:inline">{meta.icon}</span>
+                <span>{meta.shortLabel}</span>
+              </button>
+            );
+          })}
         </div>
 
         {/* Quick Progress & Accuracy Pill */}
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-2 bg-amber-100 border-2 border-amber-300 px-3.5 py-2 rounded-2xl text-xs md:text-sm font-black text-amber-950 shadow-sm">
+        <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 bg-amber-100 border border-amber-300 px-2.5 py-1 rounded-xl text-xs md:text-sm font-black text-amber-950 shadow-xs">
             <span className="text-amber-900">進度:</span>
-            <span className="font-mono text-blue-700">
+            <span className="font-mono text-blue-700 text-sm md:text-base font-black">
               {currentNoteIndex} / {notes.length}
             </span>
             {comboStreak > 1 && (
-              <span className="bg-rose-500 text-white px-2 py-0.5 rounded-full font-black text-xs animate-bounce shadow-sm">
+              <span className="bg-rose-500 text-white px-1.5 py-0.2 rounded-full font-black text-[11px] md:text-xs shadow-xs">
                 🔥{comboStreak}連擊
               </span>
             )}
@@ -442,19 +462,19 @@ export const LessonInteractiveView: React.FC<LessonInteractiveViewProps> = ({
 
       {/* Microphone prompt banner if mic not running */}
       {inputMode === 'microphone' && !isMicRunning && (
-        <div className="bg-gradient-to-r from-emerald-50 via-teal-50 to-sky-50 border-2 border-emerald-400 rounded-2xl p-3 flex flex-wrap items-center justify-between gap-3 shadow-sm text-left">
-          <div className="flex items-center gap-2.5">
-            <span className="text-2xl">🎙️</span>
+        <div className="bg-gradient-to-r from-emerald-50 via-teal-50 to-sky-50 border-2 border-emerald-400 rounded-2xl p-2 flex flex-wrap items-center justify-between gap-1.5 shadow-xs text-left shrink-0">
+          <div className="flex items-center gap-2">
+            <span className="text-lg">🎙️</span>
             <div>
-              <span className="text-sm font-black text-emerald-950 block">麥克風聽琴尚未啟動</span>
-              <span className="text-xs text-emerald-800 font-bold block">
+              <span className="text-xs md:text-sm font-black text-emerald-950 block">麥克風聽琴尚未啟動</span>
+              <span className="text-[11px] md:text-xs text-emerald-800 font-bold block">
                 {micError || '點選右側按鈕開啟麥克風，即可聽琴即時辨音！'}
               </span>
             </div>
           </div>
           <button
             onClick={handleActivateMic}
-            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs md:text-sm font-black rounded-xl shadow transition animate-pulse"
+            className="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs md:text-sm font-black rounded-xl shadow-xs transition active:scale-95"
           >
             點擊開啟麥克風
           </button>
@@ -464,11 +484,11 @@ export const LessonInteractiveView: React.FC<LessonInteractiveViewProps> = ({
       {/* ========================================================================= */}
       {/* 2. Middle Interactive Musical Stage (五線譜 + 隨行導師與目標指法)          */}
       {/* ========================================================================= */}
-      <div className="flex-1 flex flex-col justify-center gap-2 my-1">
+      <div className="flex-1 min-h-0 flex flex-col justify-center gap-1 my-0.5 overflow-hidden">
         {/* Mascot & Traveling Companion Mentor Dynamic Guidance */}
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            {/* Kai & Active Companion Character */}
+        <div className="flex items-center justify-between gap-2 shrink-0 px-1">
+          <div className="flex items-center gap-2">
+            {/* Kai & Active Companion Character - Size optimized for complete tablet/laptop display */}
             <KaiCharacter
               mood={characterMood}
               companion={activeMentor === 'kai' ? 'none' : (activeMentor as any)}
@@ -476,18 +496,18 @@ export const LessonInteractiveView: React.FC<LessonInteractiveViewProps> = ({
               lastHitTimestamp={lastHitTimestamp}
               speechText={mascotText}
               speechEn={mascotEn}
-              size="md"
+              size="sm"
             />
           </div>
 
-          {/* Current Target Focus Chip */}
+          {/* Current Target Focus Chip - High Impact & Perfectly Proportionate */}
           {currentTargetNote && (
-            <div className="flex items-center gap-2.5 bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 border-2 border-white px-5 py-2.5 rounded-2xl shadow-md text-slate-950">
-              <span className="text-xs md:text-sm font-black">🎯 目標指法:</span>
-              <span className="w-8 h-8 md:w-9 md:h-9 rounded-full bg-blue-600 text-white font-black flex items-center justify-center text-base md:text-lg border-2 border-white shadow-sm">
+            <div className="flex items-center gap-2 md:gap-3 bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 border-2 border-white px-3 py-1.5 md:px-4 md:py-2 rounded-2xl shadow-md text-slate-950 shrink-0">
+              <span className="text-xs sm:text-sm md:text-base font-black">🎯 目標指法:</span>
+              <span className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-blue-600 text-white font-black flex items-center justify-center text-base md:text-xl border-2 border-white shadow-xs shrink-0">
                 {currentTargetNote.fingerNumber}
               </span>
-              <span className="text-sm md:text-base font-black font-mono">
+              <span className="text-xs sm:text-sm md:text-base font-black font-mono">
                 {currentTargetNote.hand === 'left' ? '左手' : '右手'} {currentTargetNote.noteName} ({currentTargetNote.solfege})
               </span>
             </div>
@@ -663,7 +683,9 @@ export const LessonInteractiveView: React.FC<LessonInteractiveViewProps> = ({
                 }}
                 className="flex-1 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-black text-sm shadow-md transition active:scale-95"
               >
-                {activeChallengeIndex < allChallenges.length - 1 ? '下一關 ➔' : '返回地圖 ➔'}
+                {activeChallengeIndex < allChallenges.length - 1
+                  ? `前往：${STAGE_METAS[(activeChallengeIndex + 2) as 1 | 2 | 3 | 4]?.shortLabel || '下一關'} ➔`
+                  : '👑 全曲通關！返回地圖 ➔'}
               </button>
             </div>
           </div>

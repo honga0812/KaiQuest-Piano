@@ -20,6 +20,9 @@ import { FirstTimeFlowModal } from './components/modals/FirstTimeFlowModal';
 import { SettingsCalibrateModal } from './components/modals/SettingsCalibrateModal';
 import { ScaleRecognitionModal } from './components/modals/ScaleRecognitionModal';
 import { IPadInstallGuideModal } from './components/modals/IPadInstallGuideModal';
+import { DailyCheckInModal } from './components/modals/DailyCheckInModal';
+import { MusicExplorerCelebrationModal } from './components/modals/MusicExplorerCelebrationModal';
+import { useDailyPracticeTimer } from './hooks/useDailyPracticeTimer';
 import { getPublicShareUrl, isDevUrl } from './utils/safariShare';
 
 export default function App() {
@@ -31,11 +34,27 @@ export default function App() {
   const [showScaleModal, setShowScaleModal] = useState<boolean>(false);
   const [showIPadModal, setShowIPadModal] = useState<boolean>(false);
   const [showIPadFullscreenTip, setShowIPadFullscreenTip] = useState<boolean>(false);
+  const [showDailyCheckInModal, setShowDailyCheckInModal] = useState<boolean>(false);
+  const [showMusicExplorerCelebration, setShowMusicExplorerCelebration] = useState<boolean>(false);
   const [isImmersiveMode, setIsImmersiveMode] = useState<boolean>(false);
   const [isOnline, setIsOnline] = useState<boolean>(typeof navigator !== 'undefined' ? navigator.onLine : true);
   const [showDevNotice, setShowDevNotice] = useState<boolean>(() => {
     if (typeof window === 'undefined') return false;
     return isDevUrl() && window.self === window.top;
+  });
+
+  // Daily check-in practice timer hook
+  const {
+    todaySeconds,
+    isTodayQualified,
+    currentStreak,
+  } = useDailyPracticeTimer({
+    progress,
+    setProgress,
+    currentTab,
+    onMusicExplorerAwarded: () => {
+      setShowMusicExplorerCelebration(true);
+    },
   });
 
   // Check if first-time calibration needed
@@ -277,17 +296,22 @@ export default function App() {
         inputMode={progress.selectedInputMode}
         onOpenCalibration={() => setShowSettingsModal(true)}
         onOpenScaleModal={() => setShowScaleModal(true)}
+        onOpenCheckInModal={() => setShowDailyCheckInModal(true)}
+        streakCount={currentStreak}
+        isTodayQualified={isTodayQualified}
+        todayPracticeSeconds={todaySeconds}
         isImmersiveMode={isImmersiveMode}
         onToggleFullscreen={handleToggleFullscreen}
       />
 
       {/* Main Content Area */}
-      <main className={`flex-1 flex flex-col items-stretch justify-start overflow-y-auto w-full ${isImmersiveMode ? 'pt-2' : ''}`}>
+      <main className={`flex-1 flex flex-col items-stretch justify-start w-full ${currentTab === 'lesson' ? 'overflow-y-auto lg:overflow-hidden' : 'overflow-y-auto'} ${isImmersiveMode ? 'pt-2' : ''}`}>
         {currentTab === 'map' && (
           <CourseMapView
             progress={progress}
             onSelectLesson={handleSelectLesson}
             onOpenConcert={() => setCurrentTab('concert')}
+            onOpenGym={() => setCurrentTab('gym')}
             onSelectAge={handleUpdateAge}
           />
         )}
@@ -328,6 +352,7 @@ export default function App() {
         {currentTab === 'badges' && (
           <BadgesView
             progress={progress}
+            onOpenCheckInModal={() => setShowDailyCheckInModal(true)}
           />
         )}
       </main>
@@ -360,6 +385,37 @@ export default function App() {
         onClose={() => setShowIPadModal(false)}
         onToggleFullscreen={handleToggleFullscreen}
         isImmersiveMode={isImmersiveMode}
+      />
+
+      {/* Daily Check-In & Practice Tracker Modal */}
+      <DailyCheckInModal
+        isOpen={showDailyCheckInModal}
+        onClose={() => setShowDailyCheckInModal(false)}
+        progress={progress}
+        onUpdateProgress={setProgress}
+        onOpenBadges={() => {
+          setShowDailyCheckInModal(false);
+          setCurrentTab('badges');
+        }}
+        onOpenLessons={() => {
+          setShowDailyCheckInModal(false);
+          setCurrentTab('map');
+        }}
+        onOpenFreeplay={() => {
+          setShowDailyCheckInModal(false);
+          setCurrentTab('freeplay');
+        }}
+        onMusicExplorerAwarded={() => setShowMusicExplorerCelebration(true)}
+      />
+
+      {/* Music Explorer Badge Automatic Award Celebration Modal */}
+      <MusicExplorerCelebrationModal
+        isOpen={showMusicExplorerCelebration}
+        onClose={() => setShowMusicExplorerCelebration(false)}
+        onGoToBadges={() => {
+          setShowMusicExplorerCelebration(false);
+          setCurrentTab('badges');
+        }}
       />
     </div>
   );

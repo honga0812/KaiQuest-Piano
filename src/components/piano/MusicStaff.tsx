@@ -39,7 +39,7 @@ export const MusicStaff: React.FC<MusicStaffProps> = ({
 }) => {
   // Staff geometry - Enlarged for tablets and children's visual clarity
   const lineSpacing = 18; // 18px between staff lines
-  const staffTopY = 56;
+  const staffTopY = 60;   // Top staff line (Line 5) at Y=60
   const svgWidth = 760;
   const leftMargin = 120; // Clef + Time signature
   const rightMargin = 40;
@@ -79,10 +79,10 @@ export const MusicStaff: React.FC<MusicStaffProps> = ({
   const calculateNoteY = (midiNote: number): number => {
     const diatonicStep = getStaffDiatonicStep(midiNote);
     if (effectiveClef === 'bass') {
-      // Bass clef: Line 5 (A3, step -2) = 56, Line 4 (F3, step -4) = 74, Line 1 (G2, step -10) = 128, C4 (step 0) = 38
+      // Bass clef: Line 5 (A3, step -2) = staffTopY, Line 1 (G2, step -10) = staffTopY + 72
       return staffTopY - (diatonicStep + 2) * 9;
     }
-    // Treble clef: Line 5 (F5, step 10) = 56, Line 1 (E4, step 2) = 128, C4 (step 0) = 146
+    // Treble clef: Line 5 (F5, step 10) = staffTopY, Line 1 (E4, step 2) = staffTopY + 72, C4 (step 0) = staffTopY + 90
     return staffTopY + 90 - diatonicStep * 9;
   };
 
@@ -150,16 +150,20 @@ export const MusicStaff: React.FC<MusicStaffProps> = ({
       .range([leftMargin + noteSpacing / 2, svgWidth - rightMargin - noteSpacing / 2]);
   }, [visibleItems.length, leftMargin, availableWidth, svgWidth, rightMargin, noteSpacing]);
 
-  // Helper for all ledger lines
+  // Comprehensive calculation for all ledger lines (above and below staff)
   const getLedgerLinesY = (noteY: number): number[] => {
     const lines: number[] = [];
-    if (noteY >= 142) {
-      for (let ly = 146; ly <= noteY + 5; ly += 18) {
+    const line1Y = staffTopY + 4 * lineSpacing; // 132 (Line 1)
+    
+    // Below Line 1 (low notes e.g. Middle C at 150, A3 at 168, F3 at 186...)
+    if (noteY >= line1Y + lineSpacing - 4) {
+      for (let ly = line1Y + lineSpacing; ly <= noteY + 5; ly += lineSpacing) {
         lines.push(ly);
       }
     }
-    if (noteY <= 42) {
-      for (let ly = 38; ly >= noteY - 5; ly -= 18) {
+    // Above Line 5 (high notes e.g. A5 at 42, C6 at 24...)
+    if (noteY <= staffTopY - lineSpacing + 4) {
+      for (let ly = staffTopY - lineSpacing; ly >= noteY - 5; ly -= lineSpacing) {
         lines.push(ly);
       }
     }
@@ -180,13 +184,13 @@ export const MusicStaff: React.FC<MusicStaffProps> = ({
   );
 
   return (
-    <div className={`w-full select-none flex flex-col gap-2 ${className}`}>
+    <div className={`w-full select-none flex flex-col gap-1 sm:gap-1.5 ${className}`}>
       {/* Visual Duration & Tablet Window Navigator Header */}
-      <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-1.5 bg-amber-50/95 border-2 border-amber-300 rounded-2xl text-xs md:text-sm shadow-sm">
+      <div className="flex flex-wrap items-center justify-between gap-1.5 px-3 py-1 bg-amber-50/95 border-2 border-amber-300 rounded-2xl text-xs md:text-sm shadow-xs shrink-0">
         {/* Dynamic Accompanying Mentor Rhythmic Guidance Status */}
         <div className="flex items-center gap-2">
           {targetX !== null && (
-            <div className="flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-blue-600 via-indigo-600 to-amber-500 text-white font-black text-xs rounded-xl shadow-sm">
+            <div className="flex items-center gap-1.5 px-2.5 py-0.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-amber-500 text-white font-black text-xs rounded-xl shadow-xs">
               <span className="text-sm">{currentMentor.emoji}</span>
               <span>隨行導師 {currentMentor.name} 節拍同步</span>
               <span className="px-1.5 py-0.2 rounded-full bg-white/20 font-mono text-[10px]">
@@ -196,14 +200,14 @@ export const MusicStaff: React.FC<MusicStaffProps> = ({
           )}
 
           {comboStreak > 2 && (
-            <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-rose-500 text-white text-xs font-black shadow-xs animate-bounce">
+            <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-500 text-white text-xs font-black shadow-xs">
               🔥 {comboStreak} 連擊能量
             </span>
           )}
         </div>
 
         {/* Time Signature Info */}
-        <div className="flex items-center gap-2 text-xs md:text-sm font-black text-amber-950 bg-amber-100 px-3 py-1 rounded-xl border border-amber-300 ml-auto">
+        <div className="flex items-center gap-2 text-xs md:text-sm font-black text-amber-950 bg-amber-100 px-2.5 py-0.5 rounded-xl border border-amber-300 ml-auto">
           <span>拍號 {timeSignature[0]}/{timeSignature[1]} 拍</span>
           {totalNotesCount > MAX_VISIBLE_NOTES && (
             <span>
@@ -213,11 +217,11 @@ export const MusicStaff: React.FC<MusicStaffProps> = ({
         </div>
       </div>
 
-      {/* SVG Canvas with D3 Exact Calculation & Accompanying Mentor Glow Indicator */}
-      <div className="relative w-full bg-gradient-to-b from-amber-50/90 via-white to-amber-50/90 rounded-3xl shadow-md border-3 border-amber-300 flex items-center justify-center p-1 sm:p-2 overflow-hidden">
+      {/* SVG Canvas: Expanded 260px Height with Dedicated Collision-Free Zones */}
+      <div className="relative w-full bg-gradient-to-b from-amber-50/90 via-white to-amber-50/90 rounded-3xl shadow-sm border-2 border-amber-300 flex items-center justify-center p-1 sm:p-2 overflow-hidden">
         <svg
-          viewBox={`0 0 ${svgWidth} 220`}
-          className="w-full h-auto max-h-[250px]"
+          viewBox={`0 0 ${svgWidth} 260`}
+          className="w-full h-auto max-h-[190px] sm:max-h-[210px] md:max-h-[235px]"
           preserveAspectRatio="xMidYMid meet"
           shapeRendering="geometricPrecision"
         >
@@ -238,6 +242,9 @@ export const MusicStaff: React.FC<MusicStaffProps> = ({
             <filter id="mentorRippleGlow" x="-60%" y="-60%" width="220%" height="220%">
               <feDropShadow dx="0" dy="0" stdDeviation="14" floodColor={currentMentor.glowColor} floodOpacity="0.95" />
             </filter>
+            <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="0" dy="1.5" stdDeviation="2" floodColor="#0F172A" floodOpacity="0.15" />
+            </filter>
 
             {/* Linear Gradients for Dynamic Beat Indicator Beam */}
             <linearGradient id="beatBeamGradient" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -255,7 +262,7 @@ export const MusicStaff: React.FC<MusicStaffProps> = ({
             </linearGradient>
           </defs>
 
-          {/* 5 Staff Lines - D3 Calculated exact coordinate positions */}
+          {/* 5 Staff Lines - D3 Calculated exact coordinate positions (Line 5 to Line 1) */}
           {[1, 2, 3, 4, 5].map((lineNum) => {
             const y = staffLineScale(lineNum);
             return (
@@ -280,11 +287,11 @@ export const MusicStaff: React.FC<MusicStaffProps> = ({
           )}
 
           {/* Time Signature (拍號 4/4 or 3/4) */}
-          <g transform="translate(90, 8)">
-            <text x="0" y="84" fontSize="32" fontWeight="bold" fontFamily="serif" fill="#0F172A" textAnchor="middle">
+          <g transform={`translate(90, ${staffTopY})`}>
+            <text x="0" y="28" fontSize="30" fontWeight="bold" fontFamily="serif" fill="#0F172A" textAnchor="middle">
               {timeSignature[0]}
             </text>
-            <text x="0" y="118" fontSize="32" fontWeight="bold" fontFamily="serif" fill="#0F172A" textAnchor="middle">
+            <text x="0" y="62" fontSize="30" fontWeight="bold" fontFamily="serif" fill="#0F172A" textAnchor="middle">
               {timeSignature[1]}
             </text>
           </g>
@@ -297,9 +304,9 @@ export const MusicStaff: React.FC<MusicStaffProps> = ({
               {/* 1. Full Vertical Laser Beat Guide Beam */}
               <line
                 x1={targetX}
-                y1={16}
+                y1={14}
                 x2={targetX}
-                y2={204}
+                y2={246}
                 stroke={isNoteCorrect || isMidiMatched ? 'url(#beatHitGradient)' : 'url(#beatBeamGradient)'}
                 strokeWidth={isNoteCorrect || isMidiMatched ? '5.5' : '3.8'}
                 filter="url(#mentorBeamGlow)"
@@ -311,14 +318,13 @@ export const MusicStaff: React.FC<MusicStaffProps> = ({
               <g transform={`translate(${targetX}, 13)`}>
                 {/* Pointer Arrow */}
                 <polygon
-                  points="0,11 -9,-1 9,-1"
+                  points="0,11 -8,0 8,0"
                   fill={isNoteCorrect || isMidiMatched ? '#059669' : currentMentor.color}
-                  className="animate-bounce"
                 />
                 {/* Mini Mentor Emblem Badge */}
                 <circle
                   cx="0"
-                  cy="-7"
+                  cy="-6"
                   r="9"
                   fill="#FFFFFF"
                   stroke={currentMentor.color}
@@ -327,7 +333,7 @@ export const MusicStaff: React.FC<MusicStaffProps> = ({
                 />
                 <text
                   x="0"
-                  y="-3.5"
+                  y="-2.5"
                   fontSize="11"
                   textAnchor="middle"
                   className="select-none"
@@ -378,22 +384,22 @@ export const MusicStaff: React.FC<MusicStaffProps> = ({
                 </g>
               )}
 
-              {/* 5. Bottom Beat Counter Tag with Mentor Identity */}
-              <g transform={`translate(${targetX}, 198)`}>
+              {/* 5. Bottom Beat Counter Tag with Mentor Identity (Y=242 - Below all low notes) */}
+              <g transform={`translate(${targetX}, 242)`}>
                 <rect
                   x="-32"
-                  y="-12"
+                  y="-11"
                   width="64"
-                  height="18"
-                  rx="9"
+                  height="20"
+                  rx="10"
                   fill={isNoteCorrect || isMidiMatched ? '#059669' : currentMentor.strokeColor}
                   className="shadow-sm"
                 />
                 <text
                   x="0"
-                  y="1"
+                  y="3"
                   fill="#FFFFFF"
-                  fontSize="10"
+                  fontSize="11"
                   fontWeight="900"
                   textAnchor="middle"
                 >
@@ -411,10 +417,10 @@ export const MusicStaff: React.FC<MusicStaffProps> = ({
             const noteX = noteXScale(relIndex);
             const noteY = calculateNoteY(note.midiNote);
 
-            // Ledger Lines
+            // Comprehensive ledger lines list
             const ledgerYList = getLedgerLinesY(noteY);
 
-            // Accurate Duration Typology
+            // Note Duration classification
             const isWholeNote = durationBeats >= 3.5;
             const isDottedHalf = durationBeats >= 2.5 && durationBeats < 3.5;
             const isHalfNote = durationBeats >= 1.75 && durationBeats < 2.5;
@@ -430,14 +436,22 @@ export const MusicStaff: React.FC<MusicStaffProps> = ({
             const isSharp = note.noteName.includes('#');
             const isFlat = note.noteName.includes('b');
 
-            // Stem direction (Up if below middle line B4, Down if above)
-            const stemPointsUp = noteY > 92;
+            // Stem direction (Up if below middle line B4=96, Down if above)
+            const stemPointsUp = noteY >= 96;
             const stemX = stemPointsUp ? noteX + 11 : noteX - 11;
             const stemStartY = noteY;
-            const stemEndY = stemPointsUp ? noteY - 42 : noteY + 42;
+            const stemEndY = stemPointsUp ? noteY - 38 : noteY + 38;
 
-            // Finger number position
-            const fingerY = noteY > 92 ? 172 : 34;
+            // Finger number position:
+            // When note is lower down (noteY >= 105), stem points UP, so finger number stays
+            // cleanly in the dedicated top indicator track (Y=28) - COMPLETELY SEPARATED from lower notes!
+            // When note is high (noteY < 105), stem points DOWN, place finger number safely above note head.
+            const fingerY = noteY >= 105 ? 28 : Math.max(26, noteY - 24);
+
+            // Solfege Name Position:
+            // For lower notes (noteY >= 132), sits just under the note/ledger lines (noteY + 28).
+            // For notes on or above staff (noteY < 132), sits cleanly in the baseline track (Y=162).
+            const solfegeY = noteY >= 132 ? noteY + 28 : 162;
 
             // Colors
             const primaryColor = isPast
@@ -460,9 +474,9 @@ export const MusicStaff: React.FC<MusicStaffProps> = ({
                   <g>
                     <rect
                       x={noteX - 22}
-                      y={20}
+                      y={14}
                       width={44}
-                      height={176}
+                      height={236}
                       rx={22}
                       fill={isNoteCorrect ? '#DCFCE7' : '#EFF6FF'}
                       stroke={isNoteCorrect ? '#10B981' : currentMentor.color}
@@ -473,7 +487,7 @@ export const MusicStaff: React.FC<MusicStaffProps> = ({
                   </g>
                 )}
 
-                {/* Ledger Lines */}
+                {/* Ledger Lines with Extra Clearance */}
                 {ledgerYList.map((ly) => (
                   <line
                     key={`ledger-${note.id}-${ly}`}
@@ -482,7 +496,7 @@ export const MusicStaff: React.FC<MusicStaffProps> = ({
                     x2={noteX + 18}
                     y2={ly}
                     stroke="#334155"
-                    strokeWidth="2.8"
+                    strokeWidth="2.6"
                     strokeLinecap="round"
                     shapeRendering="geometricPrecision"
                   />
@@ -585,40 +599,52 @@ export const MusicStaff: React.FC<MusicStaffProps> = ({
                   </g>
                 )}
 
-                {/* Finger Number Tag */}
+                {/* Finger Number Tag - Placed in dedicated clear tracks, NEVER overlaps lower notes */}
                 {note.fingerNumber && (
                   <g transform={`translate(${noteX}, ${fingerY})`}>
                     <circle
                       cx="0"
                       cy="0"
-                      r="12"
-                      fill={isTarget ? (isNoteCorrect ? '#10B981' : '#2563EB') : '#E2E8F0'}
-                      stroke={isTarget ? '#FFFFFF' : '#94A3B8'}
-                      strokeWidth="2"
-                      className="shadow-sm"
+                      r="15"
+                      fill={isTarget ? (isNoteCorrect ? '#10B981' : '#2563EB') : '#F8FAFC'}
+                      stroke={isTarget ? '#FFFFFF' : '#64748B'}
+                      strokeWidth="2.4"
+                      filter="url(#softShadow)"
                     />
                     <text
                       x="0"
-                      y="4"
+                      y="5"
                       textAnchor="middle"
-                      fontSize="12"
-                      fontWeight="bold"
-                      fill={isTarget ? '#FFFFFF' : '#1E293B'}
+                      fontSize="14"
+                      fontWeight="900"
+                      fill={isTarget ? '#FFFFFF' : '#0F172A'}
                     >
                       {note.fingerNumber}
                     </text>
                   </g>
                 )}
 
-                {/* Solfege Name & Note Name Below/Above */}
-                <g transform={`translate(${noteX}, ${noteY > 92 ? noteY - 24 : noteY + 26})`}>
+                {/* Solfege Name with Protective Backdrop Pill - 100% Legibility even over lower ledger lines */}
+                <g transform={`translate(${noteX}, ${solfegeY})`}>
+                  <rect
+                    x="-18"
+                    y="-10"
+                    width="36"
+                    height="20"
+                    rx="10"
+                    fill="#FFFFFF"
+                    fillOpacity="0.95"
+                    stroke={isTarget ? (isNoteCorrect ? '#10B981' : '#3B82F6') : '#CBD5E1'}
+                    strokeWidth={isTarget ? '2' : '1.2'}
+                    filter="url(#softShadow)"
+                  />
                   <text
                     x="0"
-                    y="0"
+                    y="4"
                     textAnchor="middle"
-                    fontSize="11"
+                    fontSize="13"
                     fontWeight="900"
-                    fill={isTarget ? (isNoteCorrect ? '#059669' : '#1D4ED8') : '#64748B'}
+                    fill={isTarget ? (isNoteCorrect ? '#047857' : '#1D4ED8') : '#334155'}
                   >
                     {note.solfege}
                   </text>
