@@ -5,16 +5,42 @@ class PianoSynthesizer {
   private masterGain: GainNode | null = null;
   private activeVoices: Map<number, { oscillators: OscillatorNode[]; gain: GainNode }> = new Map();
 
-  private getAudioContext(): AudioContext {
-    if (!this.ctx) {
+  constructor() {
+    this.attachAutoUnlock();
+  }
+
+  private attachAutoUnlock(): void {
+    if (typeof window === 'undefined') return;
+    const unlock = () => {
+      this.resume().catch(() => {});
+    };
+    window.addEventListener('pointerdown', unlock, { passive: true });
+    window.addEventListener('touchstart', unlock, { passive: true });
+    window.addEventListener('keydown', unlock, { passive: true });
+    window.addEventListener('click', unlock, { passive: true });
+  }
+
+  public async resume(): Promise<void> {
+    const ctx = this.getAudioContext();
+    if (ctx && (ctx.state === 'suspended' || (ctx.state as string) === 'interrupted')) {
+      try {
+        await ctx.resume();
+      } catch (err) {
+        console.warn('AudioContext resume error:', err);
+      }
+    }
+  }
+
+  public getAudioContext(): AudioContext {
+    if (!this.ctx || this.ctx.state === 'closed') {
       const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
       this.ctx = new AudioCtx();
       this.masterGain = this.ctx.createGain();
       this.masterGain.gain.setValueAtTime(0.75, this.ctx.currentTime);
       this.masterGain.connect(this.ctx.destination);
     }
-    if (this.ctx.state === 'suspended') {
-      this.ctx.resume();
+    if (this.ctx.state === 'suspended' || (this.ctx.state as string) === 'interrupted') {
+      this.ctx.resume().catch(() => {});
     }
     return this.ctx;
   }

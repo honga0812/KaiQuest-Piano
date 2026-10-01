@@ -4,12 +4,21 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import {defineConfig} from 'vite';
 import {VitePWA} from 'vite-plugin-pwa';
+import { handleTtsRequest } from './src/server/ttsHandler.js';
 
 export default defineConfig(() => {
   return {
     plugins: [
       react(),
       tailwindcss(),
+      {
+        name: 'tts-api-server',
+        configureServer(server) {
+          server.middlewares.use('/api/tts', async (req, res) => {
+            await handleTtsRequest(req, res);
+          });
+        },
+      },
       VitePWA({
         registerType: 'autoUpdate',
         includeAssets: ['favicon.png', 'apple-touch-icon.png', 'icon.svg'],

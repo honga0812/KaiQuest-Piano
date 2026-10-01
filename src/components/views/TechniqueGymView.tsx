@@ -221,6 +221,7 @@ export const TechniqueGymView: React.FC<TechniqueGymViewProps> = ({
             <DynamicKeyboard
               currentTargetNote={currentTarget}
               liveActiveMidiNote={liveMidiNote}
+              notes={selectedGame.notes}
               onKeyPress={handleKeyTrigger}
             />
           </div>

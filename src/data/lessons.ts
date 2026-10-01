@@ -98,7 +98,7 @@ function enrichLessonsWithWeeklyCycle(rawLessons: Lesson[]): Lesson[] {
         titleEn: `${primarySong.titleEn} (Day 3: Hands Coordination & Phrasing)`,
         subtitle: `在第2堂的基礎上，加入更穩健的手指重心轉移與流暢如歌的旋律連音！`,
         character: primarySong.character || 'kai',
-        characterPrompt: '太棒了！今天我們要把旋律彈得像歌唱一樣連貫動聽！',
+        characterPrompt: '你成功了，邁向新進度！今天我們要把旋律彈得像歌唱一樣連貫動聽，繼續加油！',
         characterPromptEn: 'Sing through the piano keys with smooth legato!',
         bpm: Math.min(120, primarySong.bpm + 4),
         timeSignature: primarySong.timeSignature || [4, 4],

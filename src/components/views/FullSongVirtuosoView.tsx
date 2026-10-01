@@ -12,6 +12,7 @@ import { LetterNotation } from '../piano/LetterNotation';
 import { DynamicKeyboard } from '../piano/DynamicKeyboard';
 import { PitchMonitorBar } from '../piano/PitchMonitorBar';
 import { ScaleRecognitionModal } from '../modals/ScaleRecognitionModal';
+import { speechGuide } from '../../utils/speechGuide';
 
 interface FullSongVirtuosoViewProps {
   inputMode: InputMode;
@@ -188,7 +189,7 @@ export const FullSongVirtuosoView: React.FC<FullSongVirtuosoViewProps> = ({
           setMascotEn('Nice! Next note!');
         }
       } else {
-        // Complete full piece!
+        // Complete full piece with varied celebration speech!
         setShowCompletionModal(true);
         pianoSynth.playFanfare();
         confetti({
@@ -196,6 +197,16 @@ export const FullSongVirtuosoView: React.FC<FullSongVirtuosoViewProps> = ({
           spread: 80,
           origin: { y: 0.5 },
         });
+
+        const virtuosoPraises = [
+          `你成功了！完整彈奏完《${currentPiece.title}》，你是最棒的鋼琴大師！繼續加油！`,
+          `你是最棒的！全曲零中斷流暢演奏，表現太震撼了！繼續加油！`,
+          `繼續加油！你成功征服了《${currentPiece.title}》，節奏與指法太穩健了！`,
+          `太厲害了！音符像行雲流水一樣動聽，你成功了，你是最棒的！`,
+          `你做到了！這是一場大師級的完整演出，大家都為你鼓掌，繼續加油！`,
+        ];
+        const randomPraise = virtuosoPraises[Math.floor(Math.random() * virtuosoPraises.length)];
+        speechGuide.speak(randomPraise, { emotion: 'excited' });
       }
     }, 220);
   }, [currentNoteIndex, notes.length, selectedCategory]);
@@ -633,6 +644,7 @@ export const FullSongVirtuosoView: React.FC<FullSongVirtuosoViewProps> = ({
             currentTargetNote={currentTargetNote}
             liveActiveMidiNote={liveActiveMidi}
             showFingerNumbers={true}
+            notes={currentPiece.notes}
             onKeyPress={(midiNote) => {
               setLiveActiveMidi(midiNote);
               if (currentTargetNote && midiNote === currentTargetNote.midiNote) {
@@ -681,13 +693,17 @@ export const FullSongVirtuosoView: React.FC<FullSongVirtuosoViewProps> = ({
 
             <div className="flex items-center gap-3 w-full pt-3">
               <button
-                onClick={handleRestartPiece}
+                onClick={() => {
+                  speechGuide.stop();
+                  handleRestartPiece();
+                }}
                 className="flex-1 py-3 rounded-2xl bg-amber-100 hover:bg-amber-200 text-amber-950 font-black text-sm transition border-2 border-amber-300 shadow-sm active:scale-95"
               >
                 🔄 再彈一次
               </button>
               <button
                 onClick={() => {
+                  speechGuide.stop();
                   setShowCompletionModal(false);
                   const currentIndex = filteredPieces.findIndex((p) => p.id === currentPiece.id);
                   const nextPiece = filteredPieces[(currentIndex + 1) % filteredPieces.length];

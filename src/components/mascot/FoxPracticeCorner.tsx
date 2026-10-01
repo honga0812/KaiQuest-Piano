@@ -41,7 +41,12 @@ export const FoxPracticeCorner: React.FC<FoxPracticeCornerProps> = ({
   useEffect(() => {
     if (completionPercent >= 100) {
       setPose('celebrating');
-      setBubbleText('太棒了！全曲完成！你真的是小小鋼琴家！🎉');
+      const finishCheers = [
+        '你成功了！全曲完成！你真的是小小鋼琴家！🎉',
+        '繼續加油！全曲順利彈完，表現太精彩了！⭐',
+        '你是最棒的！全曲演奏完美達成！👑',
+      ];
+      setBubbleText(finishCheers[Math.floor(Math.random() * finishCheers.length)]);
       return;
     }
 

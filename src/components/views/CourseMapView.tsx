@@ -7,6 +7,7 @@ import { KaiAndFriendsEnsemble, EliLionSvg, KabutoBeetleSvg, PicoDolphinSvg, Rex
 import { CartoonIslandMap } from './CartoonIslandMap';
 import { WeeklyLearningPlan } from './WeeklyLearningPlan';
 import { pianoSynth } from '../../audio/pianoSynthesizer';
+import { speechGuide } from '../../utils/speechGuide';
 
 interface CourseMapViewProps {
   progress: UserProgress;
@@ -68,18 +69,10 @@ export const CourseMapView: React.FC<CourseMapViewProps> = ({
     ) || ageLessons[0];
 
   const speakLessonGuide = (lesson: Lesson) => {
-    if (!('speechSynthesis' in window)) return;
-    try {
-      window.speechSynthesis.cancel();
-      const prompt = `第 ${lesson.lessonNumber} 課《${lesson.songName}》，${lesson.title}！練習重點：${lesson.storyScene || '手型要像握住一顆小蘋果，跟著節奏穩健彈奏'}。探險家 Kai 為你加油！`;
-      const utterance = new SpeechSynthesisUtterance(prompt);
-      utterance.lang = 'zh-TW';
-      utterance.rate = 0.95;
-      utterance.pitch = 1.15;
-      window.speechSynthesis.speak(utterance);
-    } catch (err) {
-      console.error('Speech synthesis error:', err);
-    }
+    const prompt = `第 ${lesson.lessonNumber} 課《${lesson.songName}》，${lesson.title}！練習重點：${lesson.storyScene || '手型要像握住一顆小蘋果，跟著節奏穩健彈奏'}。探險家 Kai 為你加油！`;
+    speechGuide.speak(prompt, {
+      emotion: 'friendly',
+    });
   };
 
   const handleLessonCardClick = (lesson: Lesson, isUnlocked: boolean) => {
@@ -88,7 +81,7 @@ export const CourseMapView: React.FC<CourseMapViewProps> = ({
       return;
     }
     pianoSynth.playCorrectHitSound();
-    speakLessonGuide(lesson);
+    speechGuide.stop();
     onSelectLesson(lesson);
   };
 

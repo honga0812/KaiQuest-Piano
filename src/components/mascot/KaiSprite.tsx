@@ -3,8 +3,8 @@ import React, { useState, useEffect } from 'react';
 export type KaiSpriteState = 'idle' | 'walking' | 'celebrating';
 
 interface KaiSpriteProps {
-  x: number;
-  y: number;
+  x?: number;
+  y?: number;
   size?: number;
   facing?: 'left' | 'right';
   state?: KaiSpriteState;
@@ -22,8 +22,8 @@ interface KaiSpriteProps {
  * - Zero external bitmap dependencies, perfectly scalable SVG sprite.
  */
 export const KaiSprite: React.FC<KaiSpriteProps> = ({
-  x,
-  y,
+  x = 0,
+  y = 0,
   size = 72,
   facing = 'right',
   state = 'idle',

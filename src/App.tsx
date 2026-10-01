@@ -24,6 +24,8 @@ import { DailyCheckInModal } from './components/modals/DailyCheckInModal';
 import { MusicExplorerCelebrationModal } from './components/modals/MusicExplorerCelebrationModal';
 import { useDailyPracticeTimer } from './hooks/useDailyPracticeTimer';
 import { getPublicShareUrl, isDevUrl } from './utils/safariShare';
+import { BackgroundMusicPlayer } from './components/common/BackgroundMusicPlayer';
+import { speechGuide } from './utils/speechGuide';
 
 export default function App() {
   const [progress, setProgress] = useState<UserProgress>(loadUserProgress);
@@ -167,6 +169,7 @@ export default function App() {
   };
 
   const handleSelectLesson = (lesson: Lesson) => {
+    speechGuide.stop();
     setActiveLesson(lesson);
     setCurrentTab('lesson');
   };
@@ -417,6 +420,9 @@ export default function App() {
           setCurrentTab('badges');
         }}
       />
+
+      {/* Floating Gentle Background Music Player with Lesson Auto-Pause */}
+      <BackgroundMusicPlayer currentTab={currentTab} />
     </div>
   );
 }

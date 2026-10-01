@@ -149,6 +149,15 @@ export class MicrophoneInputAdapter implements PianoInputAdapter {
         });
       }
 
+      this.mediaStream.getTracks().forEach((track) => {
+        track.onended = () => {
+          if (this.isRunning) {
+            console.warn('Microphone track ended, attempting auto-reconnect...');
+            this.reconnect();
+          }
+        };
+      });
+
       const source = this.audioCtx.createMediaStreamSource(this.mediaStream);
 
       // Piano-specific Bandpass Filter Pipeline:
@@ -198,6 +207,31 @@ export class MicrophoneInputAdapter implements PianoInputAdapter {
       this.lastError = userFriendlyMessage;
       this.notifyStatus(false, this.lastError);
       throw new Error(userFriendlyMessage);
+    }
+  }
+
+  public async ensureRunning(): Promise<boolean> {
+    if (this.isRunning && this.audioCtx && this.audioCtx.state === 'running') {
+      return true;
+    }
+    if (this.isRunning && this.audioCtx && (this.audioCtx.state === 'suspended' || (this.audioCtx.state as string) === 'interrupted')) {
+      await this.audioCtx.resume().catch(() => {});
+      return true;
+    }
+    try {
+      await this.start();
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  public async reconnect(): Promise<void> {
+    this.stop();
+    try {
+      await this.start();
+    } catch (e) {
+      console.warn('Mic auto-reconnect failed:', e);
     }
   }
 
@@ -288,6 +322,10 @@ export class MicrophoneInputAdapter implements PianoInputAdapter {
 
   private processAudioLoop = (): void => {
     if (!this.isRunning || !this.analyser || !this.buffer || !this.audioCtx) return;
+
+    if (this.audioCtx.state === 'suspended') {
+      this.audioCtx.resume().catch(() => {});
+    }
 
     this.analyser.getFloatTimeDomainData(this.buffer);
 

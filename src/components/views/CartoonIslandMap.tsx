@@ -5,6 +5,7 @@ import { KaiSprite, KaiSpriteState } from '../mascot/KaiSprite';
 import { pianoSynth } from '../../audio/pianoSynthesizer';
 import { ISLAND_MAP_THEMES, StationThematicCoord } from './islandMapThemes';
 import { IslandThematicScenery } from './IslandThematicScenery';
+import { speechGuide } from '../../utils/speechGuide';
 
 interface CartoonIslandMapProps {
   lessons: Lesson[];
@@ -80,23 +81,16 @@ export const CartoonIslandMap: React.FC<CartoonIslandMapProps> = ({
 
   // AI Speech Synthesis Guide - Speaks lesson practice focus & encouraging words
   const speakLessonGuide = (lesson: Lesson, stationName: string) => {
-    if (!isVoiceGuideEnabled || !('speechSynthesis' in window)) return;
-    try {
-      window.speechSynthesis.cancel();
-      const prompt = `第 ${lesson.lessonNumber} 課《${lesson.songName}》，歡迎來到${stationName}！這節課的練習重點是：${
-        lesson.storyScene || '手型保持放鬆圓潤，跟著節奏穩健前行'
-      }。探險家 Kai 為你加油，出發吧！`;
-      setSpeakingText(prompt);
-      const utterance = new SpeechSynthesisUtterance(prompt);
-      utterance.lang = 'zh-TW';
-      utterance.rate = 0.95;
-      utterance.pitch = 1.15;
-      utterance.onend = () => setSpeakingText(null);
-      utterance.onerror = () => setSpeakingText(null);
-      window.speechSynthesis.speak(utterance);
-    } catch (err) {
-      console.error('Speech synthesis error:', err);
-    }
+    if (!isVoiceGuideEnabled) return;
+    const prompt = `第 ${lesson.lessonNumber} 課《${lesson.songName}》，歡迎來到${stationName}！這節課的練習重點是：${
+      lesson.storyScene || '手型保持放鬆圓潤，跟著節奏穩健前行'
+    }。探險家 Kai 為你加油，出發吧！`;
+    setSpeakingText(prompt);
+    speechGuide.speak(prompt, {
+      emotion: 'friendly',
+      onEnd: () => setSpeakingText(null),
+      onError: () => setSpeakingText(null),
+    });
   };
 
   const handleStationClick = (station: (typeof stations)[0]) => {
@@ -117,19 +111,13 @@ export const CartoonIslandMap: React.FC<CartoonIslandMapProps> = ({
     setAnimalSpeech({ animal: name, text: speech });
 
     // Speak mentor speech if enabled
-    if (isVoiceGuideEnabled && 'speechSynthesis' in window) {
-      try {
-        window.speechSynthesis.cancel();
-        setSpeakingText(`${name}說：${speech}`);
-        const utterance = new SpeechSynthesisUtterance(`${name}說：${speech}`);
-        utterance.lang = 'zh-TW';
-        utterance.rate = 0.95;
-        utterance.pitch = 1.1;
-        utterance.onend = () => setSpeakingText(null);
-        window.speechSynthesis.speak(utterance);
-      } catch (err) {
-        console.error('Speech error:', err);
-      }
+    if (isVoiceGuideEnabled) {
+      setSpeakingText(`${name}說：${speech}`);
+      speechGuide.speak(`${name}說：${speech}`, {
+        emotion: 'excited',
+        onEnd: () => setSpeakingText(null),
+        onError: () => setSpeakingText(null),
+      });
     }
 
     setTimeout(() => {
@@ -557,7 +545,10 @@ export const CartoonIslandMap: React.FC<CartoonIslandMapProps> = ({
       {selectedStationLesson && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-fade-in text-left"
-          onClick={() => setSelectedStationLesson(null)}
+          onClick={() => {
+            speechGuide.stop();
+            setSelectedStationLesson(null);
+          }}
         >
           <div
             className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border-4 border-amber-300 transform transition-transform animate-scale-up"
@@ -576,7 +567,10 @@ export const CartoonIslandMap: React.FC<CartoonIslandMapProps> = ({
                 </div>
               </div>
               <button
-                onClick={() => setSelectedStationLesson(null)}
+                onClick={() => {
+                  speechGuide.stop();
+                  setSelectedStationLesson(null);
+                }}
                 className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center font-black"
               >
                 ✕
@@ -625,6 +619,7 @@ export const CartoonIslandMap: React.FC<CartoonIslandMapProps> = ({
 
             <button
               onClick={() => {
+                speechGuide.stop();
                 onSelectLesson(selectedStationLesson);
                 setSelectedStationLesson(null);
               }}
