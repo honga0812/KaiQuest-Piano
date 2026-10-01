@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useRef } from 'react';
 import confetti from 'canvas-confetti';
 import { Lesson, CharacterFriend } from '../../types/piano';
-import { speechGuide } from '../../utils/speechGuide';
+import { speechGuide, SpeechEmotion } from '../../utils/speechGuide';
+import { TalkingEmotionFace } from '../mascot/TalkingEmotionFace';
 import {
   ThemeTransitionCelebration,
   detectCelebrationTheme,
@@ -182,8 +183,21 @@ export const ThematicCelebrationModal: React.FC<ThematicCelebrationModalProps> =
   const [praise] = useState(() =>
     getPraiseForCompletion(lesson.songName, starsAwarded, activeMentor, stageNumber)
   );
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [spokenText, setSpokenText] = useState<string | null>(praise.speech);
+  const [speechEmotion, setSpeechEmotion] = useState<SpeechEmotion>('celebrating');
 
   const theme = THEME_REGISTRY[selectedThemeKey] || THEME_REGISTRY.forest_safari;
+
+  // Listen to speech status for dynamic mouth sync and floating emotional emojis
+  useEffect(() => {
+    const unsub = speechGuide.subscribeStatus((ev) => {
+      setIsSpeaking(ev.isSpeaking);
+      if (ev.currentText) setSpokenText(ev.currentText);
+      setSpeechEmotion(ev.emotion);
+    });
+    return unsub;
+  }, []);
 
   // Trigger rich confetti burst on mount
   useEffect(() => {
@@ -212,7 +226,7 @@ export const ThematicCelebrationModal: React.FC<ThematicCelebrationModalProps> =
     speechFiredRef.current = true;
 
     speechGuide.speak(praise.speech, {
-      emotion: 'excited',
+      emotion: 'celebrating',
     });
 
     return () => {
@@ -296,6 +310,18 @@ export const ThematicCelebrationModal: React.FC<ThematicCelebrationModalProps> =
           </p>
         </div>
 
+        {/* Animated Talking Mentor Face with Speech Emotion */}
+        <div className="w-full max-w-sm flex items-center justify-center">
+          <TalkingEmotionFace
+            isSpeaking={isSpeaking}
+            emotion={speechEmotion}
+            activeMentor={activeMentor}
+            currentText={spokenText || praise.speech}
+            size="md"
+            showBubble={true}
+          />
+        </div>
+
         {/* Dynamic Praise Voice Badge with Interactive Replay Button */}
         <div className={`px-4 py-2.5 rounded-2xl border-2 flex items-center justify-between gap-3 shadow-lg w-full max-w-sm ${praise.badgeColor}`}>
           <div className="flex items-center gap-2">
@@ -305,13 +331,13 @@ export const ThematicCelebrationModal: React.FC<ThematicCelebrationModalProps> =
           <button
             onClick={() => {
               speechGuide.stop();
-              speechGuide.speak(praise.speech, { emotion: 'excited' });
+              speechGuide.speak(praise.speech, { emotion: 'celebrating' });
             }}
             className="px-2.5 py-1 bg-white/20 hover:bg-white/30 rounded-xl text-xs font-black transition active:scale-95 flex items-center gap-1 text-white border border-white/30 shadow-xs"
             title="點擊再次朗讀語音讚賞"
           >
             <span>🔊</span>
-            <span>重播</span>
+            <span>重播真人AI語音</span>
           </button>
         </div>
 

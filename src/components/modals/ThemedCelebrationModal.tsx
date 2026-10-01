@@ -92,7 +92,7 @@ export const ThemedCelebrationModal: React.FC<ThemedCelebrationModalProps> = ({
       `太厲害了！你做到了！第 ${lesson.lessonNumber} 課《${lesson.songName}》獲得了 ${stars} 顆星星，繼續加油邁向下一關！`,
     ];
     const prompt = praiseOpeners[Math.floor(Math.random() * praiseOpeners.length)];
-    speechGuide.speak(prompt, { pitch: 1.2, rate: 0.95 });
+    speechGuide.speak(prompt, { emotion: 'celebrating' });
 
     return () => {
       clearTimeout(t1);

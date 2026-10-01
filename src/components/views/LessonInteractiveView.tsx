@@ -107,6 +107,7 @@ export const LessonInteractiveView: React.FC<LessonInteractiveViewProps> = ({
 
   const metronomeTimerRef = useRef<number | null>(null);
   const beatCountRef = useRef(0);
+  const lastMissTimeRef = useRef(0);
 
   const notes = currentChallenge.notes;
   const currentTargetNote: TargetNote | undefined = notes[currentNoteIndex];
@@ -232,11 +233,23 @@ export const LessonInteractiveView: React.FC<LessonInteractiveViewProps> = ({
         lastSuccessMidiRef.current = event.midiNote;
         handleNoteSuccess();
       } else {
+        // Microphone Noise Safeguards:
+        // When sound comes from microphone, prevent ambient noise or speech from accumulating false errors
+        if (event.source === 'microphone') {
+          // 1. Ignore out-of-range sub-bass rumble (<48) or ultra-high squeaks (>88)
+          if (event.midiNote < 48 || event.midiNote > 88) return;
+          // 2. Reject low-confidence non-piano timbre
+          if ((event.confidence ?? 1) < 0.55) return;
+          // 3. Debounce miss penalties: at least 650ms cooldown so a single room noise never counts as multiple misses
+          if (now - lastMissTimeRef.current < 650) return;
+        }
+
         const targetOctaveDiff = Math.abs(event.midiNote - currentTargetNote.midiNote);
         if (targetOctaveDiff <= 2 && Math.abs(event.centsOff ?? 0) > 35) {
           setIsNoteWobbly(true);
           setTimeout(() => setIsNoteWobbly(false), 300);
         } else {
+          lastMissTimeRef.current = now;
           handleNoteMiss(event.noteName);
         }
       }

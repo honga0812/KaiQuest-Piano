@@ -21,20 +21,21 @@ export class MicrophoneInputAdapter implements PianoInputAdapter {
   private lastError: string | null = null;
 
   // Calibration & Noise Gate settings
-  // Defaults to 'tablet-high' for iPad & tablet acoustic piano sensitivity
-  private sensitivityMode: 'tablet-high' | 'normal' | 'low-noise' = 'tablet-high';
-  private noiseFloorRms = 0.0015; // Baseline noise floor
-  private noiseGateThreshold = 0.0022; // Tablet-optimized low noise gate (~ -53 dB) to capture delicate keypresses
-  private micSensitivity = 2.4; // Digital hardware pre-gain boost for iPad built-in microphone
-  private minConfidence = 0.25; // Acoustic piano confidence threshold
-  private minGlobalMaxVal = 0.27; // Autocorrelation peak threshold
-  private pitchToleranceCents = 50;
+  // Default to 'normal' for balanced room acoustic piano and noise rejection
+  private sensitivityMode: 'tablet-high' | 'normal' | 'low-noise' = 'normal';
+  private noiseFloorRms = 0.003; // Baseline noise floor
+  private dynamicNoiseFloor = 0.003; // Continuously adapted ambient room noise floor
+  private noiseGateThreshold = 0.010; // Calibrated gate (~ -40 dB) preventing room murmur from triggering notes
+  private micSensitivity = 1.5; // Balanced digital hardware pre-gain
+  private minConfidence = 0.52; // High-confidence acoustic piano harmonic threshold (cuts out speech & noise)
+  private minGlobalMaxVal = 0.50; // Autocorrelation peak threshold
+  private pitchToleranceCents = 48;
 
   // State tracking for onset & note stability
   private candidateMidi = 0;
   private candidateConfidence = 0;
   private candidateFramesCount = 0;
-  private readonly requiredStableFrames = 1; // Immediate crisp response for soft piano key strikes
+  private readonly requiredStableFrames = 3; // Require at least 3 consecutive frames (~50ms) of consistent pitch
   private lastEmittedMidi = 0;
   private lastEmittedTime = 0;
   private lastEmittedOnsetId = 0;
@@ -64,20 +65,20 @@ export class MicrophoneInputAdapter implements PianoInputAdapter {
   public setSensitivityMode(mode: 'tablet-high' | 'normal' | 'low-noise'): void {
     this.sensitivityMode = mode;
     if (mode === 'tablet-high') {
-      this.micSensitivity = 2.4;
-      this.noiseGateThreshold = 0.0022;
-      this.minConfidence = 0.25;
-      this.minGlobalMaxVal = 0.27;
+      this.micSensitivity = 1.8;
+      this.noiseGateThreshold = 0.007;
+      this.minConfidence = 0.46;
+      this.minGlobalMaxVal = 0.45;
     } else if (mode === 'normal') {
-      this.micSensitivity = 1.4;
-      this.noiseGateThreshold = 0.0045;
-      this.minConfidence = 0.32;
-      this.minGlobalMaxVal = 0.35;
+      this.micSensitivity = 1.5;
+      this.noiseGateThreshold = 0.010;
+      this.minConfidence = 0.52;
+      this.minGlobalMaxVal = 0.50;
     } else if (mode === 'low-noise') {
       this.micSensitivity = 1.0;
-      this.noiseGateThreshold = 0.008;
-      this.minConfidence = 0.38;
-      this.minGlobalMaxVal = 0.40;
+      this.noiseGateThreshold = 0.018;
+      this.minConfidence = 0.58;
+      this.minGlobalMaxVal = 0.56;
     }
 
     if (this.preGainNode && this.audioCtx) {
@@ -335,16 +336,25 @@ export class MicrophoneInputAdapter implements PianoInputAdapter {
     for (let i = 0; i < len; i++) {
       sumSquares += this.buffer[i] * this.buffer[i];
     }
-    const rms = Math.sqrt(sumSquares / len) * this.micSensitivity;
+    const rawRms = Math.sqrt(sumSquares / len);
+    const rms = rawRms * this.micSensitivity;
 
-    // 2. Noise Gate Threshold Filter (法值 / 閥值過濾微小聲音與背景雜音)
-    const isAboveThreshold = rms >= this.noiseGateThreshold;
+    // Adapt background noise floor continuously during non-note / quiet periods
+    if (rms < this.noiseGateThreshold * 1.6) {
+      this.dynamicNoiseFloor = this.dynamicNoiseFloor * 0.95 + rms * 0.05;
+    }
+
+    // 2. Adaptive Effective Noise Gate:
+    // Requires signal to exceed preset noiseGateThreshold AND float at least 2.8x above ambient noise floor!
+    // Completely stops laptop fans, air-conditioner hum, and room whispers from opening the gate.
+    const effectiveThreshold = Math.max(this.noiseGateThreshold, this.dynamicNoiseFloor * 2.8);
+    const isAboveThreshold = rms >= effectiveThreshold;
 
     let frequency = 0;
     let confidence = 0;
 
     if (isAboveThreshold) {
-      // Analyze pitch ONLY when sound energy exceeds the threshold
+      // Analyze pitch ONLY when sound energy truly exceeds ambient noise
       const pitchResult = this.detectPitchNSDF(this.buffer, this.audioCtx.sampleRate);
       frequency = pitchResult.frequency;
       confidence = pitchResult.confidence;
@@ -354,7 +364,7 @@ export class MicrophoneInputAdapter implements PianoInputAdapter {
 
     // 3. Piano Specific Range & Timbre Filter:
     // Piano notes for curriculum & scales lie strictly between C2 (65.4 Hz) and C7 (2093 Hz).
-    // Struck piano strings have clear harmonic periodicity (confidence >= 0.38 for gentle touches),
+    // Struck piano strings have clear harmonic periodicity (confidence >= minConfidence ~0.52),
     // whereas room noise, rustling, and speech fricatives have low confidence.
     const isPianoFrequency = frequency >= 65 && frequency <= 2100;
     const isPianoTimbre = confidence >= this.minConfidence;
@@ -381,7 +391,7 @@ export class MicrophoneInputAdapter implements PianoInputAdapter {
           midiNote,
           cents,
           rms,
-          threshold: this.noiseGateThreshold,
+          threshold: effectiveThreshold,
           isAboveThreshold: true,
           noteName,
           sensitivityMode: this.sensitivityMode,
@@ -398,23 +408,23 @@ export class MicrophoneInputAdapter implements PianoInputAdapter {
       }
 
       // Check if candidate note reached stability window
-      // For same-pitch restrikes, require at least 2 consecutive frames to avoid acoustic phase-cancellation glitches
+      // Require at least 3 consecutive frames (~50ms) for new notes to reject ambient transients!
       const isDifferentNote = midiNote !== this.lastEmittedMidi;
-      const neededFrames = isDifferentNote ? 1 : 2;
+      const neededFrames = isDifferentNote ? this.requiredStableFrames : 2;
 
       if (this.candidateFramesCount >= neededFrames) {
         const timeSinceLastEmit = now - this.lastEmittedTime;
 
         // PHYSICAL RE-ATTACK & ONSET TRIGGER CONDITIONS:
-        // 1. Different pitch struck (e.g. C4 -> D4): require minimum 90ms transition
-        const triggerDifferent = isDifferentNote && timeSinceLastEmit > 90;
+        // 1. Different pitch struck (e.g. C4 -> D4): require minimum 110ms transition and attack presence
+        const isDifferentAttack = rms > effectiveThreshold * 1.15 || rms > this.lastRms * 1.1;
+        const triggerDifferent = isDifferentNote && timeSinceLastEmit > 110 && isDifferentAttack;
 
         // 2. Same pitch (e.g. C4 -> C4 re-strike):
         // Note MUST either have physically released (isNoteReleased) after at least 350ms,
-        // OR have a genuine distinct hammer attack surge (rms surged by 2.6x+ over smoothed decay after 360ms).
-        // (CRITICAL: Completely prevents acoustic piano string sustain/ringout from double-triggering!)
-        const isAttackSurge = (rms > this.smoothedDecayRms * 2.6 && rms > Math.max(0.01, this.noiseGateThreshold * 1.8) && timeSinceLastEmit > 360);
-        const isReleasedRetrigger = this.isNoteReleased && timeSinceLastEmit > 350;
+        // OR have a genuine distinct hammer attack surge (rms surged by 2.5x+ over smoothed decay after 350ms).
+        const isAttackSurge = (rms > this.smoothedDecayRms * 2.5 && rms > effectiveThreshold * 1.5 && timeSinceLastEmit > 350);
+        const isReleasedRetrigger = this.isNoteReleased && timeSinceLastEmit > 330;
         const triggerSame = !isDifferentNote && (isReleasedRetrigger || isAttackSurge);
 
         if (triggerDifferent || triggerSame) {
@@ -544,7 +554,7 @@ export class MicrophoneInputAdapter implements PianoInputAdapter {
         }
       } else {
         if (isPositive) {
-          if (localMaxTau > 0 && localMaxVal > 0.25) {
+          if (localMaxTau > 0 && localMaxVal > 0.40) {
             peaks.push({ tau: localMaxTau, val: localMaxVal });
           }
           isPositive = false;
@@ -553,7 +563,7 @@ export class MicrophoneInputAdapter implements PianoInputAdapter {
         }
       }
     }
-    if (isPositive && localMaxTau > 0 && localMaxVal > 0.25) {
+    if (isPositive && localMaxTau > 0 && localMaxVal > 0.40) {
       peaks.push({ tau: localMaxTau, val: localMaxVal });
     }
 

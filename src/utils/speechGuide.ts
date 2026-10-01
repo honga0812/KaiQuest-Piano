@@ -2,15 +2,38 @@
  * Natural, Child-Friendly AI Speech Synthesis Utility
  *
  * Designed specifically for young learners:
- * - Selects the most natural, human-like neural voice available on the device
- *   (Microsoft Xiaoxiao/HsiaoChen/Yunxi Natural, Apple Meijia/Tingting/Siri, Google Mandarin).
- * - Multi-phase expressive prosody: breaks text into natural conversational chunks
- *   with varied pitch and cadence tailored to speak to children (warm, cheerful, not monotonic).
- * - Emotion modes: 'excited' (high pitch, energetic), 'friendly' (warm storytelling),
- *   'encouraging' (uplifting cheer), and 'calm' (gentle instructions).
+ * 1. AI Real-Human Voice Generation:
+ *    Calls the backend /api/tts endpoint powered by Gemini 3.8 Flash TTS
+ *    with melodic, sweet child-friendly personas (Aoede / Puck).
+ * 2. Emotional Acting & Inflections:
+ *    Supports expressive emotional modes:
+ *    - 'excited': High energy, delighted cheers (🤩)
+ *    - 'celebrating': Grand fanfare, joyful ovation (🥳)
+ *    - 'encouraging': Loving, warm teacher confidence boost (🌟)
+ *    - 'friendly': Natural, sweet companion storytelling (🥰)
+ *    - 'calm': Gentle, patient step-by-step guidance (🌸)
+ * 3. In-Memory & Disk Audio Caching:
+ *    Pre-buffers and caches generated WAV audio blobs so repeat sounds play with 0ms latency.
+ * 4. Resilient Fallback:
+ *    If offline or network is interrupted, seamlessly falls back to high-quality device neural voices.
  */
 
-export type SpeechEmotion = 'excited' | 'friendly' | 'encouraging' | 'calm';
+export type SpeechEmotion = 'excited' | 'friendly' | 'encouraging' | 'celebrating' | 'calm';
+
+export interface SpeechStatusEvent {
+  isSpeaking: boolean;
+  currentText: string | null;
+  emotion: SpeechEmotion;
+  emotionEmoji: string;
+}
+
+export const EMOTION_EMOJIS: Record<SpeechEmotion, string> = {
+  excited: '🤩',
+  celebrating: '🥳',
+  encouraging: '🌟',
+  friendly: '🥰',
+  calm: '🌸',
+};
 
 interface ChunkParam {
   text: string;
@@ -21,9 +44,12 @@ interface ChunkParam {
 
 class SpeechGuideManager {
   private isSpeaking = false;
+  private currentEmotion: SpeechEmotion = 'friendly';
   private cachedBestVoice: SpeechSynthesisVoice | null = null;
-  private onStatusChangeListeners: Set<(isSpeaking: boolean, currentText: string | null) => void> = new Set();
+  private onStatusChangeListeners: Set<(event: SpeechStatusEvent) => void> = new Set();
   private currentText: string | null = null;
+  private currentAudio: HTMLAudioElement | null = null;
+  private audioCache: Map<string, string> = new Map(); // hash/key -> blob URL
   private phraseQueue: ChunkParam[] = [];
   private activeUtterance: SpeechSynthesisUtterance | null = null;
   private pauseTimer: number | null = null;
@@ -34,7 +60,6 @@ class SpeechGuideManager {
       window.speechSynthesis.onvoiceschanged = () => {
         this.cachedBestVoice = this.pickBestVoice();
       };
-      // Try resolving voice immediately
       setTimeout(() => {
         this.cachedBestVoice = this.pickBestVoice();
       }, 200);
@@ -42,7 +67,7 @@ class SpeechGuideManager {
   }
 
   /**
-   * Intelligently selects the warmest, most natural Chinese voice
+   * Intelligently selects the warmest, most natural Chinese voice for fallback
    */
   public pickBestVoice(): SpeechSynthesisVoice | null {
     if (typeof window === 'undefined' || !('speechSynthesis' in window)) return null;
@@ -50,7 +75,6 @@ class SpeechGuideManager {
     const voices = window.speechSynthesis.getVoices();
     if (!voices || voices.length === 0) return null;
 
-    // Prioritized list of high-quality neural / natural Chinese voices
     const naturalKeywords = [
       'xiaoxiao',  // Microsoft Xiaoxiao Natural (warm, child-friendly)
       'hsiaochen', // Microsoft HsiaoChen Natural (Taiwanese warm female)
@@ -66,7 +90,6 @@ class SpeechGuideManager {
       'neural',
     ];
 
-    // 1. Check for keyword match in Chinese voices
     for (const kw of naturalKeywords) {
       const match = voices.find(
         (v) =>
@@ -76,11 +99,9 @@ class SpeechGuideManager {
       if (match) return match;
     }
 
-    // 2. Secondary fallback: any zh-TW voice
     const twVoice = voices.find((v) => v.lang === 'zh-TW' || v.lang === 'cmn-Hant-TW');
     if (twVoice) return twVoice;
 
-    // 3. Tertiary fallback: any zh voice
     const anyZh = voices.find((v) => v.lang.startsWith('zh'));
     if (anyZh) return anyZh;
 
@@ -91,7 +112,6 @@ class SpeechGuideManager {
    * Transforms raw speech into lively child-friendly clauses with emotional dynamic pitch/rate
    */
   public buildKidPhrases(rawText: string, emotion: SpeechEmotion = 'friendly'): ChunkParam[] {
-    // Clean text and split by punctuation boundaries while keeping punctuation marks
     const sentences = rawText
       .replace(/[\r\n]+/g, ' ')
       .split(/(?<=[！!？?。…~～，,；;])/)
@@ -100,8 +120,20 @@ class SpeechGuideManager {
 
     if (sentences.length === 0) return [];
 
-    const basePitch = emotion === 'excited' ? 1.28 : emotion === 'encouraging' ? 1.24 : emotion === 'calm' ? 1.12 : 1.20;
-    const baseRate = emotion === 'excited' ? 1.02 : emotion === 'calm' ? 0.90 : 0.94;
+    const basePitch =
+      emotion === 'excited' || emotion === 'celebrating'
+        ? 1.28
+        : emotion === 'encouraging'
+        ? 1.24
+        : emotion === 'calm'
+        ? 1.12
+        : 1.20;
+    const baseRate =
+      emotion === 'excited' || emotion === 'celebrating'
+        ? 1.02
+        : emotion === 'calm'
+        ? 0.90
+        : 0.95;
 
     return sentences.map((sentence, idx) => {
       let pitch = basePitch;
@@ -113,24 +145,20 @@ class SpeechGuideManager {
       const isComma = /[，,；;]/.test(sentence);
 
       if (idx === 0 && (isExclamation || sentence.length < 8)) {
-        // High, upbeat greeting or exclamation
         pitch = Math.min(1.4, basePitch + 0.10);
         rate = Math.min(1.1, baseRate + 0.05);
         pauseAfter = 140;
       } else if (idx === sentences.length - 1 && isExclamation) {
-        // Cheerful closing encouragement
         pitch = Math.min(1.38, basePitch + 0.08);
         rate = baseRate;
         pauseAfter = 80;
       } else if (isQuestion) {
-        // Inquisitive, engaging upward inflection
         pitch = Math.min(1.34, basePitch + 0.06);
         pauseAfter = 120;
       } else if (isComma) {
         pauseAfter = 90;
       }
 
-      // Format text with gentle particles
       const text = sentence
         .replace(/！/g, '！')
         .replace(/。/g, '～')
@@ -146,19 +174,20 @@ class SpeechGuideManager {
   }
 
   /**
-   * Speaks the text with warm, expressive, high-emotion dynamic inflection
+   * Speaks the text with warm, expressive, high-emotion AI human speech
    */
-  public speak(
+  public async speak(
     rawText: string,
     options?: {
       emotion?: SpeechEmotion;
+      voice?: string;
       pitch?: number;
       rate?: number;
       onEnd?: () => void;
       onError?: () => void;
     }
-  ): void {
-    if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
+  ): Promise<void> {
+    if (!rawText || !rawText.trim()) {
       options?.onEnd?.();
       return;
     }
@@ -167,19 +196,128 @@ class SpeechGuideManager {
 
     const currentSession = ++this.sessionId;
     const emotion = options?.emotion || 'friendly';
+    this.currentEmotion = emotion;
+    this.currentText = rawText;
+    this.isSpeaking = true;
+    this.notifyStatus(true, rawText, emotion);
+
+    // 1. Try AI-powered Gemini Text-To-Speech from server
+    const aiSuccess = await this.trySpeakWithAi(rawText, emotion, options?.voice || 'Aoede', currentSession, options?.onEnd, options?.onError);
+    if (aiSuccess) {
+      return;
+    }
+
+    // 2. Fallback to Browser Speech Synthesis with high-quality natural voice & expressive modulation
+    if (this.sessionId !== currentSession) return;
+    this.fallbackBrowserSpeech(rawText, emotion, currentSession, options);
+  }
+
+  /**
+   * Fetches real AI human audio from /api/tts with emotion styling and plays it
+   */
+  private async trySpeakWithAi(
+    rawText: string,
+    emotion: SpeechEmotion,
+    voice: string,
+    session: number,
+    onEnd?: () => void,
+    onError?: () => void
+  ): Promise<boolean> {
+    try {
+      const cacheKey = `${voice}:${emotion}:${rawText.trim()}`;
+      let audioUrl = this.audioCache.get(cacheKey);
+
+      if (!audioUrl) {
+        const resp = await fetch(`/api/tts?text=${encodeURIComponent(rawText.trim())}&emotion=${encodeURIComponent(emotion)}&voice=${encodeURIComponent(voice)}`);
+        if (!resp.ok) {
+          return false;
+        }
+
+        const contentType = resp.headers.get('content-type') || '';
+        if (contentType.includes('application/json')) {
+          // Fallback flag returned by server
+          return false;
+        }
+
+        const blob = await resp.blob();
+        if (blob.size < 100) {
+          return false;
+        }
+        audioUrl = URL.createObjectURL(blob);
+        this.audioCache.set(cacheKey, audioUrl);
+      }
+
+      if (this.sessionId !== session) {
+        return true;
+      }
+
+      const audio = new Audio(audioUrl);
+      this.currentAudio = audio;
+
+      audio.onended = () => {
+        if (this.sessionId === session) {
+          this.isSpeaking = false;
+          this.currentText = null;
+          this.currentAudio = null;
+          this.notifyStatus(false, null, emotion);
+          onEnd?.();
+        }
+      };
+
+      audio.onerror = () => {
+        if (this.sessionId === session) {
+          console.warn('AI audio playback error, falling back to browser speech synthesis');
+          this.currentAudio = null;
+          this.fallbackBrowserSpeech(rawText, emotion, session, { onEnd, onError });
+        }
+      };
+
+      await audio.play();
+      return true;
+    } catch (err) {
+      console.warn('AI TTS fetch/play error:', err);
+      return false;
+    }
+  }
+
+  /**
+   * Fallback using browser speech synthesis
+   */
+  private fallbackBrowserSpeech(
+    rawText: string,
+    emotion: SpeechEmotion,
+    session: number,
+    options?: {
+      pitch?: number;
+      rate?: number;
+      onEnd?: () => void;
+      onError?: () => void;
+    }
+  ): void {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
+      this.isSpeaking = false;
+      this.currentText = null;
+      this.notifyStatus(false, null, emotion);
+      options?.onEnd?.();
+      return;
+    }
+
     const phrases = this.buildKidPhrases(rawText, emotion);
-    if (phrases.length === 0) return;
+    if (phrases.length === 0) {
+      this.isSpeaking = false;
+      this.currentText = null;
+      this.notifyStatus(false, null, emotion);
+      options?.onEnd?.();
+      return;
+    }
 
     this.phraseQueue = phrases;
-    this.isSpeaking = true;
-    this.currentText = rawText;
-    this.notifyStatus(true, rawText);
-
-    this.processNextPhrase(currentSession, options);
+    this.processNextPhrase(session, emotion, options);
   }
 
   private processNextPhrase(
     session: number,
+    emotion: SpeechEmotion,
     options?: {
       pitch?: number;
       rate?: number;
@@ -193,7 +331,7 @@ class SpeechGuideManager {
       this.isSpeaking = false;
       this.currentText = null;
       this.activeUtterance = null;
-      this.notifyStatus(false, null);
+      this.notifyStatus(false, null, emotion);
       options?.onEnd?.();
       return;
     }
@@ -220,13 +358,13 @@ class SpeechGuideManager {
       if (this.phraseQueue.length > 0) {
         this.pauseTimer = window.setTimeout(() => {
           if (this.sessionId !== session) return;
-          this.processNextPhrase(session, options);
+          this.processNextPhrase(session, emotion, options);
         }, item.pauseAfterMs);
       } else {
         this.isSpeaking = false;
         this.currentText = null;
         this.activeUtterance = null;
-        this.notifyStatus(false, null);
+        this.notifyStatus(false, null, emotion);
         options?.onEnd?.();
       }
     };
@@ -239,7 +377,7 @@ class SpeechGuideManager {
       this.isSpeaking = false;
       this.currentText = null;
       this.activeUtterance = null;
-      this.notifyStatus(false, null);
+      this.notifyStatus(false, null, emotion);
       options?.onError?.();
     };
 
@@ -247,13 +385,22 @@ class SpeechGuideManager {
       window.speechSynthesis.speak(utterance);
     } catch (err) {
       console.warn('Speech synthesis speak failure:', err);
-      this.notifyStatus(false, null);
+      this.notifyStatus(false, null, emotion);
     }
   }
 
   public stop(): void {
-    // Invalidate any ongoing speech session immediately
     this.sessionId++;
+
+    if (this.currentAudio) {
+      try {
+        this.currentAudio.pause();
+        this.currentAudio.currentTime = 0;
+      } catch {
+        // ignore
+      }
+      this.currentAudio = null;
+    }
 
     if (this.pauseTimer !== null) {
       clearTimeout(this.pauseTimer);
@@ -269,7 +416,6 @@ class SpeechGuideManager {
 
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       try {
-        // Pausing before canceling flushes buffer immediately on Chromium/Safari
         window.speechSynthesis.pause();
         window.speechSynthesis.cancel();
         setTimeout(() => {
@@ -277,20 +423,13 @@ class SpeechGuideManager {
             window.speechSynthesis.cancel();
           } catch {}
         }, 10);
-        setTimeout(() => {
-          try {
-            if (window.speechSynthesis.speaking) {
-              window.speechSynthesis.cancel();
-            }
-          } catch {}
-        }, 40);
       } catch {
         // ignore
       }
     }
     this.isSpeaking = false;
     this.currentText = null;
-    this.notifyStatus(false, null);
+    this.notifyStatus(false, null, this.currentEmotion);
   }
 
   public getIsSpeaking(): boolean {
@@ -301,16 +440,31 @@ class SpeechGuideManager {
     return this.currentText;
   }
 
-  public subscribeStatus(listener: (isSpeaking: boolean, text: string | null) => void): () => void {
+  public getCurrentEmotion(): SpeechEmotion {
+    return this.currentEmotion;
+  }
+
+  public subscribeStatus(listener: (event: SpeechStatusEvent) => void): () => void {
     this.onStatusChangeListeners.add(listener);
-    listener(this.isSpeaking, this.currentText);
+    listener({
+      isSpeaking: this.isSpeaking,
+      currentText: this.currentText,
+      emotion: this.currentEmotion,
+      emotionEmoji: EMOTION_EMOJIS[this.currentEmotion] || '🥰',
+    });
     return () => {
       this.onStatusChangeListeners.delete(listener);
     };
   }
 
-  private notifyStatus(isSpeaking: boolean, text: string | null): void {
-    this.onStatusChangeListeners.forEach((l) => l(isSpeaking, text));
+  private notifyStatus(isSpeaking: boolean, text: string | null, emotion: SpeechEmotion): void {
+    const event: SpeechStatusEvent = {
+      isSpeaking,
+      currentText: text,
+      emotion,
+      emotionEmoji: EMOTION_EMOJIS[emotion] || '🥰',
+    };
+    this.onStatusChangeListeners.forEach((l) => l(event));
   }
 }
 

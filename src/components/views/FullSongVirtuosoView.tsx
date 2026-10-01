@@ -66,6 +66,7 @@ export const FullSongVirtuosoView: React.FC<FullSongVirtuosoViewProps> = ({
   const lastHandledOnsetIdRef = useRef<number | null>(null);
   const lastSuccessTimeRef = useRef<number>(0);
   const lastSuccessMidiRef = useRef<number | null>(null);
+  const lastMissTimeRef = useRef<number>(0);
 
   // Mic state & diagnostic modal
   const [isMicRunning, setIsMicRunning] = useState(micAdapter.getIsRunning());
@@ -265,6 +266,12 @@ export const FullSongVirtuosoView: React.FC<FullSongVirtuosoViewProps> = ({
         lastSuccessMidiRef.current = currentTargetNote.midiNote;
         handleNoteSuccess();
       } else {
+        if (event.source === 'microphone') {
+          if (event.midiNote < 48 || event.midiNote > 88) return;
+          if ((event.confidence ?? 1) < 0.55) return;
+          if (now - lastMissTimeRef.current < 650) return;
+        }
+        lastMissTimeRef.current = now;
         handleNoteMiss(event.noteName);
       }
 
