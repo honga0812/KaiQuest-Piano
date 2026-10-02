@@ -7,8 +7,8 @@ import { TabletDockDrawer } from './TabletDockDrawer';
 import { DeployDownloadModal } from '../modals/DeployDownloadModal';
 
 interface NavbarProps {
-  currentTab: 'map' | 'lesson' | 'concert' | 'gym' | 'freeplay' | 'badges' | 'theory';
-  onSelectTab: (tab: 'map' | 'concert' | 'gym' | 'freeplay' | 'badges' | 'theory') => void;
+  currentTab: 'map' | 'lesson' | 'concert' | 'gym' | 'rhythm' | 'freeplay' | 'badges' | 'theory';
+  onSelectTab: (tab: 'map' | 'concert' | 'gym' | 'rhythm' | 'freeplay' | 'badges' | 'theory') => void;
   userAge: AgeBand;
   onSelectAge: (age: AgeBand) => void;
   inputMode: InputMode;
@@ -201,6 +201,17 @@ export const Navbar: React.FC<NavbarProps> = ({
           >
             <span>🎪</span>
             <span>技巧遊戲</span>
+          </button>
+          <button
+            onClick={() => onSelectTab('rhythm')}
+            className={`px-3 py-1.5 md:px-3.5 md:py-2 rounded-2xl transition-all whitespace-nowrap flex items-center gap-1.5 ${
+              currentTab === 'rhythm'
+                ? 'bg-gradient-to-r from-amber-500 via-rose-500 to-indigo-600 text-white shadow-md shadow-rose-500/30 font-black'
+                : 'hover:text-amber-600 hover:bg-amber-50'
+            }`}
+          >
+            <span>⚡</span>
+            <span>節奏捕捉</span>
           </button>
           <button
             onClick={() => onSelectTab('freeplay')}

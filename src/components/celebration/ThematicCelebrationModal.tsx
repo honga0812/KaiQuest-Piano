@@ -55,31 +55,31 @@ export function getPraiseForCompletion(
       {
         tag: '你成功了！全曲大滿貫',
         icon: '👑',
-        speech: `你成功了！整首《${songName}》完整連貫彈奏完畢，你是最棒的鋼琴小大師！繼續加油！`,
+        speech: `你成功了！整首歌曲完整連貫彈奏完畢，你是最棒的鋼琴小大師！繼續加油！`,
         badgeColor: 'bg-emerald-500/25 text-emerald-200 border-emerald-400',
       },
       {
         tag: '你是最棒的！全曲精彩演出',
         icon: '⭐',
-        speech: `你是最棒的！《${songName}》全曲彈得太好聽了，全場都在為你起立鼓掌！繼續加油！`,
+        speech: `你是最棒的！全曲彈得太動聽了，全場都在為你起立鼓掌！繼續加油！`,
         badgeColor: 'bg-amber-500/25 text-amber-200 border-amber-400',
       },
       {
         tag: '繼續加油！征服完整名曲',
         icon: '🔥',
-        speech: `繼續加油！你成功征服了《${songName}》全曲大挑戰，節奏與指法太穩健了，你是最棒的！`,
+        speech: `繼續加油！你成功征服了全曲大挑戰，節奏與指法太穩健了，你是最棒的！`,
         badgeColor: 'bg-orange-500/25 text-orange-200 border-orange-400',
       },
       {
         tag: '太厲害了！音樂會級別演奏',
         icon: '🏆',
-        speech: `太厲害了！《${songName}》從頭到尾零失誤，你成功了，你是最棒的，繼續加油邁向下一關！`,
+        speech: `太厲害了！從頭到尾零失誤，你成功了，你是最棒的，繼續加油邁向下一關！`,
         badgeColor: 'bg-purple-500/25 text-purple-200 border-purple-400',
       },
       {
         tag: '你做到了！大師榮譽達成',
         icon: '🎉',
-        speech: `你做到了！${mentorName}為你感到驕傲，音符像水流一樣流暢！你成功了，繼續加油！`,
+        speech: `你做到了！音符像水流一樣流暢！你成功了，繼續加油！`,
         badgeColor: 'bg-sky-500/25 text-sky-200 border-sky-400',
       },
     ];
@@ -90,11 +90,6 @@ export function getPraiseForCompletion(
   }
 
   // Stages 1, 2, 3 or regular completion:
-  // Features user's explicitly requested variants:
-  // 1. 你成功了
-  // 2. 繼續加油
-  // 3. 你是最棒的
-  // 4. 太厲害了 / 你做到了 / 彈得真好 / 完美過關 / 真了不起
   const generalPool: CelebrationPraise[] = [
     {
       tag: '你成功了！',
@@ -117,7 +112,7 @@ export function getPraiseForCompletion(
     {
       tag: '你成功了！',
       icon: '🚀',
-      speech: `你成功了！${mentorName}為你喝彩！音符一個都沒有漏掉，你是最棒的，繼續加油！`,
+      speech: `你成功了！為你喝彩！音符一個都沒有漏掉，你是最棒的，繼續加油！`,
       badgeColor: 'bg-emerald-500/25 text-emerald-200 border-emerald-400',
     },
     {
@@ -135,7 +130,7 @@ export function getPraiseForCompletion(
     {
       tag: '太厲害了！',
       icon: '👏',
-      speech: `太厲害了！${mentorName}為你鼓掌！這段指法銜接得流暢自然，你成功了，繼續加油！`,
+      speech: `太厲害了！為你鼓掌！這段指法銜接得流暢自然，你成功了，繼續加油！`,
       badgeColor: 'bg-purple-500/25 text-purple-200 border-purple-400',
     },
     {

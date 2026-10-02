@@ -4,8 +4,8 @@ import { micAdapter } from '../../audio/microphoneAdapter';
 import { getPublicShareUrl } from '../../utils/safariShare';
 
 interface TabletDockDrawerProps {
-  currentTab: 'map' | 'lesson' | 'concert' | 'gym' | 'freeplay' | 'badges' | 'theory';
-  onSelectTab: (tab: 'map' | 'concert' | 'gym' | 'freeplay' | 'badges' | 'theory') => void;
+  currentTab: 'map' | 'lesson' | 'concert' | 'gym' | 'rhythm' | 'freeplay' | 'badges' | 'theory';
+  onSelectTab: (tab: 'map' | 'concert' | 'gym' | 'rhythm' | 'freeplay' | 'badges' | 'theory') => void;
   userAge: AgeBand;
   onSelectAge: (age: AgeBand) => void;
   inputMode: InputMode;

@@ -260,6 +260,78 @@ class PianoSynthesizer {
   public playCelebrationChime(): void {
     this.playFanfare();
   }
+
+  /**
+   * Rhythm Catch timing sound effects
+   */
+  public playRhythmHit(judgment: 'PERFECT' | 'GREAT' | 'GOOD' | 'MISS'): void {
+    const ctx = this.getAudioContext();
+    const now = ctx.currentTime;
+
+    if (judgment === 'PERFECT') {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(1760, now); // A6 crystal sparkle
+      osc.frequency.exponentialRampToValueAtTime(2637, now + 0.08); // E7
+      gain.gain.setValueAtTime(0.001, now);
+      gain.gain.linearRampToValueAtTime(0.18, now + 0.005);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.22);
+      osc.connect(gain);
+      gain.connect(this.masterGain!);
+      osc.start(now);
+      osc.stop(now + 0.23);
+    } else if (judgment === 'GREAT') {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(1318, now); // E6
+      gain.gain.setValueAtTime(0.001, now);
+      gain.gain.linearRampToValueAtTime(0.14, now + 0.005);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
+      osc.connect(gain);
+      gain.connect(this.masterGain!);
+      osc.start(now);
+      osc.stop(now + 0.19);
+    } else if (judgment === 'GOOD') {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(880, now); // A5
+      gain.gain.setValueAtTime(0.001, now);
+      gain.gain.linearRampToValueAtTime(0.1, now + 0.005);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.14);
+      osc.connect(gain);
+      gain.connect(this.masterGain!);
+      osc.start(now);
+      osc.stop(now + 0.15);
+    } else {
+      // Soft gentle wooden thud (not jarring for kids)
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(150, now);
+      osc.frequency.exponentialRampToValueAtTime(60, now + 0.08);
+      gain.gain.setValueAtTime(0.08, now);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.1);
+      osc.connect(gain);
+      gain.connect(this.masterGain!);
+      osc.start(now);
+      osc.stop(now + 0.12);
+    }
+  }
+
+  /**
+   * Sound when user hits 10+ combo entering FEVER mode
+   */
+  public playComboFeverSound(): void {
+    const notes = [64, 67, 71, 76]; // E G B E arpeggio
+    notes.forEach((midi, idx) => {
+      setTimeout(() => {
+        this.playNote(midi, 0.7, 0.5);
+      }, idx * 60);
+    });
+  }
 }
 
 export const pianoSynth = new PianoSynthesizer();

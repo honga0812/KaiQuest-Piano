@@ -16,6 +16,7 @@ import { FreePlayView } from './components/views/FreePlayView';
 import { BadgesView } from './components/views/BadgesView';
 import { FullSongVirtuosoView } from './components/views/FullSongVirtuosoView';
 import { MusicTheoryView } from './components/views/MusicTheoryView';
+import { RhythmCatchView } from './components/views/RhythmCatchView';
 import { FirstTimeFlowModal } from './components/modals/FirstTimeFlowModal';
 import { SettingsCalibrateModal } from './components/modals/SettingsCalibrateModal';
 import { ScaleRecognitionModal } from './components/modals/ScaleRecognitionModal';
@@ -29,7 +30,7 @@ import { speechGuide } from './utils/speechGuide';
 
 export default function App() {
   const [progress, setProgress] = useState<UserProgress>(loadUserProgress);
-  const [currentTab, setCurrentTab] = useState<'map' | 'lesson' | 'concert' | 'gym' | 'freeplay' | 'badges' | 'theory'>('map');
+  const [currentTab, setCurrentTab] = useState<'map' | 'lesson' | 'concert' | 'gym' | 'rhythm' | 'freeplay' | 'badges' | 'theory'>('map');
   const [activeLesson, setActiveLesson] = useState<Lesson>(LESSONS_DATABASE[0]);
   const [showFirstTimeModal, setShowFirstTimeModal] = useState<boolean>(false);
   const [showSettingsModal, setShowSettingsModal] = useState<boolean>(false);
@@ -315,6 +316,7 @@ export default function App() {
             onSelectLesson={handleSelectLesson}
             onOpenConcert={() => setCurrentTab('concert')}
             onOpenGym={() => setCurrentTab('gym')}
+            onOpenRhythm={() => setCurrentTab('rhythm')}
             onSelectAge={handleUpdateAge}
           />
         )}
@@ -341,6 +343,14 @@ export default function App() {
 
         {currentTab === 'gym' && (
           <TechniqueGymView
+            onBackToMap={() => setCurrentTab('map')}
+            inputMode={progress.selectedInputMode}
+            onOpenRhythm={() => setCurrentTab('rhythm')}
+          />
+        )}
+
+        {currentTab === 'rhythm' && (
+          <RhythmCatchView
             onBackToMap={() => setCurrentTab('map')}
             inputMode={progress.selectedInputMode}
           />

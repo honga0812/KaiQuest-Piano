@@ -15,6 +15,7 @@ interface CourseMapViewProps {
   onSelectAge?: (age: AgeBand) => void;
   onOpenGym?: () => void;
   onOpenConcert?: () => void;
+  onOpenRhythm?: () => void;
   className?: string;
 }
 
@@ -26,6 +27,7 @@ export const CourseMapView: React.FC<CourseMapViewProps> = ({
   onSelectAge,
   onOpenGym,
   onOpenConcert,
+  onOpenRhythm,
   className = '',
 }) => {
   const currentAge = progress.userAge;
@@ -166,6 +168,18 @@ export const CourseMapView: React.FC<CourseMapViewProps> = ({
             </span>
             <span>➔</span>
           </button>
+
+          {/* Quick Rhythm Catch Mini-Game Launch */}
+          {onOpenRhythm && (
+            <button
+              onClick={onOpenRhythm}
+              className="flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-amber-500 to-rose-500 hover:from-amber-600 hover:to-rose-600 text-white font-black text-xs md:text-sm rounded-2xl shadow-md transition active:scale-95"
+              title="挑戰全新「節奏音符捕捉」小遊戲"
+            >
+              <span>⚡</span>
+              <span>節奏捕捉</span>
+            </button>
+          )}
         </div>
       </div>
 

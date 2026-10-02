@@ -12,11 +12,13 @@ import { pianoSynth } from '../../audio/pianoSynthesizer';
 interface TechniqueGymViewProps {
   onBackToMap: () => void;
   inputMode?: InputMode;
+  onOpenRhythm?: () => void;
   className?: string;
 }
 
 export const TechniqueGymView: React.FC<TechniqueGymViewProps> = ({
   inputMode = 'microphone',
+  onOpenRhythm,
   className = '',
 }) => {
   const [selectedGame, setSelectedGame] = useState<TechniqueGameDef>(TECHNIQUE_GAMES[0]);
@@ -119,6 +121,32 @@ export const TechniqueGymView: React.FC<TechniqueGymViewProps> = ({
         <p className="text-base text-slate-700 font-bold">
           跟著艾力獅練手型、跟三十郎大師練指法接力、跟嘎嘎鴨練習滑順連奏！
         </p>
+
+        {/* Featured Mini-game Link Banner: Rhythm Catch */}
+        {onOpenRhythm && (
+          <div className="mt-2 p-4 rounded-2xl bg-gradient-to-r from-amber-500 via-rose-500 to-indigo-600 text-white flex flex-col sm:flex-row items-center justify-between gap-3 shadow-md">
+            <div className="flex items-center gap-3">
+              <span className="text-3xl sm:text-4xl animate-bounce">⚡</span>
+              <div className="flex flex-col text-left">
+                <span className="text-xs uppercase font-black tracking-wider text-amber-200">
+                  全新節奏反應小遊戲 (New Mini-Game)
+                </span>
+                <span className="text-base sm:text-lg font-black leading-snug">
+                  節奏音符捕捉 (Rhythm Catch)
+                </span>
+                <span className="text-xs text-white/90 font-medium">
+                  彩色音符落下，敲擊真琴、鍵盤或螢幕，練習毫秒級極限精準度！
+                </span>
+              </div>
+            </div>
+            <button
+              onClick={onOpenRhythm}
+              className="px-5 py-2.5 rounded-xl bg-white text-slate-900 font-black text-sm shadow-md hover:bg-amber-100 transition active:scale-95 shrink-0 whitespace-nowrap"
+            >
+              進入節奏捕捉 ➔
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
